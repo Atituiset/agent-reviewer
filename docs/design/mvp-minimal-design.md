@@ -110,21 +110,53 @@ fail-open：脚本自身任何异常 → exit 0 放行
 ```json
 {
   "rules": [
-    {"path": "**/*.{c,cc,cpp}",  "scenarios": ["memory-leak", "null-deref", "use-after-free"]},
-    {"path": "**/*.java",        "scenarios": ["null-deref", "resource-leak"]},
-    {"path": "**/concurrent/**", "scenarios": ["deadlock", "race-condition"]},
+    {"path": "**/*.{c,cc,cpp}",  "scenarios": ["cwe-476", "cwe-401", "cwe-416", "cwe-787"]},
+    {"path": "**/*.java",        "scenarios": ["cwe-476", "resource-leak"]},
+    {"path": "**/concurrent/**", "scenarios": ["cwe-362", "deadlock"]},
     {"path": "**/*",             "scenarios": ["default"]}
   ]
 }
 ```
 
-- 每个场景一个 checklist 文件（`rules/scenarios/<name>.md`），内容即现有场景 prompt 的 checklist 化
+- 每个场景一个目录（`rules/scenarios/<cwe-key>/`），契约见 §2.4.1
 - **确定性路由**：`review-package.sh` 按 diff 触及路径匹配场景，只把命中场景的 checklist 注入 `context.md`；不相关的场景不注入——控制 prompt 长度就是控制误报率（D5）
 - **编排分两档**：小 diff（默认）单 reviewer 注入命中场景一次评审；大 diff（V1）每个命中场景派一个独立场景 subagent 并行评审，findings 汇总后过验证 subagent 二次确认（报告一 §3.4 官方 /code-review 模式）
 - **severity 挂场景**：确定性高的场景（null-deref、memory-leak）finding 默认 high severity → 阻塞 commit；风格类场景降级为摘要提示——门禁松紧按场景分级，防 review theater（D9）
 - **场景库入治理循环**：现有人写场景 prompt 视为 MDE 撰写的 convention，直接 active 入库；之后的双向回喂——场景命中真实缺陷 → 提炼 `incident_pattern` 进 quarantine；场景漏检（缺陷逃逸）→ 提炼**场景 prompt 改进提案**进 quarantine，MDE 审核后更新 `rules/scenarios/`。场景库随评审历史演进，而非静态资产（ANDM 飞轮在规则层的复用）
 - **场景即评测基准**：历史真实缺陷案例（各场景的已知命中/漏检）回放 reviewer，得出 per-scenario 的 precision/recall——README §5 北极星 A/B 指标的现成数据基础，也是调场景 prompt 的客观依据（OCR benchmark 驱动调优，报告一 §3.5）
 - 口径注意：场景 checklist 写入本仓库前过一遍业务口径，只保留通用技术模式，不含业务内部细节
+
+### 2.4.1 场景定义契约：CWE 键控 + checklist + 回放样本（三元组）
+
+团队按缺陷 benchmark 论文路线建设的 C/C++ 缺陷场景库（对齐 CASTLE / PrimeVul / CVEfixes / Meta CQS 的方法论），在本设计中每个场景是一个目录而非单个 prompt 文件：
+
+```
+rules/scenarios/cwe-476-null-deref/
+├── checklist.md        # 注入 reviewer 的检测清单（现有场景 prompt 的 checklist 化）
+├── meta.yaml           # {cwe: 476, severity_default: high, languages: [c, cpp]}
+└── cases/              # 回放基准样本（现有缺陷案例资产直接迁入）
+    ├── pos-001/        # 正例：含缺陷
+    │   ├── diff.patch          # 「修复前版本 + diff」= 一个待审 PR
+    │   └── golden.json         # {cwe_tag, severity, function, 语句级锚点, rationale}
+    └── neg-001/        # 负例：同项目非安全改动（测误报率）
+        └── diff.patch
+```
+
+要点（均有公开文献依据）：
+
+- **场景命名以 CWE 为键**（cwe-476 / cwe-401 / cwe-416 / cwe-787 / cwe-362 / cwe-190…）：标准化、去重、可直接对齐 MITRE Top 25 与外部 benchmark，registry 的 `scenarios` 字段直接用 CWE 键
+- **锚点用语句级而非行号**：C/C++ 中一条语句常跨多行，行级标签无语义（SecVulEval 论证）；评估时允许 ±行容差
+- **负样本必需**：取同项目非安全 commit 构造「无问题 PR」测 FP 率；不能沿用「未被 patch 触碰 = 安全」的假设（Big-Vul 教训）
+- **golden 标注协议**（若需扩充案例时）：双人**盲标**（隐去 CVE 编号/CWE 标签/commit message 安全关键词）+ CWE tag + 函数 + 语句锚点三维一致才入 golden set；分歧项不丢弃，降级为 hard case 子集（修正 Meta CQS 自报的三个偏差：ground truth 由被测模型生成、标注者可见来源、只验不找漏）
+- **防训练集泄漏**：样本优先取 2023 年后的 CVE（晚于主流模型训练截止日），dev/test 按 commit 时间序切分；归一化去重（PrimeVul 实证：现有数据集标签正确率仅 24%~60%，泄漏率最高 18.9%——自建资产的标注质量就是核心竞争力）
+
+### 2.4.2 场景回放评估（`scripts/scenario-replay.sh`，V1 前移到 MVP 后段）
+
+- **两层匹配协议**（Meta CQS）：CWE tag 精确匹配 → 语句锚点/函数规则匹配 → rationale 用固定版本的轻量 judge 模型语义判等；judge 版本写入结果元数据（防漂移导致历史分数不可比）
+- **指标**：per-scenario（per-CWE）分层报告 precision/recall/F1——聚合分会掩盖场景间能力方差；另报「限定 FP 率下的漏报率」（对门禁落地更有决策价值）
+- **静态分析器基线**：回放时同跑 Clang SA / Infer / Semgrep 作参照系——LLM 评审分数只有对照静态分析基线才可解读；CWE 规则类缺陷未来可评估迁移到确定性层（CodeFuse-Query GDL，报告一 §3.6）
+- **三层金字塔定位**：手写微基准（CASTLE 式）只做 smoke test/FP 校准，不进主指标（微基准分数不能外推到 PR 级）；主指标只看真实 commit 构造的 PR 级样本
+- 回放结果即 §2.4「场景 prompt 改进提案」的客观依据：某 CWE recall 持续低 → 提炼 checklist 改进提案进 quarantine
 
 ### 2.5 记忆最短链路（`memoryd`，SQLite 单文件）
 
