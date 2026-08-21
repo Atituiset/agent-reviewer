@@ -1,6 +1,6 @@
 # ai-native-dev-memory（ANDM）系统设计
 
-> 版本：v0.1 · 2026-08-21
+> 版本：v0.2 · 2026-08-21（v0.2 新增 §10：记忆工程机制设计）
 > 性质：系统设计文档——将《AI-Native 开发闭环设计》（`docs/design/ai-native-dev-memory-loop.md`，下称「概念文档」）落成可实施的系统架构
 > 前置：`docs/research/sdd-code-reviewer-landscape.md`（报告一）、`docs/research/multi-agent-memory-communication-review.md`（报告二）
 
@@ -161,7 +161,73 @@ git hook 检测到 bound_paths 变更 → 条目 degraded → 通知审核人
 - **V2**：trust 自清洁 + severity 自动路由 + A2A 适配 + 底座迁移评估
 - **度量**（全程）：评审漏网率、每 PR 评审轮数（报告一 §4.3）、记忆召回命中率、degraded 占比、审核队列积压时长、**误导性条目发现率**（飞轮是否反转的核心指标）
 
-## 10. 开放问题
+## 10. 记忆工程机制深化（v0.2，来自 记忆系统工程）
+
+机制参考：`一份记忆系统工程笔记`（覆盖 60+ 公开论文与生产实践）。单用户个人记忆与团队研发记忆场景不同（差异见 §10.6），但记忆系统工程机制大量可迁移。
+
+### 10.1 总体原则
+
+- **统一存储 + 类型标记**：「逻辑分离、物理可合并」——一张表 + `kind` 字段 + 不同索引策略，与 §4 schema 一致，不分库
+- **读写双管线分离**：Write = `PREPROCESS → IMPORTANCE → DEDUP → STORE` + 异步 consolidation；Read = `QUERY EXPANSION → HYBRID SEARCH → RANKING → CONTEXT ASSEMBLY`。**quarantine 就是插在写管线 STORE 之前的缓冲带**——治理门有现成的管线理论支撑
+- **Build vs Buy**：「记忆系统的门槛不在基础设施，而在记忆编排层」——ANDM 的差异化全在治理规则，向量库/存储全用现成组件（§8 选型不变）
+- **MCP server 形态**：`remember/recall/forget/search` tools + `memory://module/<path>` resources（后者正好服务确定性召回）+ 高危动作 `requiresConfirmation: true`
+
+### 10.2 条目模型增强（修订 §4 schema）
+
+新增/明确三个字段，均有出处：
+
+- `applies_to`：**可编程判定的适用守卫**（glob 匹配代码路径），不写含糊自然语言——工程实践 §1.2 的 `preconditions` 教训："preconditions 应写成可编程检查"
+- `hit/miss` 埋点计数：召回后被采纳 vs 被忽略 vs 被标记误导——这是「误导性条目率」度量的数据源头（§4 的 `confirmations/violations` 细化为召回级埋点）
+- `last_accessed_at`：**时效衰减锚定「上次被访问时间」而非创建时间**（检索命中即重置，模拟复述效应，Generative Agents 机制）——修正概念文档 §4.3 单纯 TTL 的思路
+
+### 10.3 写入管线增强（修订 §6.1 Distiller）
+
+- **前置过滤决策树**：个人意义? → 重复? → 含新事实? → 值得记忆?；研发语境的忽略清单：临时状态（"这个 PR 还没合"）、相似度 >0.9 的重复、**被纠正后的错误信息**（agent 一度误判、后被 review 纠正的结论绝不能成为团队记忆）
+- **重要性评分公式（研发信号版）**，替代 通用版本的情感/交互信号：
+  `Importance = w1×ReviewSeverity + w2×DecisionFinality + w3×ModuleCriticality + w4×InfoDensity + w5×FutureReferenceLikelihood`
+  重要性分决定 quarantine 审核优先级与入库初始权重
+- **写入前去重进 quarantine 之前**：LSH 近似 + cosine>0.95 合并——避免审核人重复审近似条目
+- **冲突解决**（相似度 >0.85 且语义矛盾时）：裁决依据用「绑定代码版本新旧 + 审核人权限」替代纯 confidence；无法裁决则**双版本并存 + 冲突标注**，注入时同时呈现让 agent 向人确认——不强行二选一
+- **混合压缩策略**：关键信息（决策、结论、TODO）用提取式保真；上下文叙述用生成式压缩（20:1）；token 级压缩（LLMLingua 类）精度风险高，**不适合承载 review 结论**
+- **原文锚点**：摘要不可逆——每条提炼条目必须保留指向原始 session（Level 0）的链接，审核人可回溯原文判断提炼是否有损（强化 §4 的 evidence 字段）
+
+### 10.4 生命周期深化（修订概念文档 §4.3 失效引擎）
+
+- **聚合轴改为代码模块，不是日历时间**：通用的 Level 0→4 层级摘要按日/周/月聚合，ANDM 对应物是「同模块的 session 摘要与 review 结论跨会话归并为模块级经验条目」
+- **记忆蒸馏触发条件**：「同一模块的同类 review 意见出现 ≥N 次且时间跨度 ≥7 天」→ 蒸馏为一条模块级规约条目（而不是存 N 条相似条目）。数量 + 时间双阈值防止单次集中事件误判为规律
+- **时间衰减降级为兜底**：Ebbinghaus 分档 λ（episodic 0.01 / semantic 0.001 / procedural 0.0001）只用于「长期无人召回的条目自然沉底」；**主失效信号仍是代码变更**（§5.3 失效引擎不变）
+- **pinned 保护（治理权边界）**：团队 lead 显式确认的条目（如架构决策）对自动失效免疫——失效引擎最高权限是「降级/移出召回池」，pinned 条目只能「标记待人工复核」；**物理删除只能由人执行**，默认软删除可恢复。对应三级保护优先级：人工 review 通过 > 人工确认的 agent 提炼 > 纯 agent 自动提炼
+
+### 10.5 安全节（新增，quarantine 的理论加固）
+
+工程实践 §17 的结论在团队研发记忆场景**更危险**：记忆会被自动注入大量后续会话，投毒一次的爆炸半径是团队级、持久化的。四件套必须做：
+
+1. **「数据即指令」前提**：session 摘要来自 agent 输出，可能夹带被处理代码/issue 中的注入指令；未审核直接入库 = 把攻击面永久化——quarantine 的存在依据
+2. **指令-数据隔离**（零成本必须做）：注入 prompt 时条目以明确的「数据」角色渲染，条目文本中的祈使句不得被当作指令
+3. **注入检测预筛**：轻量分类器预筛 prompt-injection 特征，可疑条目保持隔离不进召回池；quarantine = 检测器预筛 + 人工终审两级
+4. **蜜罐回归测试**：故意植入已知恶意样本，定期验证 quarantine 审核流与检测器的拦截有效性
+
+### 10.6 明确不照搬的部分
+
+- **隐私合规框架**（端侧优先、被遗忘权、端云加密）不适用——ANDM 需要的是 RBAC/审计/仓库级隔离
+- **端侧实时性约束**（P95 <50ms、INT8 量化）不适用——注入发生在会话开始，秒级可接受
+- **多设备 CRDT/LWW 同步**不需要——中心化服务 + git 式版本化即可
+- **公开基准**（LongMemEval/LOCOMO）参考价值低——ANDM 基准只能自建（真实 PR/review 历史回放）
+
+### 10.7 评估体系修订（补强 §9 度量）
+
+| 指标 | 定义 | 目标 |
+|---|---|---|
+| **北极星：A/B 价值证明** | 有/无记忆注入下 coding 一次通过率、review 逃逸缺陷率对比 | 有记忆组显著更优，否则系统没有存在理由 |
+| 失效引擎漏检率 | 绑定代码已变更但未降级的条目占比 | <3% |
+| 真·误导率 | 注入后导致错误生成/误判的条目占比 | <1%，一票否决级 |
+| 审核吞吐 | quarantine 条目在 SLA 内被审核的比例与积压量 | 积压趋零（否则 quarantine 变垃圾场，§11 开放问题 4） |
+| 审核误杀率 | 正常条目被驳回比例 | <1%（过高则团队绕过治理） |
+| 投毒拦截率 | 蜜罐样本被 quarantine 拦截比例 | >99% |
+
+上线节奏照搬三级：**synthetic → human-curated → production shadow**（失效引擎与召回先只观察不生效，与人工选择对比达标后再切真实注入）；提炼模型换版本必须回归，防止 quarantine 质量基线漂移。
+
+## 11. 开放问题
 
 1. degraded 条目的召回策略：标注降权 vs 隐藏——需要试点数据决定（projectmem 的 false positive 教训）
 2. 条目的粒度：一条记忆应该多小？太大难失效（bound_paths 过宽误降级），太小提炼成本高
@@ -179,3 +245,4 @@ git hook 检测到 bound_paths 变更 → 条目 degraded → 通知审核人
 - SDD 挂接：报告一 §1.3（OpenSpec schema 机制）、§6.1
 - 通信分层：报告二 §4.2
 - 选型：报告二 §2（mem0/mcp-memory-service 对比）；报告一 §3.6（CodeFuse-Query）
+- 记忆工程机制（§10）：本地研究库 `memory-research`（记忆系统工程），章节 `src/01/03/04/05/14/16/17/19`；辅助 arXiv:2505.00675（记忆六原子操作）——ANDM 在六操作之外新增第七操作「审核（governance）」与「版本绑定失效」
