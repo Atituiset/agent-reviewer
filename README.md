@@ -112,5 +112,6 @@ AI Coding 工具（Claude Code、Codex、OpenCode 等）已经把代码生成提
 | [docs/research/multi-agent-memory-communication-review.md](docs/research/multi-agent-memory-communication-review.md) | 调研二：多智能体记忆/通信方案事实核查（mem0/Graphiti/A2A 等选型依据） |
 | [docs/design/ai-native-dev-memory-loop.md](docs/design/ai-native-dev-memory-loop.md) | 概念设计：记忆飞轮闭环与 prior-art 分析 |
 | [docs/design/ai-native-dev-memory-architecture.md](docs/design/ai-native-dev-memory-architecture.md) | 系统设计：ANDM 架构、schema、状态机、接口面 |
+| [docs/design/mvp-minimal-design.md](docs/design/mvp-minimal-design.md) | **MVP 最小设计**：4 组件契约、门禁脚本、评审工件格式、验收标准（动手起点） |
 | [references/memory-engineering/](references/memory-engineering/) | 记忆工程机制笔记（检索/生命周期/压缩/评估/安全/生产架构） |
 | [papers/](papers/) | 12 篇核心论文 PDF（LOGOS、Voyager、ExpeL、Microscope 等） |
