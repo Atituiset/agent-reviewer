@@ -158,6 +158,7 @@ Martin Fowler 网站 Birgitta Böckeler 系列（[martinfowler.com](https://mart
 
 | 工具 | 仓库 | Stars | 形态 | 触发时机 | 输出 | 自定义规则 |
 |---|---|---|---|---|---|---|
+| **OpenCodeReview (OCR)** | [alibaba/open-code-review](https://github.com/alibaba/open-code-review) | 21,044（API） | Go CLI（`ocr`）+ GitHub Action + 多 agent skill/plugin + VSCode 扩展 | CLI 手动 / Action（PR）/ 宿主 agent slash 命令 | 行级结构化 JSON + PR 评论（sticky summary + incremental 去重） | `rule.json`（glob + 自然语言，四层优先级）+ `--background` 注入需求背景 |
 | PR-Agent | [The-PR-Agent/pr-agent](https://github.com/The-PR-Agent/pr-agent) | ~12.6k | Action / CLI / Docker / App | PR opened/synchronize、push、评论命令 | inline + summary + 可选 Checks | `.pr_agent.toml` |
 | reviewdog | [reviewdog/reviewdog](https://github.com/reviewdog/reviewdog) | ~9.5k | linter 输出 → 评审评论管道，CLI + Action | CI 事件 | inline review / Checks，可控 blocking | `.reviewdog.yml` |
 | Danger / Danger JS | [danger/danger](https://github.com/danger/danger) / [danger-js](https://github.com/danger/danger-js) | ~5.7k / ~5.5k | CI 步骤，「规则即代码」 | CI 运行时（通常 PR） | PR 汇总评论（fail/warn/message），可 blocking | `Dangerfile` / `dangerfile.ts` |
@@ -212,6 +213,40 @@ Martin Fowler 网站 Birgitta Böckeler 系列（[martinfowler.com](https://mart
 - [wshobson/agents](https://github.com/wshobson/agents)（★38,975，多 harness 插件市场）：`plugins/comprehensive-review/agents/code-reviewer.md`（`model: opus`，description 以 "Use PROACTIVELY for code quality assurance" 收尾；正文覆盖 Trag/Bito/Codiga、SonarQube/CodeQL/Semgrep、OWASP Top 10、IaC 审查）；另有 `architect-review`、`security-auditor`、编排命令 `full-review`/`pr-enhance`；skill 形态 `code-review-excellence/SKILL.md`（知识型）；治理向 `review-agent-governance/`（Cedar 策略 + hooks）
 - [VoltAgent/awesome-claude-code-subagents](https://github.com/VoltAgent/awesome-claude-code-subagents)（★24,505）：`categories/04-quality-security/code-reviewer.md`，frontmatter 含显式 `tools: Read, Write, Edit, Bash, Glob, Grep` 白名单 + `model: inherit`；硬性 checklist："Code coverage > 80% confirmed"、"Cyclomatic complexity < 10"、"Zero critical security issues"
 - [obra/superpowers requesting-code-review](https://raw.githubusercontent.com/obra/superpowers/main/skills/requesting-code-review/SKILL.md)：见 §4.2
+
+### 3.5 大厂开源专项：alibaba/open-code-review（OCR）
+
+仓库 [alibaba/open-code-review](https://github.com/alibaba/open-code-review)（★21,044，fork 1,526，Apache-2.0，2026-08 仍活跃开发；npm `@alibaba-group/open-code-review`，Go 1.25 预编译二进制按平台经 optionalDependencies 分发，CLI 名 `ocr`）。本节基于本地克隆源码级调研（文件路径均为仓库内相对路径）。
+
+**背景与定位**：阿里集团内部官方 AI Code Review 助手，内部运行约两年（"服务数万开发者、发现数百万代码缺陷"），验证后开源。核心设计哲学是**「确定性工程 × Agent 混合」**（README.md:75-93）：文件选择、文件打包、规则匹配、评论定位与反思等"不能出错"的环节由工程逻辑硬约束，agent 只负责动态决策与上下文检索。README 明确指出纯语言驱动的 skill 式评审有三大痛点：**覆盖不全、位置漂移、质量不稳定**——这是对本报告 §4 中纯 prompt 驱动流派（superpowers/cc-sdd）的直接工程回应。
+
+**Benchmark**：自建 benchmark（50 个开源仓库、200 个真实 PR、10 种语言、80+ 资深工程师标注 1,505 条 ground-truth）。关键数据（`pages/src/components/BenchmarkSection.tsx`）：同底模（Claude-4.6-Opus）下 OCR Precision 33.9% vs 裸 Claude Code 7.23%，token 消耗约 1/9~1/15，Recall 更低是**有意的 precision 优先取舍**。⚠️ 注意：仓库内 `docs/src/appendix/benchmark.md` 自录了 HN 第三方复测争议（复测 precision/recall 数字与官方有出入，官方承认早期版本 tool call 异常），引用数字需带此限定。
+
+**架构**：
+
+- CLI（Cobra）：`review`（workspace / `--from --to` 分支区间 / `--commit` / `--resume` 断点续审 / `--preview` 干跑）、`scan`（无 diff 的全文件扫描，审陌生代码库）、`delegate`（委派模式，见下）、`config`、`rules check`、`session list`、`viewer`（浏览器回放 session）
+- 核心循环 `internal/llmloop/loop.go`：跨文件 LLM 工具调用执行器，含上下文压缩与异步工作池；`internal/agent/agent.go` 六步流水线：解析 diff → 注入 cross-file diff map → 冻结工具注册表 → 三层文件过滤 → 每文件并发子任务（默认 8）→ session 收尾；另有 token 预算 gate 与超大 diff 预过滤
+- LLM 抽象 `internal/llm/providers.go`：三种协议（anthropic / openai / openai-responses），内置 **17 个 provider**（Anthropic、OpenAI、DashScope、火山、DeepSeek、Kimi、Z.AI、MiniMax、Ollama Cloud、LiteLLM 网关等），支持自定义
+
+**评审机制**：
+
+- 工具集刻意精简到 **6 个**（`internal/config/toolsconfig/tools.json`），"蒸馏自生产环境大规模工具调用 trace 分析"：`code_comment`（用 `existing_code` 滑动窗口匹配定位行号）、`file_read`、`file_read_diff`、`code_search`、`file_find`、`task_done`；另支持 MCP server 扩展
+- **五阶段 prompt pipeline**（`internal/config/template/task_template.json`）：PLAN_TASK（diff>50 行先产出结构化风险分析 JSON）→ MAIN_TASK（主评审循环，最多 30 次工具调用）→ **RE_LOCATION_TASK**（独立重定位模块，治"位置漂移"）→ **REVIEW_FILTER_TASK**（独立反思过滤模块——只凭 diff 过滤"可确认为错误"的评论，存疑放行，precision 优先的关键闸门）→ MEMORY_COMPRESSION_TASK
+- 输出结构化 JSON（`internal/model/review.go`）：行级区间、`suggestion_code`、`category`（bug/security/performance/maintainability/test/style/documentation/other）、`severity`（critical/high/medium/low）；`--format json` 供 CI 消费；`--audience agent` 抑制 UI 只输出摘要
+- 评审维度组织**不是自然语言 skill，而是规则数据**：`internal/config/rules/system_rules.json` 把 glob（如 `**/*.java`、`.github/workflows/**`）映射到 33 个语言/文件类型的 Markdown checklist；用户规则四层优先级：`--rule` flag > `<repo>/.opencodereview/rule.json` > `~/.opencodereview/rule.json` > 内置；`merge_system_rule` 控制合并或替换
+
+**与 SDD 结合的直接接口**：`--background` / `--background-file`（Markdown，8000 字符上限）把业务背景注入 prompt 的 `{{requirement_background}}` 占位符（PLAN 和 MAIN 两阶段，`internal/config/template/prompts/main_task_user.md:15-16`）——SDD 工作流可把 `spec.md`/`tasks.md` 在评审时经此喂给 reviewer，让"是否实现了 spec"成为一阶评审维度。
+
+**接入形态**：GitHub composite Action（`action.yml`：**checkout 可信 base 分支而非 PR head 防 fork 投毒**；评论策略 = sticky summary 原地更新 + incremental 按 path+行区间 IoU≥0.6 去重 + severity/category 路由，低严重度降级到摘要、fail-open 不丢 finding）；AI agent 集成四形态——Claude Code marketplace 插件（`/open-code-review:review`、`/open-code-review:delegate-review`）、Codex 插件、Cursor 插件、OpenCode 原生工具；**通用 skill `skills/open-code-review/SKILL.md`** 是教宿主 agent 调 `ocr` CLI 的操作手册；**`open-code-review-delegate` 委派模式**：OCR 只做文件选择和规则解析（`ocr delegate preview/rule`），评审本身由宿主 agent 自己的 LLM 完成——**"工程管线"与"模型"解耦**，同一套管线同时服务独立 CLI 与嵌入现有 agent 两种形态。另有 VSCode 扩展（comment apply/discard/falsePositive）与 session 持久化 + Viewer 回放（评审记录可作可审计工件）。
+
+**对 SDD+reviewer 项目的可借鉴点**：
+
+1. `--background-file` 是现成的 spec 注入挂点，但目前只接受自由文本，不感知 SDD artifact 结构（delta spec、tasks 完成度）——见 §6.3
+2. 确定性工程 × Agent 的边界划分：「哪些 spec 条目对应哪些文件」这类映射应工程化，而非让模型自由发挥
+3. 独立的重定位 + 反思过滤后处理闸门，比 prompt 里叮嘱"别乱报"更有效
+4. 规则即数据 + glob 匹配可平移为 per-artifact 规则（spec.md 用 spec 规则、代码用实现一致性规则）
+5. Benchmark 驱动的 prompt 调优 + precision 优先 + CI 侧 severity 路由控噪
+6. Delegate 模式：评审引擎做成"文件选择 + 规则解析"的确定性组件，模型判断留给宿主——与 §6.2 形态 B 的「薄 skill 层 + 宿主无关 CLI」思路完全同构
 
 ---
 
@@ -358,6 +393,7 @@ explore → propose(spec+plan+tasks) → [plan review gate] → implement(每任
 5. **评审规则可演进抄 OpenHands**：规则文件放仓库内、随分支读取，改规则即改评审行为
 6. **防跑偏三件套**：迭代上限熔断（如 5 轮）+ 仲裁机制（dispute-in-writing / defer-with-TODO / waive）+ ledger 持久化
 7. **CI 侧终闸接现成工具**：PR 阶段用 PR-Agent（开源、`.pr_agent.toml` 可控、可输出 blocking check）兜底——本地 agent 评审 + PR 评审双层
+8. **评审管线工程化抄 OCR**：文件选择/规则匹配/评论定位/反思过滤做成确定性代码，LLM 只做判断；spec 注入用 `--background-file` 式显式参数而非依赖模型自觉读文件；若想同时服务"独立 CLI"与"嵌入宿主 agent"两种形态，抄 OCR 的 delegate 模式（引擎只出文件清单+规则组，模型判断留给宿主）
 
 ### 6.2 按项目形态的侧重
 
@@ -381,7 +417,7 @@ explore → propose(spec+plan+tasks) → [plan review gate] → implement(每任
 
 ### 6.3 机会点（现有工具的空白）
 
-1. **spec 作为评审输入**：高 star 评审工具几乎全部只看 diff + AGENTS.md；「对照 delta spec 做 conformance 评审」目前只有 superpowers/openkash 等小项目做了，且与 OpenSpec 式 SDD 骨架没有现成整合——最直接的差异化空间
+1. **spec 作为评审输入**：高 star 评审工具几乎全部只看 diff + AGENTS.md；OCR 的 `--background-file` 提供了自由文本背景注入，但不感知 SDD artifact 结构；「对照 delta spec 做结构化 conformance 评审（含 tasks.md 完成度联动）」目前只有 superpowers/openkash 等小项目以 prompt 方式做了，且与 OpenSpec 式 SDD 骨架没有现成整合——最直接的差异化空间
 2. **评审门禁与 SDD artifact 状态机联动**：现有 hook 门禁只看 diff hash，不与 tasks.md 完成度、spec 校验结果联动；OpenSpec 的 schema 机制天然支持插入这种 gate，但官方 `/opsx:verify` 是建议性的而非强制的
 3. **评审规则随分支演进**（OpenHands 模式）在开源 SDD 工具中尚无落地
 4. **轻量化**：spec-kit 被批评「小特性开销过大」，带豁免机制、按改动规模自适应评审强度的实现有明确需求
@@ -400,6 +436,7 @@ explore → propose(spec+plan+tasks) → [plan review gate] → implement(每任
 - 分析文章：[Martin Fowler 站 SDD 系列（Böckeler）](https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html) · [vanja.io: 265,000 Stars and I Don't Use Any of It](https://vanja.io/265000-stars/) · [nino-chavez/blueprint: 源码级 SDD 格局调研](https://github.com/nino-chavez/blueprint/blob/main/research/03-sdd-landscape-2026-06.md)
 
 **评审工具**
+- [alibaba/open-code-review](https://github.com/alibaba/open-code-review)（[官网](https://open-codereview.ai)；本节基于源码级调研，关键位置：`internal/llmloop/loop.go`、`internal/agent/agent.go`、`internal/config/rules/system_rules.json`、`internal/config/template/task_template.json`、`action.yml`、`skills/open-code-review/SKILL.md`）
 - [The-PR-Agent/pr-agent](https://github.com/The-PR-Agent/pr-agent) · [configuration.toml](https://raw.githubusercontent.com/The-PR-Agent/pr-agent/main/pr_agent/settings/configuration.toml)
 - [reviewdog/reviewdog](https://github.com/reviewdog/reviewdog) · [danger/danger](https://github.com/danger/danger) · [danger/danger-js](https://github.com/danger/danger-js) · [anthropics/claude-code-action](https://github.com/anthropics/claude-code-action)（[solutions.md](https://raw.githubusercontent.com/anthropics/claude-code-action/main/docs/solutions.md)）
 - [anthropics/claude-code plugins/code-review](https://github.com/anthropics/claude-code/blob/main/plugins/code-review/commands/code-review.md) · [pr-review-toolkit](https://github.com/anthropics/claude-code/tree/main/plugins/pr-review-toolkit) · [anthropics/claude-plugins-official](https://github.com/anthropics/claude-plugins-official)
@@ -424,3 +461,4 @@ explore → propose(spec+plan+tasks) → [plan review gate] → implement(每任
 7. Cursor 侧未发现原生 review-gate hook 机制，主要为 Spec Kit 以 `.cursor/skills/` 安装使用的记录
 8. imti.co 的 review-gate 是博客文章而非打包开源项目，脚本需从文章复制
 9. 各项目 star 数增长极快，引用时请注意时效
+10. OCR（alibaba/open-code-review）官方 benchmark 数据存在第三方复测争议（HN 复测 precision/recall 与官方数字有出入，官方承认早期版本 tool call 异常，见其 `docs/src/appendix/benchmark.md`）；引用其 benchmark 数字时应带此限定
