@@ -167,6 +167,7 @@ Martin Fowler 网站 Birgitta Böckeler 系列（[martinfowler.com](https://mart
 | Kodus (Kody) | [kodustech/kodus-ai](https://github.com/kodustech/kodus-ai) | ~1.3k | 独立 reviewer 平台，BYOK | PR 原生集成 + CLI + CI | inline + 自然语言规则 | 自定义规则 |
 | remorses/critique | [remorses/critique](https://github.com/remorses/critique) | 1,254（API） | diff TUI + `critique review` | CLI 手动 | diff 交给 agent 解释 | 附 skill 文件 |
 | critique-review | [repath500/critique-review](https://github.com/repath500/critique-review) | 0（结构典型） | SKILL.md + 按需 rubric | agent 加载 skill | P0–P3 分级 findings | `references/review-rubric.md` |
+| CodeFuse-Query | [codefuse-ai/CodeFuse-Query](https://github.com/codefuse-ai/CodeFuse-Query) | 356（API；上游近一年停更） | 数据中心化静态分析平台（非 LLM 工具）：COREF 数据模型 + Gödel DSL + Sparrow CLI | CLI 手动 / CI（`--sarif` 输出） | 确定性分析结果（json/csv/sqlite/SARIF） | GDL 规则脚本（声明式、必然终止） |
 
 **排除项/纠误**：TIGER-AI-Lab/Critique-Coder 是 ICLR 2026 RL 训练论文项目，非评审工具；"coder-critique" 精确名仓库不存在；contains-studio/agents 实际不含 code-reviewer（常见误传）；gitbito/codereviewagent（67 star）不达阈值；Sweep（[sweepai/sweep](https://github.com/sweepai/sweep)，~7.7k）已停更转型 JetBrains 插件，仅作历史参考。
 
@@ -247,6 +248,27 @@ Martin Fowler 网站 Birgitta Böckeler 系列（[martinfowler.com](https://mart
 4. 规则即数据 + glob 匹配可平移为 per-artifact 规则（spec.md 用 spec 规则、代码用实现一致性规则）
 5. Benchmark 驱动的 prompt 调优 + precision 优先 + CI 侧 severity 路由控噪
 6. Delegate 模式：评审引擎做成"文件选择 + 规则解析"的确定性组件，模型判断留给宿主——与 §6.2 形态 B 的「薄 skill 层 + 宿主无关 CLI」思路完全同构
+
+### 3.6 确定性静态分析层：codefuse-ai/CodeFuse-Query
+
+仓库 [codefuse-ai/CodeFuse-Query](https://github.com/codefuse-ai/CodeFuse-Query)（★356，Apache-2.0；蚂蚁集团开源，ICSE 2025 论文配套）。注意活跃度：上游 GitHub 近一年基本停更（last push 2025-09），属「内部使用为主、核心交付物是 sparrow-cli release 二进制 + 论文」的项目。它不是 LLM 评审工具，而是**数据中心化静态分析系统**——对本调研的价值在于：它是「LLM reviewer 之下的确定性事实层」的现成实现，与 §3.5 OCR 的「确定性工程 × Agent」哲学同屬一脉。本节基于本地克隆源码级调研。
+
+**架构三件套**：
+
+- **COREF 数据模型**：`COREF = AST + ASG + CFG + PDG + Call Graph + Class Hierarchy + Documentation`，各语言 extractor 把源码归一化成关系型数据表。成熟度不均：Java/TS/JS/Go/XML 成熟（**只有 Java 额外有 ASG/Call Graph/Class Hierarchy/部分 CFG**），OC/C++/Python3/Swift/SQL/Properties 为 Beta，CFG/PDG 整体仍在建设
+- **Gödel DSL**：Datalog 派生的声明式逻辑语言（编译到自修改版 Soufflé 执行）。选 Datalog 的理由：**单调性 + 终止性**——任何合法规则脚本必然终止（适合 CI 无人值守跑规则）、递归/传递闭包（调用链、继承链）是一等公民
+- **平台化**：Sparrow CLI 两步走（`sparrow database create` 抽取 → `sparrow query run` 跑 `.gdl`，输出 json/csv/sqlite，**支持 `--sarif` 天然适配 CI 卡点与 GitHub code scanning**）；VSCode 插件；Query Center 在线服务（内部形态）
+
+**变更影响分析（与本主题最相关，ICSE 2025 论文 Microscope）**：输入是 git diff 产物（两个 commit 间的变更文件 + 行号列表，由外部脚本注入 GDL 事实——仓库内 `gitdiff()` 是占位符，"diff → facts" 这步需自搭）；规则把变更行映射到 ECG 节点、过滤注释/日志/测试等非语义变更，再经数据依赖/调用依赖传递闭包做影响传播；**输出是受影响的对外接口列表**（RPC/HTTP 入口 + 完整调用链 + 数据库操作）。语言无关性来自 COREF 归一化——可跨 Java + MyBatis XML + Spring 注解 + TS 前端联合推理（motivation example：Java 新增字段 → RPC 接口返回类型 → BFF proxy 配置 → TS 前端调用点参数不匹配）。内部落地佐证：优酷精准测试体系（输入"文件+行号"，输出受影响方法/入口/调用链/DB 操作）。
+
+**现成 GDL 脚本**（`example/`）：圈复杂度/扇入扇出/注释率度量、调用链、死代码检测（`UnusedMethod.gdl`）、`ChangeEffect.gdl`（变更函数 → 调用者传递闭包）、Spring/MyBatis/RPC 框架感知规则、`example/icse25/rules/` 全套 30+ 条变更影响规则。
+
+**对 SDD+reviewer 项目的可借鉴点**（仓库自带 `codefuse-mdbook/src/llm/16-integration.md` 专门论证了与 LLM 的结合）：
+
+1. **分层定位**："clangd 给你一个点看得准，CodeFuse-Query 给你整张图看得全"——LLM 评审的典型痛点「只见树木不见森林」（grep 局部、callers 深度受限、虚调用不准）正是 Datalog 传递闭包的强项。它属于**离线预计算的全局事实层**，与 LSP 的「在线、按需、局部精确」互补
+2. **能给 reviewer 的事实**：全量调用链（不限 depth）；**变更波及范围**（diff → 受影响入口/接口/调用链——对 PR review 是直接输入：「这个 diff 会影响哪些对外接口」）；确定性缺陷规则预扫描；度量热区 → 评审优先级排序
+3. **确定性分工**：monotonicity/termination 意味着结果可复现、必然终止——事实性结论交给 Datalog 做 CI 卡点，LLM 只做语义判断；`--sarif` 可直接接 GitHub Advanced Security / reviewdog
+4. **接入成本需如实评估**：每语言要先跑 extractor 离线生成 COREF 数据（滞后于代码变更）；只有 Java 支持增量抽取；其 roadmap 给出的成败开关是**抽取覆盖率 >90% 才值得引入**。对 SDD 场景最实际的切入点是 **Java/TS/JS/Go 成熟语言 + 变更影响分析**这条线
 
 ---
 
@@ -394,6 +416,7 @@ explore → propose(spec+plan+tasks) → [plan review gate] → implement(每任
 6. **防跑偏三件套**：迭代上限熔断（如 5 轮）+ 仲裁机制（dispute-in-writing / defer-with-TODO / waive）+ ledger 持久化
 7. **CI 侧终闸接现成工具**：PR 阶段用 PR-Agent（开源、`.pr_agent.toml` 可控、可输出 blocking check）兜底——本地 agent 评审 + PR 评审双层
 8. **评审管线工程化抄 OCR**：文件选择/规则匹配/评论定位/反思过滤做成确定性代码，LLM 只做判断；spec 注入用 `--background-file` 式显式参数而非依赖模型自觉读文件；若想同时服务"独立 CLI"与"嵌入宿主 agent"两种形态，抄 OCR 的 delegate 模式（引擎只出文件清单+规则组，模型判断留给宿主）
+9. **给 reviewer 喂确定性事实而非让它盲目 grep**（CodeFuse-Query 模式）：变更影响分析（diff → 受影响接口/调用链）、全量调用图、度量热区这类全局事实由静态分析离线预计算（Datalog/LSIF/CodeQL 均可），reviewer 的 prompt 里直接给结论；事实层用 SARIF 输出还可直接接 CI 卡点。注意接入成本：只有抽取覆盖率足够高的成熟语言值得引入
 
 ### 6.2 按项目形态的侧重
 
@@ -437,6 +460,7 @@ explore → propose(spec+plan+tasks) → [plan review gate] → implement(每任
 
 **评审工具**
 - [alibaba/open-code-review](https://github.com/alibaba/open-code-review)（[官网](https://open-codereview.ai)；本节基于源码级调研，关键位置：`internal/llmloop/loop.go`、`internal/agent/agent.go`、`internal/config/rules/system_rules.json`、`internal/config/template/task_template.json`、`action.yml`、`skills/open-code-review/SKILL.md`）
+- [codefuse-ai/CodeFuse-Query](https://github.com/codefuse-ai/CodeFuse-Query)（源码级调研，关键位置：`doc/2_introduction.md`、`example/icse25/`、`godel-script/README.md`、`codefuse-mdbook/src/llm/16-integration.md`；论文：[ICSE 2025 Microscope](https://conf.researchr.org/details/icse-2025/icse-2025-research-track/87/Datalog-Based-Language-Agnostic-Change-Impact-Analysis-for-Microservices)（[PDF](https://qingkaishi.github.io/public_pdfs/ICSE25.pdf)）、[arXiv:2401.01571](https://arxiv.org/abs/2401.01571)）
 - [The-PR-Agent/pr-agent](https://github.com/The-PR-Agent/pr-agent) · [configuration.toml](https://raw.githubusercontent.com/The-PR-Agent/pr-agent/main/pr_agent/settings/configuration.toml)
 - [reviewdog/reviewdog](https://github.com/reviewdog/reviewdog) · [danger/danger](https://github.com/danger/danger) · [danger/danger-js](https://github.com/danger/danger-js) · [anthropics/claude-code-action](https://github.com/anthropics/claude-code-action)（[solutions.md](https://raw.githubusercontent.com/anthropics/claude-code-action/main/docs/solutions.md)）
 - [anthropics/claude-code plugins/code-review](https://github.com/anthropics/claude-code/blob/main/plugins/code-review/commands/code-review.md) · [pr-review-toolkit](https://github.com/anthropics/claude-code/tree/main/plugins/pr-review-toolkit) · [anthropics/claude-plugins-official](https://github.com/anthropics/claude-plugins-official)
@@ -462,3 +486,4 @@ explore → propose(spec+plan+tasks) → [plan review gate] → implement(每任
 8. imti.co 的 review-gate 是博客文章而非打包开源项目，脚本需从文章复制
 9. 各项目 star 数增长极快，引用时请注意时效
 10. OCR（alibaba/open-code-review）官方 benchmark 数据存在第三方复测争议（HN 复测 precision/recall 与官方数字有出入，官方承认早期版本 tool call 异常，见其 `docs/src/appendix/benchmark.md`）；引用其 benchmark 数字时应带此限定
+11. CodeFuse-Query 上游 GitHub 近一年停更（last push 2025-09），且其"diff → facts"注入依赖外部脚本（仓库内 `gitdiff()` 为占位符），无现成 git diff 解析器；引入前需评估语言抽取覆盖率（其自身 roadmap 给出的阈值为 >90%）
