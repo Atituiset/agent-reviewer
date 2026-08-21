@@ -27,8 +27,11 @@ agent-reviewer/
 │   └── task-reviewer.md         # reviewer subagent 定义
 ├── hooks/
 │   └── pre-commit-gate.sh       # PreToolUse hook：拦截 git commit
+├── rules/
+│   ├── registry.json            # 场景注册表：glob → 场景列表（§2.4）
+│   └── scenarios/               # 场景 checklist（memory-leak.md / null-deref.md / ...）
 ├── scripts/
-│   ├── review-package.sh        # 打包 diff + spec 上下文 → 评审输入
+│   ├── review-package.sh        # 打包 diff + spec + 场景规则 + 记忆 → 评审输入
 │   ├── verify-artifact.sh       # 校验评审工件（hash + verdict）
 │   ├── memory-propose.sh        # 评审结论 → quarantine
 │   ├── memory-approve.sh        # 审核通过/驳回
@@ -54,7 +57,8 @@ agent-reviewer/
   "reviewer": "task-reviewer",
   "findings": [
     {"file": "src/x.go", "line": 42, "severity": "critical|important|minor",
-     "category": "bug|security|...", "summary": "…", "resolved": true}
+     "category": "bug|security|...", "scenario": "null-deref|none",
+     "summary": "…", "resolved": true}
   ],
   "spec_ref": "openspec/changes/<name>/"
 }
@@ -90,14 +94,39 @@ fail-open：脚本自身任何异常 → exit 0 放行
   diff.patch                    # git diff HEAD
   context.md                    # 四元组之二、三、四：
                                 #   - spec/plan 相关段落（从 openspec/changes/<name>/ 抽取）
-                                #   - 规则文件（项目评审 checklist）
+                                #   - 命中场景的 checklist（§2.4 registry 按路径确定性路由）
                                 #   - memory-recall.sh 按变更文件路径召回的 active 记忆
   ```
 - 评审双通道（D3）：conformance（逐条对照 spec/plan）+ correctness（红队视角挑 diff 本身的错）
 - 输出纪律（D4）：每条 finding 必须有 `file:line` + 可复现理由；"could be cleaner" 类不收；结论按 0–100 置信度，只报 ≥80
 - reviewer 只读：无 Edit/Write 权限（工具白名单）
 
-### 2.4 记忆最短链路（`memoryd`，SQLite 单文件）
+### 2.4 场景规则库（`rules/`，对接已有场景化评审资产）
+
+团队已沉淀的场景化 prompt/skill（内存泄露、空指针解引用、死锁等）是四元组中的「规则」元，按 OCR `system_rules.json` 模式组织（报告一 §3.5）：
+
+**注册表**（`rules/registry.json`）：
+
+```json
+{
+  "rules": [
+    {"path": "**/*.{c,cc,cpp}",  "scenarios": ["memory-leak", "null-deref", "use-after-free"]},
+    {"path": "**/*.java",        "scenarios": ["null-deref", "resource-leak"]},
+    {"path": "**/concurrent/**", "scenarios": ["deadlock", "race-condition"]},
+    {"path": "**/*",             "scenarios": ["default"]}
+  ]
+}
+```
+
+- 每个场景一个 checklist 文件（`rules/scenarios/<name>.md`），内容即现有场景 prompt 的 checklist 化
+- **确定性路由**：`review-package.sh` 按 diff 触及路径匹配场景，只把命中场景的 checklist 注入 `context.md`；不相关的场景不注入——控制 prompt 长度就是控制误报率（D5）
+- **编排分两档**：小 diff（默认）单 reviewer 注入命中场景一次评审；大 diff（V1）每个命中场景派一个独立场景 subagent 并行评审，findings 汇总后过验证 subagent 二次确认（报告一 §3.4 官方 /code-review 模式）
+- **severity 挂场景**：确定性高的场景（null-deref、memory-leak）finding 默认 high severity → 阻塞 commit；风格类场景降级为摘要提示——门禁松紧按场景分级，防 review theater（D9）
+- **场景库入治理循环**：现有人写场景 prompt 视为 MDE 撰写的 convention，直接 active 入库；之后的双向回喂——场景命中真实缺陷 → 提炼 `incident_pattern` 进 quarantine；场景漏检（缺陷逃逸）→ 提炼**场景 prompt 改进提案**进 quarantine，MDE 审核后更新 `rules/scenarios/`。场景库随评审历史演进，而非静态资产（ANDM 飞轮在规则层的复用）
+- **场景即评测基准**：历史真实缺陷案例（各场景的已知命中/漏检）回放 reviewer，得出 per-scenario 的 precision/recall——README §5 北极星 A/B 指标的现成数据基础，也是调场景 prompt 的客观依据（OCR benchmark 驱动调优，报告一 §3.5）
+- 口径注意：场景 checklist 写入本仓库前过一遍业务口径，只保留通用技术模式，不含业务内部细节
+
+### 2.5 记忆最短链路（`memoryd`，SQLite 单文件）
 
 schema（架构文档 §4 的 MVP 子集，砍掉 consumers/ttl/trust 细分，保留治理必需字段）：
 
@@ -123,7 +152,7 @@ CREATE TABLE memories (
 ## 3. 主流程（/sdd-review 命令体）
 
 ```
-1. scripts/review-package.sh          → 生成输入包（diff + spec + 规则 + 记忆召回）
+1. scripts/review-package.sh          → 生成输入包（diff + spec + 场景路由（§2.4）+ 记忆召回）
 2. 派发 task-reviewer subagent         → fresh context，输入 = 输入包路径
 3. reviewer 产出 findings              → controller 要求修复或 dispute
 4. 修复后 re-review（最多 2 轮熔断）     → 全清 → 写 .review/last-review.json
@@ -135,7 +164,7 @@ CREATE TABLE memories (
 
 ## 4. 度量埋点（MVP 即埋，否则试点无数据）
 
-每次门禁拦截/放行、每次评审轮数、每条 finding 的 severity/resolved、每条记忆的 propose/approve/reject，全部 append 到 `.review/metrics.jsonl`。试点结束回看三个数：评审轮数均值（≤2）、quarantine 积压、漏网 bug 数。
+每次门禁拦截/放行、每次评审轮数、每条 finding 的 severity/resolved、每条记忆的 propose/approve/reject，全部 append 到 `.review/metrics.jsonl`。试点结束回看三个数：评审轮数均值（≤2）、quarantine 积压、漏网 bug 数。场景维度追加一项：per-scenario 命中/漏检统计（finding 记 `scenario` 字段），为场景库调优供数据。
 
 ## 5. 验收标准（与 README §4 MVP 一致）
 
@@ -144,6 +173,8 @@ CREATE TABLE memories (
 - [ ] 评审工件 hash 绑定生效：评审后改动任意文件再 commit → 被拦截
 - [ ] quarantine 条目未经 approve 不出现在 `memory-recall.sh` 输出
 - [ ] 无 file:line 证据的 propose 被拒收
+- [ ] 场景路由生效：改 C++ 文件时注入 memory-leak/null-deref checklist，改 Markdown 时不注入任何场景
+- [ ] 场景基线可回放：用历史缺陷案例集跑出 per-scenario precision/recall 基线并存档
 
 ## 6. 已知的 MVP 局限（如实记录）
 
