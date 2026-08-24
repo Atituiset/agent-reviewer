@@ -1,6 +1,6 @@
 # MVP 最小设计：评审最短闭环 + 记忆最短链路
 
-> 版本：v0.1 · 2026-08-22
+> 版本：v0.2 · 2026-08-24（并入[补充卷 §5](../research/landscape-supplement.md) 勘误：工件会话隔离、verdict 三态、hash 完整暂存前提、conformance 类型码、场景名存在性校验）
 > 范围：只覆盖 README §4 的 MVP 阶段（2–3 周，5–10 人试点）。上游设计见 `ai-native-dev-memory-architecture.md`（下称架构文档），本文档不重复论证，只给可实施的最小契约。
 > 目标形态：Claude Code 生态内的 skill/plugin（报告一 §6.2 形态 A 先行），确定性逻辑全部沉淀为与宿主无关的 shell/SQLite 组件。
 
@@ -45,20 +45,22 @@ agent-reviewer/
 
 ## 2. 组件契约
 
-### 2.1 评审工件（`.review/last-review.json`）
+### 2.1 评审工件（`.git/review-gate/<session-id>.json`）
 
-评审通过的唯一凭证，hook 只认它：
+评审通过的唯一凭证，hook 只认它。路径按会话隔离（codex-review 先例，报告一 §4.4）：session id 取自 PreToolUse hook stdin 的 `session_id` 字段，防同仓库并行会话互覆工件；无 session 上下文时回退 `.review/last-review.json`：
 
 ```json
 {
   "diff_hash": "sha256 of `git diff HEAD` 的规范输出",
-  "verdict": "CLEAN | ISSUES_FOUND",
+  "verdict": "CLEAN | ISSUES_FOUND | ESCALATED",
+  "escalated": false,
   "reviewed_at": "ISO8601",
   "reviewer": "task-reviewer",
   "findings": [
     {"file": "src/x.go", "line": 42, "severity": "critical|important|minor",
      "category": "bug|security|...", "scenario": "null-deref|none",
-     "summary": "…", "resolved": true}
+     "type": "MISSING_IMPL|EXTRA_IMPL|SPEC_DEV|DOC_INCON|OUTDATED_DOC|AMBIGUOUS|none",
+     "summary": "…", "resolved": true, "ruling": null}
   ],
   "spec_ref": "openspec/changes/<name>/"
 }
@@ -66,9 +68,11 @@ agent-reviewer/
 
 校验规则（`verify-artifact.sh`，纯 shell + sha256sum + jq）：
 
-1. `diff_hash` == 当前 `git diff HEAD | sha256sum`——**评审后代码再动过一个字节即失效**（报告一 §4.3）
-2. `verdict == CLEAN`，或所有 findings 均 `resolved: true`
-3. 工件生成时间 < 24h
+1. 前置：`git diff --quiet` 通过（无 unstaged 残留）——部分 stage 时「评审过的树 ≠ 提交的树」（commit 只提交 index），hash 绑定必须以完整暂存为前提
+2. `diff_hash` == 当前 `git diff HEAD | sha256sum`——**评审后代码再动过一个字节即失效**（报告一 §4.3）
+3. `verdict == CLEAN`，或所有 findings 均 `resolved: true`，或 `verdict == ESCALATED`（熔断出口：剩余 findings 全部带人工 `ruling`、工件 `escalated: true`——放行但留痕，呼应 superpowers "a silent discard is forbidden"）
+4. 工件生成时间 < 24h
+5. findings 的 `scenario` 值必须存在于 `rules/registry.json`——防幻觉场景名（G-Research 规则 ID 存在性校验模式，补充卷 §4）
 
 ### 2.2 门禁 hook（`hooks/pre-commit-gate.sh`）
 
@@ -80,7 +84,7 @@ agent-reviewer/
   - diff 只触及 **.md / docs/**（纯文档豁免）
   - kill switch 文件 .review/DISABLED 存在
 拦截时：
-  - verify-artifact.sh 通过 → 放行
+  - verify-artifact.sh 对当前会话工件（§2.1 路径）校验通过 → 放行
   - 否则 deny，reason 中附带「请运行 /sdd-review」提示
 fail-open：脚本自身任何异常 → exit 0 放行
 ```
@@ -99,6 +103,7 @@ fail-open：脚本自身任何异常 → exit 0 放行
   ```
 - 评审双通道（D3）：conformance（逐条对照 spec/plan）+ correctness（红队视角挑 diff 本身的错）
 - 输出纪律（D4）：每条 finding 必须有 `file:line` + 可复现理由；"could be cleaner" 类不收；结论按 0–100 置信度，只报 ≥80
+- conformance 类 finding 用固定机器可读类型码：`MISSING_IMPL / EXTRA_IMPL / SPEC_DEV / DOC_INCON / OUTDATED_DOC / AMBIGUOUS`（serpro69 review-spec 模式，补充卷 §2.2）；其中 OUTDATED_DOC 为反向通道（spec 过时于代码）——产出 quarantine 提案而非阻塞 commit
 - reviewer 只读：无 Edit/Write 权限（工具白名单）
 
 ### 2.4 场景规则库（`rules/`，对接已有场景化评审资产）
@@ -187,7 +192,7 @@ CREATE TABLE memories (
 1. scripts/review-package.sh          → 生成输入包（diff + spec + 场景路由（§2.4）+ 记忆召回）
 2. 派发 task-reviewer subagent         → fresh context，输入 = 输入包路径
 3. reviewer 产出 findings              → controller 要求修复或 dispute
-4. 修复后 re-review（最多 2 轮熔断）     → 全清 → 写 .review/last-review.json
+4. 修复后 re-review（最多 2 轮熔断）     → 全清写 CLEAN；仍有残留写 ESCALATED（逐条 ruling）→ 工件落 .git/review-gate/<session>.json
 5. memory-propose.sh（自动）           → 高严重度已修复 finding 进 quarantine
 6. 提示：「N 条记忆待审核」            → MDE 定期跑 memory-approve.sh
 ```
@@ -203,6 +208,9 @@ CREATE TABLE memories (
 - [ ] 改动 >20 行且无有效工件时，`git commit` 100% 被拦截
 - [ ] 门禁脚本故障时放行（fail-open 测试：故意造语法错误验证）
 - [ ] 评审工件 hash 绑定生效：评审后改动任意文件再 commit → 被拦截
+- [ ] 部分 stage 时（存在 unstaged 改动）commit 被拒并提示先完整暂存
+- [ ] 双会话并行评审互不覆盖工件（§2.1 会话隔离路径生效）
+- [ ] ESCALATED 工件放行且每条残留 finding 带 ruling、metrics 可见
 - [ ] quarantine 条目未经 approve 不出现在 `memory-recall.sh` 输出
 - [ ] 无 file:line 证据的 propose 被拒收
 - [ ] 场景路由生效：改 C++ 文件时注入 memory-leak/null-deref checklist，改 Markdown 时不注入任何场景

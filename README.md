@@ -41,10 +41,10 @@ AI Coding 工具（Claude Code、Codex、OpenCode 等）已经把代码生成提
 
 | # | 决策 | 依据 |
 |---|---|---|
-| D1 | 评审做成**机械门禁**（hook 拦截 + 工件校验），不做 prompt 建议 | 报告一 §4.3 / §5 |
-| D2 | reviewer 用 **fresh-context subagent**，工件即接口，绝不给会话历史 | 报告一 §4.2（superpowers） |
+| D1 | 评审做成**机械门禁**（hook 拦截 + 工件校验），不做 prompt 建议 | 报告一 §4.3 / §5；补充卷 §1.3（Beko disposition-before-merge 工业同构） |
+| D2 | reviewer 用 **fresh-context subagent**，工件即接口，绝不给会话历史 | 报告一 §4.2（superpowers）；补充卷 §1.6（fresh context 不消除模型自偏好 → V2 跨模型终审依据） |
 | D3 | **双评审互补**：conformance（是否符合 spec）与 correctness（红队挑错）分开 | 报告一 §4.5（openkash） |
-| D4 | 误报抑制：并行多维评审 → 验证 subagent 二次确认 → 高阈值过滤；不标风格问题 | 报告一 §3.4（官方 /code-review） |
+| D4 | 误报抑制：并行多维评审 → 验证 subagent 二次确认 → 高阈值过滤；不标风格问题 | 报告一 §3.4（官方 /code-review）；补充卷 §1.1/§1.4（hunk 级采纳率高 5–10 倍；SNR frontier） |
 | D5 | 确定性工程 × Agent 混合：文件选择/规则匹配/定位/过滤交给代码，LLM 只做判断 | 报告一 §3.5（OCR） |
 | D6 | 记忆**治理优先于存储**：quarantine 状态机 + 证据链 + 代码版本绑定失效 | 报告二 §4；references/06 |
 | D7 | 记忆召回走**确定性模块匹配**，语义检索只作补充；宁可漏召不可错召 | references/02、03 |
@@ -61,6 +61,8 @@ AI Coding 工具（Claude Code、Codex、OpenCode 等）已经把代码生成提
 - reviewer skill：负责任务级评审的 subagent 派发模板（D2/D3/D4）
 - pre-commit 门禁：PreToolUse hook 拦截 `git commit`，要求评审工件与 diff hash 绑定（D1/D9）
 - 记忆最短链路：评审结论 → quarantine → 人工审核 → 按模块注入 reviewer prompt（ANDM §6.1）
+
+> 门禁分期说明：总图四道门禁中，本期落地中间两道（任务级 + pre-commit）；plan 评审 V1 落地（复用 reviewer 模板，输入换 proposal/design/tasks 三工件），PR 终审 V2 接 CI 兜底——MVP 先验证「机械门禁 + 记忆治理」闭环本身（补充卷 §5.4）。
 
 验收标准：
 
@@ -109,9 +111,11 @@ AI Coding 工具（Claude Code、Codex、OpenCode 等）已经把代码生成提
 | 文档 | 内容 |
 |---|---|
 | [docs/research/sdd-code-reviewer-landscape.md](docs/research/sdd-code-reviewer-landscape.md) | 调研一：SDD 框架 × 代码评审工具生态（OpenSpec、spec-kit、OCR、CodeFuse-Query、superpowers 等） |
+| [docs/research/landscape-supplement.md](docs/research/landscape-supplement.md) | **调研补充卷**：定量实证 6 组、metareview / review-spec 补遗、SDD 分类法佐证、MVP 勘误（Claude 二路调研 × K3 主报告交叉验证；论断级证据摘录见同名 `-evidence.md`） |
 | [docs/research/multi-agent-memory-communication-review.md](docs/research/multi-agent-memory-communication-review.md) | 调研二：多智能体记忆/通信方案事实核查（mem0/Graphiti/A2A 等选型依据） |
 | [docs/design/ai-native-dev-memory-loop.md](docs/design/ai-native-dev-memory-loop.md) | 概念设计：记忆飞轮闭环与 prior-art 分析 |
 | [docs/design/ai-native-dev-memory-architecture.md](docs/design/ai-native-dev-memory-architecture.md) | 系统设计：ANDM 架构、schema、状态机、接口面 |
 | [docs/design/mvp-minimal-design.md](docs/design/mvp-minimal-design.md) | **MVP 最小设计**：4 组件契约、门禁脚本、评审工件格式、验收标准（动手起点） |
 | [references/memory-engineering/](references/memory-engineering/) | 记忆工程机制笔记（检索/生命周期/压缩/评估/安全/生产架构） |
-| [papers/](papers/) | 12 篇核心论文 PDF（LOGOS、Voyager、ExpeL、Microscope 等） |
+| [references/primary-sources/](references/primary-sources/) | 补充卷一手来源快照（metareview README、review-spec SKILL.md） |
+| [papers/](papers/) | 19 篇核心论文 PDF（LOGOS、Voyager、ExpeL、Microscope 等；补充卷增补 7 篇实证论文） |

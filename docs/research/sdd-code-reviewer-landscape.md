@@ -127,13 +127,13 @@ Martin Fowler 网站 Birgitta Böckeler 系列（[martinfowler.com](https://mart
 
 ### 2.3 逐项目详情
 
-**GitHub Spec Kit**（品类事实标准）：`uv tool install specify-cli`，`specify init --integration claude` 生成 `.specify/`。工作流：`/speckit.constitution`（项目"宪法"，不可变高层原则）→ `/speckit.specify` → `/speckit.clarify` → `/speckit.plan` → `/speckit.tasks` → **`/speckit.analyze`** → `/speckit.implement`；另有 `/speckit.checklist`、`/speckit.taskstoissues`、`/speckit.converge`。30+ agent 集成（slash commands 或 `--skills` 模式）；extensions/presets/bundles 三级定制。评审强度（源码级调研结论）：`check-prerequisites.sh` 是 exit-code 门禁但只查**文件存在性**；gate 步骤是 TTY 人工 approve/reject（CI 中退化为 PAUSED）；`/speckit.analyze`、`/speckit.checklist` 是 LLM 解释的 markdown 清单——**存在性门禁 + 人工审批 + LLM 清单，无内容级可执行验证**。
+**GitHub Spec Kit**（品类事实标准）：`uv tool install specify-cli`，`specify init --integration claude` 生成 `.specify/`。工作流：`/speckit.constitution`（项目"宪法"，不可变高层原则）→ `/speckit.specify` → `/speckit.clarify` → `/speckit.plan` → `/speckit.tasks` → **`/speckit.analyze`** → `/speckit.implement`；另有 `/speckit.checklist`、`/speckit.taskstoissues`、`/speckit.converge`。30+ agent 集成（slash commands 或 `--skills` 模式）；extensions/presets/bundles 三级定制。评审强度（源码级调研结论）：`check-prerequisites.sh` 是 exit-code 门禁但只查**文件存在性**；gate 步骤是 TTY 人工 approve/reject（CI 中退化为 PAUSED）；`/speckit.analyze`、`/speckit.checklist` 是 LLM 解释的 markdown 清单——**存在性门禁 + 人工审批 + LLM 清单，无内容级可执行验证**。官方 extensions/presets 的定位示例即包含「添加实现后代码评审」「在 plan 中加强制安全评审 gate + 强制 test-first 任务排序」——reviewer 接入点是一等公民插槽，缺的是内容级验证本体【v0.1 增补】。
 
 **AWS Kiro**（方法论源头）："requirements → design → tasks" 三阶段范式的原创者。产物三件套：`requirements.md`（用户故事 + **EARS 记法**验收标准）、`design.md`、`tasks.md`；对 tasks 构建依赖图分 wave 并行执行。差异化亮点：**property-based testing**——把 EARS 需求翻译成可执行规格，自动生成性质测试校验生成代码。Hooks：`.kiro/hooks/*.json`，10 种触发器含 `PostFileSave`、**可阻断的 `PreToolUse` / `UserPromptSubmit` / `PreTaskExec`**；动作分 shell command 与 agent prompt 两类。Steering 文件（product.md/structure.md/tech.md）充当 memory bank。
 
 **Tessl**（spec-as-source 激进赌注，Snyk 创始人 Guy Podjarny）：两个产品——Spec Registry（"npm for specs"，10,000+ 开源库 usage spec，防 agent 幻觉 API 用法）与 Tessl Framework（spec 三段式：组件描述 + 带链接测试的 capabilities + `{.api}` 公开接口块；`@generate ./src/index.ts` 驱动代码生成，生成文件头标注 `// GENERATED FROM SPEC - DO NOT EDIT`；当前 spec↔代码 1:1 映射）。spec 与实现间保留人工审批；自己不跑 agent，"坐在 agent 之上"提供 specs/skills/tests/governance。Fowler 作者警示：spec-as-source 类似当年 MDD，可能同时继承 MDD 的不灵活与 LLM 的非确定性。
 
-**BMAD-METHOD**（"模拟敏捷组织"）：`npx bmad-method install`。角色化多 agent 管线：Analyst（brief）→ PM（PRD）→ Architect（架构）→ Scrum Master（拆 story）→ Dev → QA，产物以模板化 markdown 交接。v6 模块化生态：12+ 角色、34+ workflow，含 BMad Test Architect 和 **BMad Loop**（无人值守 build/verify/retro 整个 epic）。**无可执行门禁**——清单和交接全靠 agent 按 prompt 自觉执行。批评：角色 prompt 并不产生独立专业能力，角色间传文本可能放大早期错误假设（"cargo cult" 风险）。
+**BMAD-METHOD**（"模拟敏捷组织"）：`npx bmad-method install`。角色化多 agent 管线：Analyst（brief）→ PM（PRD）→ Architect（架构）→ Scrum Master（拆 story）→ Dev → QA，产物以模板化 markdown 交接。v6 模块化生态：12+ 角色、34+ workflow，含 BMad Test Architect 和 **BMad Loop**（无人值守 build/verify/retro 整个 epic）。**无可执行门禁**——清单和交接全靠 agent 按 prompt 自觉执行（注意口径区分【v0.1 增补】：流程完备度上其验证环节含 PRD 评审、就绪检查、代码评审，是 arXiv:[2606.04967](https://arxiv.org/abs/2606.04967) 样本内最高分——BMAD 弱在可执行性而非流程缺失）。批评：角色 prompt 并不产生独立专业能力，角色间传文本可能放大早期错误假设（"cargo cult" 风险）。
 
 **Agent OS**（已转型）：Brian Casel 出品，纯 shell 安装器 + markdown。**v3（2026-01）大幅收缩**：删除 v1/v2 的 write-spec/create-tasks/implement-tasks/orchestrate-tasks 和 subagent 框架，理由"Claude Code 的 plan mode 和更强的模型已覆盖这些脚手架"。当前仅 5 个命令：`discover-standards`（**从既有代码库逆向提取编码规范**——招牌能力）、`index-standards`、`inject-standards`、`plan-product`、`shape-spec`（增强 Plan Mode）。无门禁、无验证、无持久化 spec。
 
@@ -145,6 +145,7 @@ Martin Fowler 网站 Birgitta Böckeler 系列（[martinfowler.com](https://mart
 - **产物格式**：几乎全部 repo 内 markdown（+yaml）；Tessl 的 spec 是唯一带"可编译"语义的格式
 - **Agent 集成**：Spec Kit slash commands/skills 覆盖最广（30+）；cc-sdd 走 Agent Skills + 各平台 subagent 原语；Kiro 版本化 JSON hooks；OpenSpec CLI 生成 34 工具的 skills+commands
 - **评审/验证真实强度排序**：Kiro（可执行性质测试）> cc-sdd / superpowers（独立上下文复审流派，prompt 驱动）> Spec Kit（存在性门禁 + 人工审批 + LLM 清单）> Tessl（人工审批）> BMAD（自觉）> Agent OS（无）
+- **学术佐证**【v0.1 增补】：[arXiv:2606.04967](https://arxiv.org/abs/2606.04967) 六维流程分类法（Specification/Context/Roles/**Validation**/Execution/Portability，0–2 分制）评估六框架：BMAD 10/12、Spec Kitty 9、Spec Kit 8、OpenSpec 6（**Validation=0**）、Reversa 6、GSD 4——OpenSpec 无内建 review 的判断获独立佐证；该量表可直接用于本项目自评（详见[补充卷 §3](landscape-supplement.md)）。分类法样本中的 Spec Kitty（`spec→plan→tasks→next→review→accept→merge`，git worktree，合并前强制评审验收）与本报告未覆盖，值得单独调研
 
 ### 2.5 各家独立收敛出的共识
 
@@ -374,6 +375,16 @@ spec/plan 评审 ──→ 任务级实现评审 ──→ pre-commit 门禁 ─
 6. **带出口的循环**：迭代上限（2/5/8 轮熔断）+ 仲裁机制（dispute-in-writing、defer-with-TODO、waive、parked-with-ruling），防无限 review 循环
 7. **模型分层与成本意识**：评审用"与 diff 规模/风险相称的模型"，终审用最强模型；"Turn count beats token price"
 8. **阶段级 grounding/validation hook**：把"评审"泛化为每个 phase 前后的只读探测与工件校验，在写码前捕获幻觉 API 与不存在的路径
+9. **Planner–Generator–Evaluator 角色隔离**【v0.1 增补】（[Agent Patterns Catalog](https://www.agentpatternscatalog.org/patterns/planner-generator-evaluator-harness/)）：长时程工作拆成 Planner（产计划工件）/ Generator（每 chunk 新上下文）/ Evaluator（按固定 rubric 打分且看不到 Generator 轨迹），返回 pass/fail + 结构化 findings——固定 rubric 使评审行为跨 run 可复现；「工件即接口」（模式 2）同时也是可复现性的前提
+
+### 4.10 门禁生命周期与 post-merge 学习：dsifry/metareview【v0.1 增补】
+
+[dsifry/metareview](https://github.com/dsifry/metareview)（v0.6.0，README 快照见 [references/primary-sources/metareview](../../references/primary-sources/metareview/README.md)）："Local-first review gates and learning for specs, plans, code, epics, PRs, and post-merge follow-up"——与本项目定位几乎重合，且是 §6.2 形态 B 的活样本：
+
+- **双宿主分发**：同一套门禁同时暴露为 Claude Code slash commands（`/setup` `/review-task-done` `/review-epic-ready` `/review-pr-ready` `/review-artifact` `/learn-post-merge` `/status`）与 Codex `$skills`（`$setup` 等）；本体是本地 CLI，编码 agent 把它当 completion gate 调用而非 CI webhook
+- **四态生命周期**：`PASS` / `PASS_ADVISORY`（带非阻塞意见通过）/ `NEEDS_REVISION`（修复后带 `--previous-run <run-id>` 重跑同一 gate，跨 run 可追溯）/ `ESCALATED`（禁止同目标继续重试，人工必须收窄、拆分或重新设计目标）
+- **五个必选对抗 lens**（以其 `rubrics/artifact-review-rubric.md` 为准）：Feasibility / Completeness / Scope & alignment / Architecture / Intent preservation——工件层视角，与 §4.5 的代码层 conformance/correctness 正交、可叠用；默认并行 subagent 执行，回退 in-session 自审时必须声明「本次评审非独立对抗」
+- **`/learn-post-merge`**：合并后学习回喂后续评审——记忆飞轮在门禁层的先行者
 
 ---
 
@@ -393,6 +404,17 @@ spec/plan 评审 ──→ 任务级实现评审 ──→ pre-commit 门禁 ─
 | Hook 静默不触发 | 配置错误几乎无反馈，调试困难 | [stuartmason.co.uk](https://stuartmason.co.uk/posts/claude-code-hooks-not-working)、[ruflo issue #1084](https://github.com/ruvnet/ruflo/issues/1084) |
 | spec 工件堆积成"work 的幻觉" | spec-kit 被批评生成大量文本、小特性开销过大；验证成本本身成为新瓶颈（METR 实验：开发者用 AI 反而慢 19%） | [spec-kit Discussion #1784](https://github.com/github/spec-kit/discussions/1784)、augmentcode |
 | 角色化管线的 cargo cult | 角色 prompt 不产生独立专业能力，角色间传文本放大早期错误假设 | [vanja.io](https://vanja.io/265000-stars/) |
+
+### 5.1 定量实证【v0.1 增补】：上表均为定性教训，此处补数据底座（详证见[补充卷 §1](landscape-supplement.md)）
+
+| 实证 | 关键数字 | 设计含义 |
+|---|---|---|
+| AI 评审评论采纳率（16 个 Action / 178 仓库 / 22,326 条评论，[arXiv:2508.18771](https://arxiv.org/abs/2508.18771)） | 有效 AI 评论致改率 **0.9–19.2%** vs 人类 60%；hunk 级 6.5–19.2% vs 文件级 0.9–4.2% | finding 锚定 hunk/file:line 不是风格偏好，是 5–10 倍效果差 |
+| 评论未解决归因（54,791 条 / 342 仓库，[arXiv:2607.21997](https://arxiv.org/abs/2607.21997)） | 头号原因 Intentional Design Decision（112 例）＞ Incorrect Suggestion（67 例） | 「spec 作为评审输入」（§6.3.1）的定量证明 |
+| Beko 工业部署（ICSE 2025 SEIP，[arXiv:2412.18531](https://arxiv.org/abs/2412.18531)） | 73.8% 评论被处理；PR 关闭时间 5h52m→8h20m（p<0.001）；$0.48/PR | 评审非免费：gate 位置与豁免设计决定 cycle-time 代价 |
+| CR-Bench 信噪比边界（[arXiv:2603.11078](https://arxiv.org/abs/2603.11078)） | 单轮 SNR 5.11（recall ~27%/precision ~3.6%）；Reflexion 后 recall ~33% 但 SNR 跌至 1.95 | 高阈值过滤方向正确；勿以加反思轮数换召回 |
+| LLM-judge 一致率上限（Beko 2,604 条，[arXiv:2604.24525](https://arxiv.org/abs/2604.24525)） | 与人工标注一致仅 0.44–0.62；Likert 分级 > 二元判定 | 自动评分只做 triage 不做裁决；分级评分优于二元 |
+| 同模型自偏好（[arXiv:2404.13076](https://arxiv.org/abs/2404.13076)） | 自偏好强度与自识别能力线性相关（Kendall tau 0.41→0.74） | fresh context 不消除模型自偏好 → 跨模型终审的定量依据 |
 
 ---
 
@@ -440,7 +462,7 @@ explore → propose(spec+plan+tasks) → [plan review gate] → implement(每任
 
 ### 6.3 机会点（现有工具的空白）
 
-1. **spec 作为评审输入**：高 star 评审工具几乎全部只看 diff + AGENTS.md；OCR 的 `--background-file` 提供了自由文本背景注入，但不感知 SDD artifact 结构；「对照 delta spec 做结构化 conformance 评审（含 tasks.md 完成度联动）」目前只有 superpowers/openkash 等小项目以 prompt 方式做了，且与 OpenSpec 式 SDD 骨架没有现成整合——最直接的差异化空间
+1. **spec 作为评审输入**：高 star 评审工具几乎全部只看 diff + AGENTS.md；OCR 的 `--background-file` 提供了自由文本背景注入，但不感知 SDD artifact 结构；「对照 delta spec 做结构化 conformance 评审」已有先行者——superpowers/openkash 以 prompt 方式做了，[serpro69/claude-toolbox 的 review-spec skill](https://github.com/serpro69/claude-toolbox/blob/master/klaude-plugin/skills/review-spec/SKILL.md)（快照见 [references/primary-sources/review-spec](../../references/primary-sources/review-spec/SKILL.md)）给出双向六类机器可读 finding 码：`MISSING_IMPL / EXTRA_IMPL / SPEC_DEV / DOC_INCON / OUTDATED_DOC / AMBIGUOUS`（OUTDATED_DOC 是「spec 过时于代码」的反向通道），但均与 OpenSpec 式 SDD 骨架没有现成整合——差异化空间收窄为「delta-spec 结构感知 + 与机械门禁联动」。痛点定量佐证：54,791 条 agent 评审评论未解决的头号原因是缺设计意图（Intentional Design Decision 112 例 ＞ Incorrect Suggestion 67 例，[arXiv:2607.21997](https://arxiv.org/abs/2607.21997)，补充卷 §1.2）【v0.1 增补修订】
 2. **评审门禁与 SDD artifact 状态机联动**：现有 hook 门禁只看 diff hash，不与 tasks.md 完成度、spec 校验结果联动；OpenSpec 的 schema 机制天然支持插入这种 gate，但官方 `/opsx:verify` 是建议性的而非强制的
 3. **评审规则随分支演进**（OpenHands 模式）在开源 SDD 工具中尚无落地
 4. **轻量化**：spec-kit 被批评「小特性开销过大」，带豁免机制、按改动规模自适应评审强度的实现有明确需求
@@ -487,3 +509,5 @@ explore → propose(spec+plan+tasks) → [plan review gate] → implement(每任
 9. 各项目 star 数增长极快，引用时请注意时效
 10. OCR（alibaba/open-code-review）官方 benchmark 数据存在第三方复测争议（HN 复测 precision/recall 与官方数字有出入，官方承认早期版本 tool call 异常，见其 `docs/src/appendix/benchmark.md`）；引用其 benchmark 数字时应带此限定
 11. CodeFuse-Query 上游 GitHub 近一年停更（last push 2025-09），且其"diff → facts"注入依赖外部脚本（仓库内 `gitdiff()` 为占位符），无现成 git diff 解析器；引入前需评估语言抽取覆盖率（其自身 roadmap 给出的阈值为 >90%）
+12. 【v0.1 增补】「PR-Agent 每个工具都是单次 LLM 调用（~30 秒）」这一 README 表述已被其自身源码证伪（`pr_code_suggestions.py` 的 `/improve` 含一次强制 self-reflection 第二次调用，大 PR 还按 chunk 放大调用次数），引用其成本数据时勿用此说
+13. 【v0.1 增补】检索中出现过「`openspec validate` 检查 spec-task 对齐（orphan task 检测）」的说法，与已知的格式/schema 校验语义有出入，疑为版本演进所致，未经本地实测前不并入正文
