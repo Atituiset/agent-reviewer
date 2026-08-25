@@ -119,3 +119,19 @@ AI Coding 工具（Claude Code、Codex、OpenCode 等）已经把代码生成提
 | [references/memory-engineering/](references/memory-engineering/) | 记忆工程机制笔记（检索/生命周期/压缩/评估/安全/生产架构） |
 | [references/primary-sources/](references/primary-sources/) | 补充卷一手来源快照（metareview README、review-spec SKILL.md） |
 | [papers/](papers/) | 19 篇核心论文 PDF（LOGOS、Voyager、ExpeL、Microscope 等；补充卷增补 7 篇实证论文） |
+
+## 8. 姊妹项目：环境上下文供给层
+
+reviewer 的输入四元组（diff + spec + 规则 + 团队记忆）覆盖意图与规约，
+**Environment（代码结构上下文：符号/调用边/分发链路/状态机）由姊妹调研项目
+[code-review-context-research](https://github.com/Atituiset/code-review-context-research) 供给**：
+
+- 生产决策（其 02 篇 §6）：agent 检视场景弃用 clangd 全量索引（失败模式静默），
+  以 **codegraph（tree-sitter 预建图谱）+ navmap（libclang 领域导航图：
+  消息分发表/注册分发/状态机/全局变量）** 替代；
+- 落地路线（其 05 篇）：Phase 0 调用边四方对照实验（codegraph vs agentic 实时
+  vs clangd 真值 vs navmap）决定 reviewer 对各来源的信任等级；
+  Phase 1 双工具上线后与本项目 V1（任务级评审跨文件定位）汇合；
+- 评测方法（其 06 篇）：组件级评测（调用边 P/R、行级定位）补齐本项目
+  §5 度量体系的系统级指标；
+- 本项目的 D5（文件选择/规则匹配/定位交给代码）中"定位"的具体实现即上述方案。
