@@ -1,0 +1,38 @@
+{
+  "diff_hash": "7e7b6ad41a9dfac4a2afae8f397d9e6b528664a3b7306eb8a5ad47c7dca3c582",
+  "verdict": "ESCALATED",
+  "escalated": true,
+  "reviewed_at": "2026-08-26T06:30:00+00:00",
+  "reviewer": "task-reviewer",
+  "spec_ref": "none",
+  "scenarios_scanned": ["cwe-787", "cwe-476", "cwe-125", "cwe-401", "cwe-416", "cwe-190", "default"],
+  "findings": [
+    {
+      "file": "common/cli.c", "line": 361,
+      "severity": "important", "category": "security",
+      "scenario": "cwe-787", "type": "none", "refs": ["CWE-787", "CWE-120"],
+      "summary": "strcpy copies unconstrained parameter 'board' into fixed 32-byte stack buffer with no length check",
+      "detail": "cli_build_banner() does strcpy(scratch, board) where scratch is char[32]; any input >=32 bytes smashes the stack frame.",
+      "confidence": 95, "resolved": false,
+      "ruling": "trial-disposition: seeded defect for gate trial; change will be reverted, not merged"
+    },
+    {
+      "file": "common/cli.c", "line": 362,
+      "severity": "important", "category": "bug",
+      "scenario": "cwe-476", "type": "none", "refs": ["CWE-476"],
+      "summary": "malloc return value passed directly to snprintf without NULL check",
+      "detail": "vsnprintf_internal has no NULL guard; allocation failure becomes write-to-NULL. Tree convention is to check malloc.",
+      "confidence": 92, "resolved": false,
+      "ruling": "trial-disposition: seeded defect for gate trial; change will be reverted, not merged"
+    },
+    {
+      "file": "common/cli.c", "line": 356,
+      "severity": "minor", "category": "bug",
+      "scenario": "default", "type": "MISSING_IMPL", "refs": [],
+      "summary": "New global function has no prototype in include/cli.h and no caller anywhere in the tree",
+      "detail": "Exported-but-undeclared uncalled helper.",
+      "confidence": 85, "resolved": false,
+      "ruling": "trial-disposition: reviewer correct; moot after revert"
+    }
+  ]
+}

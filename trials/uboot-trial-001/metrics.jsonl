@@ -1,0 +1,3 @@
+{"ts": "2026-08-26T06:44:02+00:00", "event": "gate_deny", "codes": ["E_PARTIAL_STAGE", "E_NO_ARTIFACT"], "session": "uboot-trial-001"}
+{"ts": "2026-08-26T06:52:51+00:00", "event": "gate_deny", "codes": ["E_VERDICT"], "session": "uboot-trial-001"}
+{"ts": "2026-08-26T06:54:13+00:00", "event": "gate_allow", "reason": "artifact-ok", "session": "uboot-trial-001"}

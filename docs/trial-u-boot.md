@@ -5,6 +5,7 @@
 > 方法：向 `common/cli.c` 追加 20 行函数 `cli_build_banner()`，**播种两个已知模式缺陷**
 > （无界 `strcpy` 进栈缓冲；`malloc` 不判空即用），评审后完整还原目标仓。
 > 复现步骤见 [trial-guide.md](trial-guide.md)。
+> 原始工件（diff.patch / 门禁工件 / metrics / 记忆库导出）已归档于 [trials/uboot-trial-001/](../trials/uboot-trial-001/README.md)，含 diff_hash 完整性链与独立复核方法。
 
 ## 结果总览
 
@@ -39,4 +40,4 @@
 - 机械链路（门禁/工件五规则/记忆治理/metrics）在真实大仓上零故障
 - 检出能力初步信号积极：2/2 播种命中 + 1 个真实增量发现；单样本不构成 precision/recall 结论，
   待 `cases/` 回放基线建立后批量度量（MVP 设计 §2.4.2）
-- 试验残留已清理计划：checkout master + 删分支 + rm runtime 目录（fork 远端切换后由人工择机执行）
+- 试验残留已归档：原始工件入 `trials/uboot-trial-001/`，播种提交推 fork（`review-gate-trial@41dd94c8`）；目标仓本地 runtime 目录可随时按 trial-guide 清理节还原
