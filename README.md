@@ -51,6 +51,8 @@ AI Coding 工具（Claude Code、Codex、OpenCode 等）已经把代码生成提
 | D8 | 进程内编排用 subagent 派发，跨工具/跨团队才用 A2A 协议 | 报告二 §4.2 |
 | D9 | 一切门禁 fail-open + 琐碎改动豁免 + 迭代熔断 | 报告一 §4.3 / §5 |
 
+> **实施红线（全期有效，出处见[复用性分析 §6](docs/research/oss-reuse-openviking-tdb-agent-memory.md) 红线汇总）**：不复制 OpenViking Python 包代码入本项目（AGPL）；注入预筛不得省略（propose 入口强制关卡 + 蜜罐回归）。
+
 ## 4. 落地路线图
 
 ### MVP（2–3 周，5–10 人试点）——评审最短闭环
@@ -61,6 +63,7 @@ AI Coding 工具（Claude Code、Codex、OpenCode 等）已经把代码生成提
 - reviewer skill：负责任务级评审的 subagent 派发模板（D2/D3/D4）
 - pre-commit 门禁：PreToolUse hook 拦截 `git commit`，要求评审工件与 diff hash 绑定（D1/D9）
 - 记忆最短链路：评审结论 → quarantine → 人工审核 → 按模块注入 reviewer prompt（ANDM §6.1）
+- 场景规则库：`rules/registry.json` 确定性路由 + CWE 键控场景三元组（checklist / meta / cases 回放样本）+ 历史案例回放基线（MVP 设计 §2.4）
 
 > 门禁分期说明：总图四道门禁中，本期落地中间两道（任务级 + pre-commit）；plan 评审 V1 落地（复用 reviewer 模板，输入换 proposal/design/tasks 三工件），PR 终审 V2 接 CI 兜底——MVP 先验证「机械门禁 + 记忆治理」闭环本身（补充卷 §5.4）。
 
@@ -113,11 +116,12 @@ AI Coding 工具（Claude Code、Codex、OpenCode 等）已经把代码生成提
 | [docs/research/sdd-code-reviewer-landscape.md](docs/research/sdd-code-reviewer-landscape.md) | 调研一：SDD 框架 × 代码评审工具生态（OpenSpec、spec-kit、OCR、CodeFuse-Query、superpowers 等） |
 | [docs/research/landscape-supplement.md](docs/research/landscape-supplement.md) | **调研补充卷**：定量实证 6 组、metareview / review-spec 补遗、SDD 分类法佐证、MVP 勘误（Claude 二路调研 × K3 主报告交叉验证；论断级证据摘录见同名 `-evidence.md`） |
 | [docs/research/multi-agent-memory-communication-review.md](docs/research/multi-agent-memory-communication-review.md) | 调研二：多智能体记忆/通信方案事实核查（mem0/Graphiti/A2A 等选型依据） |
+| [docs/research/oss-reuse-openviking-tdb-agent-memory.md](docs/research/oss-reuse-openviking-tdb-agent-memory.md) | 复用性分析：OpenViking × TencentDB-Agent-Memory 源码级对比，分阶段可借鉴点映射与 AGPL/MIT 红线汇总 |
 | [docs/design/ai-native-dev-memory-loop.md](docs/design/ai-native-dev-memory-loop.md) | 概念设计：记忆飞轮闭环与 prior-art 分析 |
 | [docs/design/ai-native-dev-memory-architecture.md](docs/design/ai-native-dev-memory-architecture.md) | 系统设计：ANDM 架构、schema、状态机、接口面 |
 | [docs/design/mvp-minimal-design.md](docs/design/mvp-minimal-design.md) | **MVP 最小设计**：4 组件契约、门禁脚本、评审工件格式、验收标准（动手起点） |
 | [references/memory-engineering/](references/memory-engineering/) | 记忆工程机制笔记（检索/生命周期/压缩/评估/安全/生产架构） |
-| [references/primary-sources/](references/primary-sources/) | 补充卷一手来源快照（metareview README、review-spec SKILL.md） |
+| [references/primary-sources/](references/primary-sources/) | 一手来源快照（metareview README、review-spec SKILL.md、两份安全评审 SKILL.md）+ [SKILL 建设三方案交叉笔记](references/primary-sources/skill-construction-notes.md) |
 | [papers/](papers/) | 19 篇核心论文 PDF（LOGOS、Voyager、ExpeL、Microscope 等；补充卷增补 7 篇实证论文） |
 
 ## 8. 姊妹项目：环境上下文供给层
