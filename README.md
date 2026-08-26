@@ -31,7 +31,8 @@ mvp/
 
 以 MVP 设计 §5 十条为准；每条对应一次可独立演示的验证。
 
-**自测**：`scripts/selftest.sh` 在 mktemp 沙箱仓库中自动验证其中九条（拦截/豁免/五规则/会话隔离/memoryd/打包路由/metrics/fail-open，共 18 例），当前全绿；第十条「场景回放基线」待团队 cases 迁入 `rules/scenarios/*/cases/` 后由回放脚本承接。
+- **自动自测**：`scripts/selftest.sh` 在 mktemp 沙箱仓库验证其中九条（18 例，当前全绿）；第十条「场景回放基线」待团队 cases 迁入 `rules/scenarios/*/cases/` 后承接
+- **真实仓手动验证**：照 [docs/trial-guide.md](docs/trial-guide.md) 逐步执行并 check（参数已预填 AetherStack）；u-boot 端到端试验记录见 [docs/trial-u-boot.md](docs/trial-u-boot.md)
 
 ## 实现注记（与契约文档的差异）
 

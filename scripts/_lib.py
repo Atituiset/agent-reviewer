@@ -19,7 +19,10 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 # 测试隔离：selftest 在沙箱仓库中设 MVP_ROOT；生产路径 = 本文件上两级目录
-ROOT = Path(os.environ.get("MVP_ROOT") or Path(__file__).resolve().parent.parent)
+# 跨仓试运行：MVP_ROOT 指向目标仓库（git/memory/工件/metrics 落点）；
+# SRC_ROOT 始终是本代码仓（registry/场景库/templates 等只读资产的来源）
+SRC_ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(os.environ.get("MVP_ROOT") or SRC_ROOT)
 ARTIFACT_DIR = ROOT / ".git" / "review-gate"
 FALLBACK_ARTIFACT = ROOT / ".review" / "last-review.json"
 METRICS = ROOT / ".review" / "metrics.jsonl"
@@ -83,7 +86,7 @@ def glob_to_regex(g: str) -> re.Pattern:
 
 
 def load_registry() -> list[tuple[re.Pattern, list[str]]]:
-    data = json.loads((ROOT / "rules" / "registry.json").read_text(encoding="utf-8"))
+    data = json.loads((SRC_ROOT / "rules" / "registry.json").read_text(encoding="utf-8"))
     rules = []
     for r in data["rules"]:
         for g in _expand_braces(r["path"]):
@@ -100,7 +103,7 @@ def scenarios_for(path: str) -> set[str]:
 
 
 def known_scenarios() -> set[str]:
-    base = ROOT / "rules" / "scenarios"
+    base = SRC_ROOT / "rules" / "scenarios"
     if not base.is_dir():
         return set()
     return {p.name for p in base.iterdir() if (p / "meta.yaml").exists()}
@@ -456,7 +459,7 @@ def main() -> int:
     if cmd == "package":
         return cmd_package(rest)
     if cmd == "replay-info":
-        n_cases = sum(1 for p in (ROOT / "rules" / "scenarios").rglob("golden.json"))
+        n_cases = sum(1 for p in (SRC_ROOT / "rules" / "scenarios").rglob("golden.json"))
         print(f"回放样本 golden.json 共 {n_cases} 个；为 0 时回放基线不可用（等待团队 cases 迁移）")
         return 0
     die_internal(f"unknown subcommand {cmd}")
