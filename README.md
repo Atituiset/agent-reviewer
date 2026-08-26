@@ -30,3 +30,11 @@ mvp/
 ## 验收
 
 以 MVP 设计 §5 十条为准；每条对应一次可独立演示的验证。
+
+**自测**：`scripts/selftest.sh` 在 mktemp 沙箱仓库中自动验证其中九条（拦截/豁免/五规则/会话隔离/memoryd/打包路由/metrics/fail-open，共 18 例），当前全绿；第十条「场景回放基线」待团队 cases 迁入 `rules/scenarios/*/cases/` 后由回放脚本承接。
+
+## 实现注记（与契约文档的差异）
+
+- 确定性内核用 **python3 stdlib**（json/sqlite3），非文档所述「shell+jq」——本机无 jq/sqlite3，且 python3 更可移植；脚本壳仍为 bash，接口不变
+- 「改 Markdown 不注入任何场景」由门禁层 docs-only 豁免实现（纯文档变更根本不进入评审）；`default` 场景在 registry 中对所有路径生效，含兜底清单
+- 解释器解析顺序：`.venv/bin/python` 优先，缺失回退 `python3`（测试可用 `MVP_ROOT` 指向沙箱仓库）

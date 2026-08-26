@@ -13,11 +13,11 @@ git init -qb main && git config user.email t@t && git config user.name t
 echo base > base.txt && git add -A && git commit -qm init
 export MVP_ROOT="$SUT"
 
-pass=0; fail=0
+pass=0; fail=0; OUT=""
 ok() { echo "  ✓ $1"; pass=$((pass+1)); }
-no() { echo "  ✗ $1"; fail=$((fail+1)); }
-reset_tree() { git reset -q --hard HEAD; git clean -qfd; }
-gate() { printf '%s' "$1" | bash hooks/pre-commit-gate.sh 2>&1; }
+no() { echo "  ✗ $1"; fail=$((fail+1)); [ -n "${OUT:-}" ] && printf '    ↳ 实际输出: %.300s\n' "$OUT"; }
+reset_tree() { git reset -q --hard HEAD; git clean -qfd -e .review -e '.review/*'; }
+gate() { OUT=$(printf '%s' "$1" | bash hooks/pre-commit-gate.sh 2>&1); return $?; }
 
 # 写工件: write_artifact <session|-> <python覆盖字段JSON>
 write_artifact() {
@@ -38,22 +38,22 @@ p.write_text(json.dumps(a,ensure_ascii=False))
 PYEOF
 }
 
-stage_big_c() { mkdir -p src && yes "int pad;" | head -30 > src/x.c && git add src/x.c; }
+stage_big_c() { mkdir -p src; awk 'BEGIN{for(i=0;i<30;i++)print "int pad;"}' > src/x.c; git add src/x.c; }
 
 echo "— 门禁拦截与豁免 —"
 reset_tree; stage_big_c
-OUT=$(gate '{"session_id":"t1","tool_input":{"command":"git commit -m x"}}'); RC=$?
+gate '{"session_id":"t1","tool_input":{"command":"git commit -m x"}}'; RC=$?
 { [ "$RC" = 2 ] && grep -q E_NO_ARTIFACT <<<"$OUT"; } && ok "① >20 行无工件被拦截(E_NO_ARTIFACT)" || no "① 拦截失效 rc=$RC"
 
 reset_tree; echo "small" >> small.txt && git add small.txt
 gate '{"session_id":"t2","tool_input":{"command":"git commit -m x"}}' >/dev/null; [ $? = 0 ] && ok "② <20 行豁免放行" || no "② <20 行未豁免"
 
-reset_tree; mkdir -p docs && yes "# doc" | head -30 > docs/a.md && git add docs/a.md
+reset_tree; mkdir -p docs; awk 'BEGIN{for(i=0;i<30;i++)print "# doc"}' > docs/a.md; git add docs/a.md
 gate '{"session_id":"t3","tool_input":{"command":"git commit -m x"}}' >/dev/null; [ $? = 0 ] && ok "③ 纯文档豁免放行" || no "③ 文档未豁免"
 
-mkdir -p .review && touch .review/DISABLED
-reset_tree; stage_big_c
-gate '{"session_id":"t4","tool_input":{"command":"git commit -m x"}}' >/dev/null; RC=$?; rm .review/DISABLED
+mkdir -p .review
+reset_tree && touch .review/DISABLED; stage_big_c
+gate '{"session_id":"t4","tool_input":{"command":"git commit -m x"}}' >/dev/null; RC=$?; rm -f .review/DISABLED
 [ $RC = 0 ] && ok "④ kill-switch 放行" || no "④ kill-switch 未生效 rc=$RC"
 
 echo "— 工件五规则 —"
@@ -61,11 +61,11 @@ reset_tree; stage_big_c; write_artifact s5 '{}'
 gate '{"session_id":"s5","tool_input":{"command":"git commit -m x"}}' >/dev/null; [ $? = 0 ] && ok "⑤ CLEAN 工件放行" || no "⑤ 合法 CLEAN 未放行"
 
 echo "// more" >> src/x.c && git add src/x.c
-OUT=$(gate '{"session_id":"s5","tool_input":{"command":"git commit -m x"}}'); RC=$?
+gate '{"session_id":"s5","tool_input":{"command":"git commit -m x"}}'; RC=$?
 { [ "$RC" = 2 ] && grep -q E_HASH_MISMATCH <<<"$OUT"; } && ok "⑥ hash 绑定：评审后再改动即拦截" || no "⑥ hash 绑定失效 rc=$RC"
 
-reset_tree; stage_big_c; echo unstaged > u.txt   # 只 stage 了部分（u.txt 未 stage）
-OUT=$(gate '{"session_id":"t7","tool_input":{"command":"git commit -m x"}}')
+reset_tree; stage_big_c; echo extra >> base.txt   # 已跟踪文件改动未 stage = 真部分暂存
+gate '{"session_id":"t7","tool_input":{"command":"git commit -m x"}}'
 grep -q E_PARTIAL_STAGE <<<"$OUT" && ok "⑦ 部分 stage 被拒并提示完整暂存" || no "⑦ E_PARTIAL_STAGE 缺失"
 
 reset_tree; stage_big_c
@@ -76,7 +76,7 @@ gate '{"session_id":"s8","tool_input":{"command":"git commit -m x"}}' >/dev/null
 
 reset_tree; stage_big_c
 write_artifact s9 '{"verdict":"ISSUES_FOUND","findings":[{"file":"src/x.c","line":1,"severity":"minor","scenario":"cwe-999999","type":"none","summary":"幻觉场景","resolved":true,"ruling":null}]}'
-OUT=$(gate '{"session_id":"s9","tool_input":{"command":"git commit -m x"}}')
+gate '{"session_id":"s9","tool_input":{"command":"git commit -m x"}}'
 grep -q E_UNKNOWN_SCENARIO <<<"$OUT" && ok "⑨ 幻觉场景名被拒(E_UNKNOWN_SCENARIO)" || no "⑨ 场景存在性校验缺失"
 
 echo "— 会话隔离与直接校验 —"
@@ -102,9 +102,10 @@ grep -q cwe-476 pkg/scenarios.json && grep -q "rules/scenarios/cwe-476/checklist
 [ -s .review/metrics.jsonl ] && ok "⑯ metrics 埋点落盘(.review/metrics.jsonl)" || no "⑯ metrics 为空"
 
 echo "— fail-open（破坏内核后必须放行）—"
-echo "syntax error(((" >> scripts/_lib.py
 reset_tree; stage_big_c
-gate '{"session_id":"ff","tool_input":{"command":"git commit -m x"}}' >/dev/null; [ $? = 0 ] && ok "⑰ 内核异常时 fail-open 放行" || no "⑰ fail-open 失效（误拦）"
+echo 'def broken(:' >> scripts/_lib.py   # 在 reset 之后破坏，否则被 --hard 还原
+gate '{"session_id":"ff","tool_input":{"command":"git commit -m x"}}'; RC=$?
+[ $RC = 0 ] && ok "⑰ 内核异常时 fail-open 放行" || no "⑰ fail-open 失效（误拦） rc=$RC"
 
 echo
 echo "结果: PASS=$pass FAIL=$fail  (沙箱: $SUT)"

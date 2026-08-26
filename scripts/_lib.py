@@ -147,14 +147,24 @@ def _verdict_failures(a: dict) -> list[dict]:
     return []
 
 
+def has_unstaged() -> bool | None:
+    """True=存在 unstaged 改动；False=干净；None=git 异常。(--quiet 用退出码表达结果)"""
+    r = subprocess.run(["git", "diff", "--quiet"], cwd=ROOT, capture_output=True, check=False)
+    if r.returncode == 0:
+        return False
+    if r.returncode == 1:
+        return True
+    return None
+
+
 def validate_artifact(path: Path) -> tuple[bool, list[dict]]:
     fails: list[dict] = []
 
     # 规则 1 前置：完整暂存（评审树 == 提交树的前提）
-    unstaged = git(["diff", "--quiet"])
+    unstaged = has_unstaged()
     if unstaged is None:
         fails.append(_fail("E_GIT", "git diff --quiet 执行失败", "检查仓库状态"))
-    elif unstaged != b"":
+    elif unstaged:
         fails.append(_fail(
             "E_PARTIAL_STAGE",
             "存在 unstaged 改动：部分 stage 时「评审过的树 ≠ 提交的树」",
