@@ -1,0 +1,6 @@
+# 场景元数据（MVP 设计 §2.4.1）；origin 标记来源：mitre-top25 | project-scenario | team-asset | builtin
+cwe: 362
+name: race-condition
+severity_default: high
+languages: [c, cpp, java, go]
+origin: mitre-top25

@@ -1,0 +1,6 @@
+# 场景元数据（MVP 设计 §2.4.1）；origin 标记来源：mitre-top25 | project-scenario | team-asset | builtin
+cwe: 89
+name: sql-injection
+severity_default: critical
+languages: [java, python, js, ts, go, php, rs]
+origin: mitre-top25

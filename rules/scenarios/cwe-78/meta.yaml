@@ -1,0 +1,6 @@
+# 场景元数据（MVP 设计 §2.4.1）；origin 标记来源：mitre-top25 | project-scenario | team-asset | builtin
+cwe: 78
+name: os-command-injection
+severity_default: critical
+languages: [c, cpp, java, python, go, js, ts, php]
+origin: mitre-top25

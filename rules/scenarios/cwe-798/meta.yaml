@@ -1,0 +1,6 @@
+# 场景元数据（MVP 设计 §2.4.1）；origin 标记来源：mitre-top25 | project-scenario | team-asset | builtin
+cwe: 798
+name: hardcoded-credentials
+severity_default: critical
+languages: ~  # 任意语言
+origin: mitre-top25
