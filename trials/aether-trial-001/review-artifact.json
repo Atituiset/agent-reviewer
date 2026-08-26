@@ -1,0 +1,97 @@
+{
+  "diff_hash": "ad5ea812d5a8f7df5d7f234e59fabf2f0d33e9ffab562f346cbbe41dbf537618",
+  "verdict": "ESCALATED",
+  "escalated": true,
+  "reviewed_at": "2026-08-26T09:11:44+00:00",
+  "reviewer": "task-reviewer",
+  "spec_ref": "none",
+  "scenarios_scanned": [
+    "cwe-125",
+    "cwe-190",
+    "cwe-362",
+    "cwe-401",
+    "cwe-416",
+    "cwe-476",
+    "cwe-78",
+    "cwe-787",
+    "default"
+  ],
+  "findings": [
+    {
+      "file": "stack/nas/src/nas_messages.cpp",
+      "line": 29,
+      "severity": "critical",
+      "category": "bug",
+      "scenario": "default",
+      "type": "none",
+      "refs": [],
+      "summary": "decode 缺少收尾大括号，make_padding_frame 被嵌套定义在 NasMessage::decode 函数体内，翻译单元无法编译",
+      "detail": "g++ -fsyntax-only 复现：function-definition is not allowed here",
+      "confidence": 98,
+      "resolved": false,
+      "ruling": "trial-disposition: 播种 Edit 误吞 decode 闭合括号——真实缺陷确认，试验分支用后即焚，不合并"
+    },
+    {
+      "file": "stack/nas/src/nas_messages.cpp",
+      "line": 35,
+      "severity": "important",
+      "category": "security",
+      "scenario": "cwe-401",
+      "type": "none",
+      "refs": [
+        "CWE-401"
+      ],
+      "summary": "tag 为空的 early-return 路径未 free(frame)，内存泄漏",
+      "detail": "malloc 于 L32-33，唯一释放点 L44，early-return 绕过",
+      "confidence": 96,
+      "resolved": false,
+      "ruling": "trial-disposition: 播种缺陷(cwe-401)，验证检出率用"
+    },
+    {
+      "file": "stack/nas/src/nas_messages.cpp",
+      "line": 38,
+      "severity": "important",
+      "category": "security",
+      "scenario": "cwe-401",
+      "type": "none",
+      "refs": [
+        "CWE-401"
+      ],
+      "summary": "body 超限的 early-return 同样泄漏，第二条路径",
+      "detail": "与 L35 同型；超限校验发生在 malloc 之后",
+      "confidence": 96,
+      "resolved": false,
+      "ruling": "trial-disposition: 播种缺陷(cwe-401 第二路径)"
+    },
+    {
+      "file": "stack/nas/src/nas_messages.cpp",
+      "line": 33,
+      "severity": "important",
+      "category": "security",
+      "scenario": "cwe-476",
+      "type": "none",
+      "refs": [
+        "CWE-476"
+      ],
+      "summary": "malloc 返回值未判空即被 memcpy 当写入目标",
+      "detail": "分配失败时 L40 对空指针写入 UB",
+      "confidence": 84,
+      "resolved": false,
+      "ruling": "trial-disposition: 播种缺陷(cwe-476)"
+    },
+    {
+      "file": "stack/nas/src/nas_messages.cpp",
+      "line": 27,
+      "severity": "important",
+      "category": "conformance",
+      "scenario": "default",
+      "type": "EXTRA_IMPL",
+      "refs": [],
+      "summary": "试验脚手架落入产品源文件，无声明且全仓零调用",
+      "detail": "TRIAL SEED 注释自述；spec_ref=none 有 AMBIGUOUS 风险",
+      "confidence": 88,
+      "resolved": false,
+      "ruling": "trial-disposition: 对种子本身的元发现正确；分支将删除"
+    }
+  ]
+}

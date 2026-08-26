@@ -7,8 +7,9 @@
 | 项 | 值 |
 |---|---|
 | 目标仓 | `~/Projects/testbeds/u-boot`（v2026.07） |
-| 远端 | https://github.com/Atituiset/u-boot.git（fork） |
-| 分支 | `review-gate-trial` @ `41dd94c8`（基线 `ece349ad` 之上仅一个播种提交） |
+| 远端 | https://github.com/Atituiset/u-boot（fork） |
+| 分支 | [`review-gate-trial`](https://github.com/Atituiset/u-boot/tree/review-gate-trial) @ [`41dd94c8`](https://github.com/Atituiset/u-boot/commit/41dd94c88122c0c2a87b48d8ef7792575265b3d9)（**勿合并**） |
+| 播种文件 | [common/cli.c](https://github.com/Atituiset/u-boot/blob/41dd94c88122c0c2a87b48d8ef7792575265b3d9/common/cli.c) 追加 `cli_build_banner()`（+19 行） |
 | 会话 | `uboot-trial-001` |
 | 日期 | 2026-08-26 |
 

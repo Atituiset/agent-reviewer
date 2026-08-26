@@ -111,6 +111,24 @@ tail -6 "$TARGET/.review/metrics.jsonl"
 
 - [ ] 能看到完整的 deny→deny→allow 轨迹及 reason/codes
 
+## 归档（T6，推荐：让试验可从本仓一路点回源码）
+
+```bash
+# 1) 播种改动提交成远端分支（记录永久可追溯；分支标勿合并）
+git -C "$TARGET" commit -m "trial(review-gate): 播种缺陷试验件——勿合并"
+git -C "$TARGET" push -u origin trial/review-gate
+
+# 2) 证据卷入 MVP 仓 trials/<会话id>/
+E="$R/trials/$SESSION" && mkdir -p "$E"
+cp "/tmp/review-$SESSION/"{diff.patch,context.md,scenarios.json} "$E/"
+cp "$TARGET/.git/review-gate/$SESSION.json" "$E/review-artifact.json"
+cp "$TARGET/.review/metrics.jsonl" "$E/"
+# 3) 写 $E/README.md：出处表 + 远端分支/commit 直链 + diff_hash 复核命令
+```
+
+- [ ] `sha256sum "$E/diff.patch"` 与工件 `diff_hash` 一致
+- [ ] README 含 GitHub 分支与 commit 直链，从本仓可一键跳转
+
 ## 清理（验证完成后恢复目标仓）
 
 ```bash

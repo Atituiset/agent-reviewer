@@ -1,0 +1,4 @@
+{"ts": "2026-08-26T08:39:27+00:00", "event": "gate_allow", "reason": "trivial: diff 仅 19+0 行（<20 豁免）"}
+{"ts": "2026-08-26T08:51:26+00:00", "event": "gate_deny", "codes": ["E_NO_ARTIFACT"], "session": "aether-trial-001"}
+{"ts": "2026-08-26T08:55:48+00:00", "event": "gate_deny", "codes": ["E_NO_ARTIFACT"], "session": "aether-trial-001"}
+{"ts": "2026-08-26T09:13:41+00:00", "event": "gate_allow", "reason": "artifact-ok", "session": "aether-trial-001"}
