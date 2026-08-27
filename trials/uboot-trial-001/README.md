@@ -17,6 +17,7 @@
 
 | 文件 | 内容 | 来源 |
 |---|---|---|
+| **`REVIEW.md`** | **检视报告（给人看的最终结论）：3 条 finding 逐条含位置/证据/修复建议/ruling** | 由 review-artifact.json 渲染 |
 | `diff.patch` | 播种改动原文（`common/cli.c` 新增 `cli_build_banner()`，含 cwe-787/cwe-476 两处已知缺陷） | `git diff ece349ad..41dd94c8 -- common/cli.c` |
 | `review-artifact.json` | 门禁工件（ESCALATED + 3 条 finding 各带 ruling） | `.git/review-gate/uboot-trial-001.json` |
 | `metrics.jsonl` | 门禁决策轨迹：deny(PARTIAL,NO_ARTIFACT) → deny(E_VERDICT) → allow(artifact-ok) | `.review/metrics.jsonl` |

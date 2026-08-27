@@ -17,6 +17,7 @@
 
 | 文件 | 内容 |
 |---|---|
+| **`REVIEW.md`** | **检视报告（给人看的最终结论）：5 条 finding 逐条含位置/证据/修复建议/ruling** |
 | `diff.patch` | 被审变更原文（T1 打包时捕获） |
 | `review-artifact.json` | 门禁工件终态：ESCALATED，5 条 finding 各带 ruling |
 | `context.md` / `scenarios.json` | 评审输入包（命中 8 个 C/C++ 场景 + default） |
