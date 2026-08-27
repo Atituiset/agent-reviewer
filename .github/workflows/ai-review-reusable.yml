@@ -94,7 +94,7 @@ jobs:
           cp /tmp/review.sarif "$GITHUB_WORKSPACE/.review.sarif" || cp /tmp/review.sarif ./review.sarif
 
       - name: 评审结论评论回 PR（人读层：判断理由 + 证据链）
-        if: steps.gate.outputs.skip == '' && steps.review.outcome == 'success'
+        if: steps.gate.outputs.skip == '' && steps.review.outcome == 'success' && vars.AI_REVIEW_PR_COMMENT == 'true'
         continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
