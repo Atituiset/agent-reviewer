@@ -1,0 +1,47 @@
+{
+  "diff_hash": "7e7b6ad41a9dfac4a2afae8f397d9e6b528664a3b7306eb8a5ad47c7dca3c582",
+  "verdict": "ISSUES_FOUND",
+  "escalated": false,
+  "reviewed_at": "2026-08-27T03:00:00+00:00",
+  "reviewer": "task-reviewer",
+  "spec_ref": "none",
+  "note": "SKILL 格式转换后的回归评审：清单来源为 rules/scenarios/*/SKILL.md（非旧 checklist.md 格式），每条 finding 标注命中的清单条目",
+  "scenarios_scanned": [
+    "cwe-125-out-of-bounds-read", "cwe-190-integer-overflow", "cwe-20-input-validation",
+    "cwe-362-race-condition", "cwe-401-memory-leak", "cwe-416-use-after-free",
+    "cwe-476-null-pointer-dereference", "cwe-78-os-command-injection",
+    "cwe-787-out-of-bounds-write", "cwe-798-hardcoded-credentials", "default"
+  ],
+  "findings": [
+    {
+      "file": "common/cli.c", "line": 361,
+      "severity": "important", "category": "security",
+      "scenario": "cwe-787", "type": "none", "refs": ["CWE-787", "CWE-120"],
+      "checklist_item": "cwe-787/SKILL.md 检测信号#1「memcpy/strcpy/sprintf 族目标缓冲区大小与源长度未核对」",
+      "summary": "strcpy copies unconstrained parameter 'board' into fixed 32-byte stack buffer with no length check",
+      "detail": "cli_build_banner() does strcpy(scratch, board) where scratch is char[32]; any input >=32 bytes smashes the stack frame.",
+      "confidence": 95, "resolved": false,
+      "ruling": "trial-disposition: seeded defect for gate trial; change will be reverted, not merged"
+    },
+    {
+      "file": "common/cli.c", "line": 362,
+      "severity": "important", "category": "bug",
+      "scenario": "cwe-476", "type": "none", "refs": ["CWE-476"],
+      "checklist_item": "cwe-476/SKILL.md 检测信号#1「malloc/calloc/new 及各类 find/get/lookup 返回值未判空即解引用」",
+      "summary": "malloc return value passed directly to snprintf without NULL check",
+      "detail": "vsnprintf_internal has no NULL guard; allocation failure becomes write-to-NULL. Tree convention is to check malloc.",
+      "confidence": 92, "resolved": false,
+      "ruling": "trial-disposition: seeded defect for gate trial; change will be reverted, not merged"
+    },
+    {
+      "file": "common/cli.c", "line": 356,
+      "severity": "minor", "category": "bug",
+      "scenario": "default", "type": "MISSING_IMPL", "refs": [],
+      "checklist_item": "default/SKILL.md「变更面：是否有死代码被引入」",
+      "summary": "New global function has no prototype in include/cli.h and no caller anywhere in the tree",
+      "detail": "Exported-but-undeclared uncalled helper.",
+      "confidence": 85, "resolved": false,
+      "ruling": "trial-disposition: reviewer correct; moot after revert"
+    }
+  ]
+}
