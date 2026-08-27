@@ -2,3 +2,5 @@
 .venv/
 memory/team.db
 .review/
+vscode-flywheel/node_modules/
+vscode-flywheel/out/

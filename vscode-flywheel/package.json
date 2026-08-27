@@ -1,0 +1,115 @@
+{
+  "name": "agent-reviewer-flywheel",
+  "displayName": "Agent Reviewer Flywheel",
+  "description": "Load SARIF findings from the agent-reviewer pipeline, review them in a tree view, and label true/false positives to feed the memory flywheel.",
+  "version": "0.1.0",
+  "publisher": "atituiset",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Machine Learning",
+    "Debuggers"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "agentReviewer",
+          "title": "AI Reviewer",
+          "icon": "resources/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "agentReviewer": [
+        {
+          "id": "agentReviewerFindings",
+          "name": "Findings"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "agentReviewer.refresh",
+        "title": "Refresh Findings",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "agentReviewer.openFindingDetail",
+        "title": "Open Finding Detail"
+      },
+      {
+        "command": "agentReviewer.labelTruePositive",
+        "title": "Mark as True Positive",
+        "icon": "$(thumbsup)"
+      },
+      {
+        "command": "agentReviewer.labelFalsePositive",
+        "title": "Mark as False Positive",
+        "icon": "$(thumbsdown)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "agentReviewer.refresh",
+          "when": "view == agentReviewerFindings",
+          "group": "navigation@1"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "agentReviewer.labelTruePositive",
+          "when": "view == agentReviewerFindings && viewItem == finding",
+          "group": "inline@1"
+        },
+        {
+          "command": "agentReviewer.labelFalsePositive",
+          "when": "view == agentReviewerFindings && viewItem == finding",
+          "group": "inline@2"
+        },
+        {
+          "command": "agentReviewer.openFindingDetail",
+          "when": "view == agentReviewerFindings && viewItem =~ /finding/",
+          "group": "navigation@1"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Agent Reviewer Flywheel",
+      "properties": {
+        "agentReviewer.reviewerRoot": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the agent-reviewer repo containing scripts/memory-label.sh. Empty = try workspace root."
+        },
+        "agentReviewer.autoLoad": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically load all *.sarif files in the workspace on startup."
+        },
+        "agentReviewer.showLabeled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show findings that have already been labeled in this session."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/vscode": "^1.80.0",
+    "typescript": "^5"
+  }
+}
