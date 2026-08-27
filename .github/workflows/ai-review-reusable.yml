@@ -14,7 +14,8 @@ on:
 permissions:
   contents: read
   security-events: write
-  id-token: write   # claude-code-action 需要 OIDC 换取 GitHub token   # upload-sarif 需要
+  id-token: write   # claude-code-action 需要 OIDC 换取 GitHub token
+  pull-requests: write   # 评审结论评论回 PR   # upload-sarif 需要
 
 jobs:
   review:
@@ -91,6 +92,37 @@ jobs:
           export SARIF_VIEWER_URI="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           cd .reviewer && bash scripts/artifact-to-sarif.sh "$GITHUB_WORKSPACE/.review/review-artifact.json" /tmp/review.sarif
           cp /tmp/review.sarif "$GITHUB_WORKSPACE/.review.sarif" || cp /tmp/review.sarif ./review.sarif
+
+      - name: 评审结论评论回 PR（人读层：判断理由 + 证据链）
+        if: steps.gate.outputs.skip == '' && steps.review.outcome == 'success'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          [ -f "$GITHUB_WORKSPACE/.review/review-artifact.json" ] || exit 0
+          python3 - "$GITHUB_WORKSPACE/.review/review-artifact.json" > /tmp/comment.md <<'PYEOF'
+import json, sys
+art = json.load(open(sys.argv[1]))
+findings = art.get("findings", [])
+print(f"## 🤖 AI Review（{art.get('reviewer','?')}）—— verdict: **{art.get('verdict')}**")
+print(f"扫描场景：{', '.join(art.get('scenarios_scanned', []))}\n")
+if not findings:
+    print("未发现达到上报阈值（置信度 ≥80 + file:line 证据）的缺陷。")
+for i, f in enumerate(findings, 1):
+    print(f"### {i}. [{f.get('severity')}] {f.get('scenario')} —— {f.get('summary')}")
+    print(f"📍 `{f.get('file')}:{f.get('line')}` · 置信度 {f.get('confidence')}%")
+    if f.get("reasoning"):
+        print(f"\n**判断理由**：{f['reasoning']}")
+    if f.get("flow"):
+        print("\n**证据链**：")
+        for s in f["flow"]:
+            print(f"- `{s.get('file')}:{s.get('line')}` {s.get('message')}")
+    print()
+print("---")
+print("*codeFlows / 完整评审轨迹见 Checks → agent-reviewer 与 Actions Artifacts*")
+PYEOF
+          gh pr comment "$PR_NUMBER" --body-file /tmp/comment.md || echo "评论失败（fail-open 不阻塞）"
 
       - name: 归档评审轨迹与工件
         if: steps.gate.outputs.skip == '' && steps.review.outcome == 'success'

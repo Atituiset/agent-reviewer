@@ -50,10 +50,16 @@ for i, f in enumerate(art.get("findings", [])):
     if rid in rules_by_id and rid not in used_rule_ids:
         used_rule_ids.append(rid)
     snippet = ""
+    msg_text = f'{f.get("summary", "")}\n\n{f.get("detail", "")}'.strip()
+    if f.get("reasoning"):
+        msg_text += f'\n\n**判断理由**：{f["reasoning"]}'
+    if f.get("flow"):
+        steps = " → ".join(f'{s.get("file","")}:{s.get("line","")} {s.get("message","")}' for s in f["flow"])
+        msg_text += f'\n\n**证据链**：{steps}'
     result = {
         "ruleId": rid,
         "level": LEVEL.get(f.get("severity", "minor"), "warning"),
-        "message": {"text": f'{f.get("summary", "")}\n\n{f.get("detail", "")}'.strip()},
+        "message": {"text": msg_text, "markdown": msg_text},
         "locations": [{
             "physicalLocation": {
                 "artifactLocation": {"uri": f.get("file", "")},
