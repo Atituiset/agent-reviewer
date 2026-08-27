@@ -13,7 +13,8 @@ on:
 
 permissions:
   contents: read
-  security-events: write   # upload-sarif 需要
+  security-events: write
+  id-token: write   # claude-code-action 需要 OIDC 换取 GitHub token   # upload-sarif 需要
 
 jobs:
   review:
