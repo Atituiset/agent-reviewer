@@ -65,22 +65,31 @@ jobs:
             2. 对每个命中场景，读 .reviewer/rules/scenarios/<key>/SKILL.md 清单逐项评审
                （需要深入项时读 references/detailed-checks.md）
             3. 纪律：只报有 file:line 证据的具体缺陷；置信度 ≥80 才报；风格问题不报
-            4. 将结果写为 .review/review-artifact.json，schema：
+            4. 将结果写为 /tmp/review-artifact.json，schema：
                {diff_hash(对 /tmp/pr.diff 的 sha256), verdict(CLEAN|ISSUES_FOUND),
                 reviewed_at(ISO8601), reviewer:"ci-task-reviewer", spec_ref:"none",
                 findings:[{file,line,severity(critical|important|minor),category,
                            scenario(必须是 registry 中存在的场景键),summary,detail,
                            confidence,resolved:false}]}
 
+      - name: 重新检出 agent-reviewer（防 workspace 被评审步骤重置）
+        if: steps.gate.outputs.skip == '' && steps.review.outcome == 'success'
+        uses: actions/checkout@v4
+        with:
+          repository: Atituiset/agent-reviewer
+          path: .reviewer
+
       - name: 工件 → SARIF
         if: steps.gate.outputs.skip == '' && steps.review.outcome == 'success'
         run: |
-          cd .reviewer && bash scripts/artifact-to-sarif.sh "$GITHUB_WORKSPACE/.review/review-artifact.json" "$GITHUB_WORKSPACE/.review/review.sarif"
+          ls -la /tmp/review-artifact.json || { echo "工件缺失（评审未产出）——fail-open 跳过"; exit 0; }
+          cd .reviewer && bash scripts/artifact-to-sarif.sh /tmp/review-artifact.json /tmp/review.sarif
+          cp /tmp/review.sarif "$GITHUB_WORKSPACE/.review.sarif" || cp /tmp/review.sarif ./review.sarif
 
       - uses: github/codeql-action/upload-sarif@v3
         if: steps.gate.outputs.skip == '' && steps.review.outcome == 'success'
         with:
-          sarif_file: .review/review.sarif
+          sarif_file: /tmp/review.sarif
           category: agent-reviewer
 
       - name: 豁免/失败说明（fail-open 留痕）
