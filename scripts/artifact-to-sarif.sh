@@ -85,9 +85,9 @@ for i, f in enumerate(art.get("findings", [])):
                             "physicalLocation": {
                                 "artifactLocation": {"uri": step.get("file", "")},
                                 "region": {"startLine": step.get("line", 1)},
-                            }
-                        },
-                        "message": {"text": step.get("message", "")},
+                            },
+                            "message": {"text": step.get("message", "")},
+                        }
                     }
                     for step in flow
                 ]

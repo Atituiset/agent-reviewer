@@ -97,10 +97,10 @@
                           "region": {
                             "startLine": 79
                           }
+                        },
+                        "message": {
+                          "text": "ahead() 按 int16_t 模运算判定：vr_next_=65530 时 sn=65531(d=1) 与 sn=2(d=8) 均判为窗内合法乱序包"
                         }
-                      },
-                      "message": {
-                        "text": "ahead() 按 int16_t 模运算判定：vr_next_=65530 时 sn=65531(d=1) 与 sn=2(d=8) 均判为窗内合法乱序包"
                       }
                     },
                     {
@@ -112,10 +112,10 @@
                           "region": {
                             "startLine": 78
                           }
+                        },
+                        "message": {
+                          "text": "两包入 buffer_（std::map 数值序：2 排在 65531 前）并启动 t_reorder"
                         }
-                      },
-                      "message": {
-                        "text": "两包入 buffer_（std::map 数值序：2 排在 65531 前）并启动 t_reorder"
                       }
                     },
                     {
@@ -127,10 +127,10 @@
                           "region": {
                             "startLine": 134
                           }
+                        },
+                        "message": {
+                          "text": "超时恢复 resume=buffer_.begin()->first 取数值最小键 2，而非模序列上更靠前的 65531"
                         }
-                      },
-                      "message": {
-                        "text": "超时恢复 resume=buffer_.begin()->first 取数值最小键 2，而非模序列上更靠前的 65531"
                       }
                     },
                     {
@@ -142,10 +142,10 @@
                           "region": {
                             "startLine": 141
                           }
+                        },
+                        "message": {
+                          "text": "skipped=(uint16_t)(2-65530)=8 计入丢包，vr_next_=2，sn=2 先于 65531 交付——顺序反转"
                         }
-                      },
-                      "message": {
-                        "text": "skipped=(uint16_t)(2-65530)=8 计入丢包，vr_next_=2，sn=2 先于 65531 交付——顺序反转"
                       }
                     }
                   ]
@@ -202,10 +202,10 @@
                           "region": {
                             "startLine": 1074
                           }
+                        },
+                        "message": {
+                          "text": "守卫 msg.value.size() < 41 放行 41 字节报文（格式最小长度实为 42）"
                         }
-                      },
-                      "message": {
-                        "text": "守卫 msg.value.size() < 41 放行 41 字节报文（格式最小长度实为 42）"
                       }
                     },
                     {
@@ -217,10 +217,10 @@
                           "region": {
                             "startLine": 1082
                           }
+                        },
+                        "message": {
+                          "text": "msg.value[41] 越界读 imsi_len（有效下标仅 0..40）"
                         }
-                      },
-                      "message": {
-                        "text": "msg.value[41] 越界读 imsi_len（有效下标仅 0..40）"
                       }
                     }
                   ]
@@ -277,10 +277,10 @@
                           "region": {
                             "startLine": 1298
                           }
+                        },
+                        "message": {
+                          "text": "Xn 路径记录 initiated_ho_[crnti]={target,0}，erase 仅在成功路径（868/1104/1127）"
                         }
-                      },
-                      "message": {
-                        "text": "Xn 路径记录 initiated_ho_[crnti]={target,0}，erase 仅在成功路径（868/1104/1127）"
                       }
                     },
                     {
@@ -292,10 +292,10 @@
                           "region": {
                             "startLine": 1349
                           }
+                        },
+                        "message": {
+                          "text": "HO_COMMAND 经有损空口发送；丢失后无任何失败路径清理（无超时/无回滚）"
                         }
-                      },
-                      "message": {
-                        "text": "HO_COMMAND 经有损空口发送；丢失后无任何失败路径清理（无超时/无回滚）"
                       }
                     },
                     {
@@ -307,10 +307,10 @@
                           "region": {
                             "startLine": 1274
                           }
+                        },
+                        "message": {
+                          "text": "后续 meas report 触发 request_handover，新引入的 guard `if (initiated_ho_.count(crnti)) return;` 对残留条目早退——UE 永久阻断切换"
                         }
-                      },
-                      "message": {
-                        "text": "后续 meas report 触发 request_handover，新引入的 guard `if (initiated_ho_.count(crnti)) return;` 对残留条目早退——UE 永久阻断切换"
                       }
                     }
                   ]
@@ -367,10 +367,10 @@
                           "region": {
                             "startLine": 1361
                           }
+                        },
+                        "message": {
+                          "text": "prepare_handover 写入 ho_prepared_[new_crnti]=ctx（含 32B UP 密钥与 IMSI）"
                         }
-                      },
-                      "message": {
-                        "text": "prepare_handover 写入 ho_prepared_[new_crnti]=ctx（含 32B UP 密钥与 IMSI）"
                       }
                     },
                     {
@@ -382,10 +382,10 @@
                           "region": {
                             "startLine": 848
                           }
+                        },
+                        "message": {
+                          "text": "HO_COMPLETE 分支只 count/读取，全库无 ho_prepared_.erase"
                         }
-                      },
-                      "message": {
-                        "text": "HO_COMPLETE 分支只 count/读取，全库无 ho_prepared_.erase"
                       }
                     },
                     {
@@ -397,10 +397,10 @@
                           "region": {
                             "startLine": 1356
                           }
+                        },
+                        "message": {
+                          "text": "UE 永不到达时连带泄漏 flow(new_crnti)/RRC admit/NAS adopt 上下文与 tmsi→crnti 幻影映射"
                         }
-                      },
-                      "message": {
-                        "text": "UE 永不到达时连带泄漏 flow(new_crnti)/RRC admit/NAS adopt 上下文与 tmsi→crnti 幻影映射"
                       }
                     }
                   ]
