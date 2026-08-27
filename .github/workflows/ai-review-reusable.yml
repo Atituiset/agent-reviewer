@@ -72,7 +72,9 @@ jobs:
                 reviewed_at(ISO8601), reviewer:"ci-task-reviewer", spec_ref:"none",
                 findings:[{file,line,severity(critical|important|minor),category,
                            scenario(必须是 registry 中存在的场景键),summary,detail,
-                           confidence,resolved:false}]}
+                           confidence,resolved:false,
+                           flow:[{file,line,message}](证据链有序步骤，必填),
+                           reasoning(一句话判断理由)}]}
 
       - name: 重新检出 agent-reviewer（防 workspace 被评审步骤重置）
         if: steps.gate.outputs.skip == '' && steps.review.outcome == 'success'
@@ -86,8 +88,20 @@ jobs:
         if: steps.gate.outputs.skip == '' && steps.review.outcome == 'success'
         run: |
           ls -la "$GITHUB_WORKSPACE/.review/review-artifact.json" || { echo "工件缺失（评审未产出）——fail-open 跳过"; exit 0; }
+          export SARIF_VIEWER_URI="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           cd .reviewer && bash scripts/artifact-to-sarif.sh "$GITHUB_WORKSPACE/.review/review-artifact.json" /tmp/review.sarif
           cp /tmp/review.sarif "$GITHUB_WORKSPACE/.review.sarif" || cp /tmp/review.sarif ./review.sarif
+
+      - name: 归档评审轨迹与工件
+        if: steps.gate.outputs.skip == '' && steps.review.outcome == 'success'
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: review-transcript
+          path: |
+            /home/runner/work/_temp/claude-execution-output.json
+            /tmp/review.sarif
+          if-no-files-found: ignore
 
       - uses: github/codeql-action/upload-sarif@v3
         if: steps.gate.outputs.skip == '' && steps.review.outcome == 'success'

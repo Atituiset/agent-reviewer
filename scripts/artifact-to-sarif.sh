@@ -10,7 +10,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PY="$ROOT/.venv/bin/python"; [ -x "$PY" ] || PY=python3
 
 "$PY" - "$IN" "$OUT" "$ROOT" <<'PYEOF'
-import json, re, sys, pathlib
+import json, os, re, sys, pathlib
 
 in_path, out_path, root = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2]), pathlib.Path(sys.argv[3])
 art = json.loads(in_path.read_text(encoding="utf-8"))
@@ -50,7 +50,7 @@ for i, f in enumerate(art.get("findings", [])):
     if rid in rules_by_id and rid not in used_rule_ids:
         used_rule_ids.append(rid)
     snippet = ""
-    results.append({
+    result = {
         "ruleId": rid,
         "level": LEVEL.get(f.get("severity", "minor"), "warning"),
         "message": {"text": f'{f.get("summary", "")}\n\n{f.get("detail", "")}'.strip()},
@@ -73,7 +73,33 @@ for i, f in enumerate(art.get("findings", [])):
             "ruling": f.get("ruling"),
             "resolved": f.get("resolved"),
         },
-    })
+    }
+    # 证据链 → codeFlows（SARIF 原生数据流路径，GitHub「Show paths」/SARIF Viewer 可逐步跳转）
+    flow = f.get("flow") or []
+    if flow:
+        result["codeFlows"] = [{
+            "threadFlows": [{
+                "locations": [
+                    {
+                        "location": {
+                            "physicalLocation": {
+                                "artifactLocation": {"uri": step.get("file", "")},
+                                "region": {"startLine": step.get("line", 1)},
+                            }
+                        },
+                        "message": {"text": step.get("message", "")},
+                    }
+                    for step in flow
+                ]
+            }]
+        }]
+    # 提炼后的判断理由 → properties；完整轨迹走 hostedViewerUri（渐进式披露）
+    if f.get("reasoning"):
+        result["properties"]["reasoning"] = f["reasoning"]
+    viewer_uri = os.environ.get("SARIF_VIEWER_URI")
+    if viewer_uri:
+        result["hostedViewerUri"] = viewer_uri
+    results.append(result)
 
 sarif = {
     "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
