@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "agent-reviewer",
+          "version": "0.1.0",
+          "informationUri": "https://github.com/Atituiset/agent-reviewer",
+          "rules": [
+            {
+              "id": "cwe-787",
+              "name": "cwe-787-out-of-bounds-write",
+              "shortDescription": {
+                "text": "写越界：向缓冲区写入超出其分配大小的数据（CWE-CWE-787）。"
+              },
+              "properties": {
+                "cwe": "787",
+                "severity_default": "high",
+                "origin": "mitre-top25"
+              }
+            },
+            {
+              "id": "cwe-476",
+              "name": "cwe-476-null-pointer-dereference",
+              "shortDescription": {
+                "text": "空指针解引用（CWE-CWE-476）。"
+              },
+              "properties": {
+                "cwe": "476",
+                "severity_default": "high",
+                "origin": "mitre-top25"
+              }
+            },
+            {
+              "id": "default",
+              "name": "default",
+              "shortDescription": {
+                "text": "通用代码评审基线。所有 diff 默认加载，覆盖正确性、错误处理、可读性底线，不重复场景化清单（CWE 专项）的内容。"
+              },
+              "properties": {
+                "cwe": "null",
+                "severity_default": "medium",
+                "origin": "builtin"
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "cwe-787",
+          "level": "error",
+          "message": {
+            "text": "strcpy copies unconstrained parameter 'board' into fixed 32-byte stack buffer with no length check\n\ncli_build_banner() does strcpy(scratch, board) where scratch is char[32]; any input >=32 bytes smashes the stack frame."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "common/cli.c"
+                },
+                "region": {
+                  "startLine": 361
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "diffHash": "7e7b6ad41a9dfac4a2afae8f397d9e6b528664a3b7306eb8a5ad47c7dca3c582",
+            "findingIndex": "cwe-787/common/cli.c:361"
+          },
+          "properties": {
+            "confidence": 95,
+            "severity": "important",
+            "category": "security",
+            "checklist_item": "cwe-787/SKILL.md 检测信号#1「memcpy/strcpy/sprintf 族目标缓冲区大小与源长度未核对」",
+            "refs": [
+              "CWE-787",
+              "CWE-120"
+            ],
+            "ruling": "trial-disposition: seeded defect for gate trial; change will be reverted, not merged",
+            "resolved": false
+          }
+        },
+        {
+          "ruleId": "cwe-476",
+          "level": "error",
+          "message": {
+            "text": "malloc return value passed directly to snprintf without NULL check\n\nvsnprintf_internal has no NULL guard; allocation failure becomes write-to-NULL. Tree convention is to check malloc."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "common/cli.c"
+                },
+                "region": {
+                  "startLine": 362
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "diffHash": "7e7b6ad41a9dfac4a2afae8f397d9e6b528664a3b7306eb8a5ad47c7dca3c582",
+            "findingIndex": "cwe-476/common/cli.c:362"
+          },
+          "properties": {
+            "confidence": 92,
+            "severity": "important",
+            "category": "bug",
+            "checklist_item": "cwe-476/SKILL.md 检测信号#1「malloc/calloc/new 及各类 find/get/lookup 返回值未判空即解引用」",
+            "refs": [
+              "CWE-476"
+            ],
+            "ruling": "trial-disposition: seeded defect for gate trial; change will be reverted, not merged",
+            "resolved": false
+          }
+        },
+        {
+          "ruleId": "default",
+          "level": "note",
+          "message": {
+            "text": "New global function has no prototype in include/cli.h and no caller anywhere in the tree\n\nExported-but-undeclared uncalled helper."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "common/cli.c"
+                },
+                "region": {
+                  "startLine": 356
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "diffHash": "7e7b6ad41a9dfac4a2afae8f397d9e6b528664a3b7306eb8a5ad47c7dca3c582",
+            "findingIndex": "default/common/cli.c:356"
+          },
+          "properties": {
+            "confidence": 85,
+            "severity": "minor",
+            "category": "bug",
+            "checklist_item": "default/SKILL.md「变更面：是否有死代码被引入」",
+            "refs": [],
+            "ruling": "trial-disposition: reviewer correct; moot after revert",
+            "resolved": false
+          }
+        }
+      ],
+      "properties": {
+        "verdict": "ISSUES_FOUND",
+        "diff_hash": "7e7b6ad41a9dfac4a2afae8f397d9e6b528664a3b7306eb8a5ad47c7dca3c582",
+        "reviewed_at": "2026-08-27T03:00:00+00:00",
+        "scenarios_scanned": [
+          "cwe-125-out-of-bounds-read",
+          "cwe-190-integer-overflow",
+          "cwe-20-input-validation",
+          "cwe-362-race-condition",
+          "cwe-401-memory-leak",
+          "cwe-416-use-after-free",
+          "cwe-476-null-pointer-dereference",
+          "cwe-78-os-command-injection",
+          "cwe-787-out-of-bounds-write",
+          "cwe-798-hardcoded-credentials",
+          "default"
+        ]
+      }
+    }
+  ]
+}

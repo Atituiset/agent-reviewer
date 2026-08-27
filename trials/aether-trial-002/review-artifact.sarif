@@ -1,0 +1,209 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "agent-reviewer",
+          "version": "0.1.0",
+          "informationUri": "https://github.com/Atituiset/agent-reviewer",
+          "rules": [
+            {
+              "id": "cwe-190",
+              "name": "cwe-190-integer-overflow",
+              "shortDescription": {
+                "text": "整数溢出/回绕（CWE-CWE-190）。"
+              },
+              "properties": {
+                "cwe": "190",
+                "severity_default": "important",
+                "origin": "project-scenario"
+              }
+            },
+            {
+              "id": "cwe-125",
+              "name": "cwe-125-out-of-bounds-read",
+              "shortDescription": {
+                "text": "读越界：读取超出缓冲区边界的数据（CWE-CWE-125）。"
+              },
+              "properties": {
+                "cwe": "125",
+                "severity_default": "high",
+                "origin": "mitre-top25"
+              }
+            },
+            {
+              "id": "cwe-401",
+              "name": "cwe-401-memory-leak",
+              "shortDescription": {
+                "text": "内存泄漏：分配后所有路径均未释放（CWE-CWE-401）。"
+              },
+              "properties": {
+                "cwe": "401",
+                "severity_default": "important",
+                "origin": "project-scenario"
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "cwe-190",
+          "level": "error",
+          "message": {
+            "text": "reorder 超时用 std::map 数值最小键作恢复点，16 位 SN 回绕时选错 resume：乱序交付 + dropped_ 虚增 + vr_next_ 模意义倒退\n\n已核实：buffer_ 为 std::map<uint16_t,Held>（数值序），ahead() 按 int16_t 模运算接纳乱序包（vr_next_=65530 时 65531 与 2 均可入缓冲），但 on_reorder_timeout 的 resume=buffer_.begin()->first 取数值最小（2 而非序列上更靠前的 65531），交付顺序反转且 skipped=(uint16_t)(2-65530)=8 计入丢包；第二次超时 skipped 虚增约 65528。修复方向：按模序列空间选最靠前键（或以 vr_next_ 为基准扫描）。"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "stack/rlc/src/rlc_um.cpp"
+                },
+                "region": {
+                  "startLine": 134
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "diffHash": "6485c5bd180598544981f1f2bc261adc5db3c04356681496ac7b9e125aa7d170",
+            "findingIndex": "cwe-190/stack/rlc/src/rlc_um.cpp:134"
+          },
+          "properties": {
+            "confidence": 90,
+            "severity": "important",
+            "category": "bug",
+            "checklist_item": null,
+            "refs": [
+              "CWE-190"
+            ],
+            "ruling": "pending-team-triage",
+            "resolved": false
+          }
+        },
+        {
+          "ruleId": "cwe-125",
+          "level": "error",
+          "message": {
+            "text": "XN_HO_PREPARE 长度校验 off-by-one：size()==41 时越界读 msg.value[41]\n\n已核实：报文格式 {tmsi:4}{from:2}{to:2}{sec:1}{key:32}{imsi_len:1} 至少 42 字节，守卫为 `if (msg.value.size() < 41) break;`，恰好 41 字节时 `msg.value[41]` 越界读（imsi_len）。本 diff 新增代码（M22 Xn 切换）。修复：守卫改为 < 42。"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "stack/core/src/bs_node.cpp"
+                },
+                "region": {
+                  "startLine": 1082
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "diffHash": "6485c5bd180598544981f1f2bc261adc5db3c04356681496ac7b9e125aa7d170",
+            "findingIndex": "cwe-125/stack/core/src/bs_node.cpp:1082"
+          },
+          "properties": {
+            "confidence": 95,
+            "severity": "important",
+            "category": "security",
+            "checklist_item": null,
+            "refs": [
+              "CWE-125"
+            ],
+            "ruling": "pending-team-triage",
+            "resolved": false
+          }
+        },
+        {
+          "ruleId": "cwe-401",
+          "level": "error",
+          "message": {
+            "text": "Xn 切换失败/中止路径不清理 initiated_ho_/pending_xn_ho_，且本 diff 新引入的 in-flight guard 使残留条目永久阻断该 UE 后续切换\n\n已核实：erase 仅存在于成功路径（868/1104/1127）；detach 路径（651-680）只清 tmsi_to_crnti_/flows_；无超时无回滚。HO_COMMAND 经有损空口丢失或 UE 中途 detach 后，bs_node.cpp:1274 `if (initiated_ho_.count(crnti)) return;` 对该 UE 的所有后续 meas report 直接早退——UE 永久钉死在变差的服务小区。修复：超时/失败路径清理 + guard 增加时效判断。"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "stack/core/src/bs_node.cpp"
+                },
+                "region": {
+                  "startLine": 1274
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "diffHash": "6485c5bd180598544981f1f2bc261adc5db3c04356681496ac7b9e125aa7d170",
+            "findingIndex": "cwe-401/stack/core/src/bs_node.cpp:1274"
+          },
+          "properties": {
+            "confidence": 85,
+            "severity": "important",
+            "category": "bug",
+            "checklist_item": null,
+            "refs": [
+              "CWE-401"
+            ],
+            "ruling": "pending-team-triage",
+            "resolved": false
+          }
+        },
+        {
+          "ruleId": "cwe-401",
+          "level": "note",
+          "message": {
+            "text": "目标侧 ho_prepared_ 条目在任何路径都不释放（含 UP 密钥与 IMSI 的 HoContext 每次切入永久泄漏一份）\n\n已核实：prepare_handover 写入 ho_prepared_[new_crnti]=ctx，全库无 ho_prepared_.erase；UE 永不到达时还连带泄漏 flow/RRC/NAS 上下文与 tmsi→crnti 幻影映射。修复：HO_COMPLETE 消费后 erase + 准备超时回收。"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "stack/core/src/bs_node.cpp"
+                },
+                "region": {
+                  "startLine": 1361
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "diffHash": "6485c5bd180598544981f1f2bc261adc5db3c04356681496ac7b9e125aa7d170",
+            "findingIndex": "cwe-401/stack/core/src/bs_node.cpp:1361"
+          },
+          "properties": {
+            "confidence": 88,
+            "severity": "minor",
+            "category": "bug",
+            "checklist_item": null,
+            "refs": [
+              "CWE-401"
+            ],
+            "ruling": "pending-team-triage",
+            "resolved": false
+          }
+        }
+      ],
+      "properties": {
+        "verdict": "ISSUES_FOUND",
+        "diff_hash": "6485c5bd180598544981f1f2bc261adc5db3c04356681496ac7b9e125aa7d170",
+        "reviewed_at": "2026-08-27T08:45:00+00:00",
+        "scenarios_scanned": [
+          "cwe-125",
+          "cwe-190",
+          "cwe-20",
+          "cwe-362",
+          "cwe-401",
+          "cwe-416",
+          "cwe-476",
+          "cwe-78",
+          "cwe-787",
+          "cwe-798",
+          "default"
+        ]
+      }
+    }
+  ]
+}

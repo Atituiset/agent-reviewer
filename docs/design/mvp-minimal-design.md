@@ -68,6 +68,7 @@ agent-reviewer/
 
 校验规则（`verify-artifact.sh`，纯 shell + sha256sum + jq）：
 
+0. **SARIF 投影**：`scripts/artifact-to-sarif.sh` 把工件投影为 SARIF 2.1.0（`ruleId`=场景键、rules 元数据来自 SKILL frontmatter、`partialFingerprints` 挂 diff_hash、confidence/checklist_item/ruling 进 `properties`）。canonical 工件不变——SARIF 只作展示/交换层：VSCode SARIF Viewer / GitHub code scanning（`upload-sarif`）/ reviewdog 均可直接消费；TP/FP 标注经 `partialFingerprints.findingIndex` 回传 ANDM quarantine（vscode-opencode-flywheel 模式：扩展只保留标注按钮 + 反馈 API，展示交给 SARIF Viewer）
 1. 前置：`git diff --quiet` 通过（无 unstaged 残留）——部分 stage 时「评审过的树 ≠ 提交的树」（commit 只提交 index），hash 绑定必须以完整暂存为前提
 2. `diff_hash` == 当前 `git diff HEAD | sha256sum`——**评审后代码再动过一个字节即失效**（报告一 §4.3）
 3. `verdict == CLEAN`，或所有 findings 均 `resolved: true`，或 `verdict == ESCALATED`（熔断出口：剩余 findings 全部带人工 `ruling`、工件 `escalated: true`——放行但留痕，呼应 superpowers "a silent discard is forbidden"）

@@ -1,0 +1,237 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "agent-reviewer",
+          "version": "0.1.0",
+          "informationUri": "https://github.com/Atituiset/agent-reviewer",
+          "rules": [
+            {
+              "id": "default",
+              "name": "default",
+              "shortDescription": {
+                "text": "通用代码评审基线。所有 diff 默认加载，覆盖正确性、错误处理、可读性底线，不重复场景化清单（CWE 专项）的内容。"
+              },
+              "properties": {
+                "cwe": "null",
+                "severity_default": "medium",
+                "origin": "builtin"
+              }
+            },
+            {
+              "id": "cwe-401",
+              "name": "cwe-401-memory-leak",
+              "shortDescription": {
+                "text": "内存泄漏：分配后所有路径均未释放（CWE-CWE-401）。"
+              },
+              "properties": {
+                "cwe": "401",
+                "severity_default": "important",
+                "origin": "project-scenario"
+              }
+            },
+            {
+              "id": "cwe-476",
+              "name": "cwe-476-null-pointer-dereference",
+              "shortDescription": {
+                "text": "空指针解引用（CWE-CWE-476）。"
+              },
+              "properties": {
+                "cwe": "476",
+                "severity_default": "high",
+                "origin": "mitre-top25"
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "default",
+          "level": "error",
+          "message": {
+            "text": "decode 缺少收尾大括号，make_padding_frame 被嵌套定义在 NasMessage::decode 函数体内，翻译单元无法编译\n\ng++ -fsyntax-only 复现：function-definition is not allowed here"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "stack/nas/src/nas_messages.cpp"
+                },
+                "region": {
+                  "startLine": 29
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "diffHash": "ad5ea812d5a8f7df5d7f234e59fabf2f0d33e9ffab562f346cbbe41dbf537618",
+            "findingIndex": "default/stack/nas/src/nas_messages.cpp:29"
+          },
+          "properties": {
+            "confidence": 98,
+            "severity": "critical",
+            "category": "bug",
+            "checklist_item": null,
+            "refs": [],
+            "ruling": "trial-disposition: 播种 Edit 误吞 decode 闭合括号——真实缺陷确认，试验分支用后即焚，不合并",
+            "resolved": false
+          }
+        },
+        {
+          "ruleId": "cwe-401",
+          "level": "error",
+          "message": {
+            "text": "tag 为空的 early-return 路径未 free(frame)，内存泄漏\n\nmalloc 于 L32-33，唯一释放点 L44，early-return 绕过"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "stack/nas/src/nas_messages.cpp"
+                },
+                "region": {
+                  "startLine": 35
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "diffHash": "ad5ea812d5a8f7df5d7f234e59fabf2f0d33e9ffab562f346cbbe41dbf537618",
+            "findingIndex": "cwe-401/stack/nas/src/nas_messages.cpp:35"
+          },
+          "properties": {
+            "confidence": 96,
+            "severity": "important",
+            "category": "security",
+            "checklist_item": null,
+            "refs": [
+              "CWE-401"
+            ],
+            "ruling": "trial-disposition: 播种缺陷(cwe-401)，验证检出率用",
+            "resolved": false
+          }
+        },
+        {
+          "ruleId": "cwe-401",
+          "level": "error",
+          "message": {
+            "text": "body 超限的 early-return 同样泄漏，第二条路径\n\n与 L35 同型；超限校验发生在 malloc 之后"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "stack/nas/src/nas_messages.cpp"
+                },
+                "region": {
+                  "startLine": 38
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "diffHash": "ad5ea812d5a8f7df5d7f234e59fabf2f0d33e9ffab562f346cbbe41dbf537618",
+            "findingIndex": "cwe-401/stack/nas/src/nas_messages.cpp:38"
+          },
+          "properties": {
+            "confidence": 96,
+            "severity": "important",
+            "category": "security",
+            "checklist_item": null,
+            "refs": [
+              "CWE-401"
+            ],
+            "ruling": "trial-disposition: 播种缺陷(cwe-401 第二路径)",
+            "resolved": false
+          }
+        },
+        {
+          "ruleId": "cwe-476",
+          "level": "error",
+          "message": {
+            "text": "malloc 返回值未判空即被 memcpy 当写入目标\n\n分配失败时 L40 对空指针写入 UB"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "stack/nas/src/nas_messages.cpp"
+                },
+                "region": {
+                  "startLine": 33
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "diffHash": "ad5ea812d5a8f7df5d7f234e59fabf2f0d33e9ffab562f346cbbe41dbf537618",
+            "findingIndex": "cwe-476/stack/nas/src/nas_messages.cpp:33"
+          },
+          "properties": {
+            "confidence": 84,
+            "severity": "important",
+            "category": "security",
+            "checklist_item": null,
+            "refs": [
+              "CWE-476"
+            ],
+            "ruling": "trial-disposition: 播种缺陷(cwe-476)",
+            "resolved": false
+          }
+        },
+        {
+          "ruleId": "default",
+          "level": "error",
+          "message": {
+            "text": "试验脚手架落入产品源文件，无声明且全仓零调用\n\nTRIAL SEED 注释自述；spec_ref=none 有 AMBIGUOUS 风险"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "stack/nas/src/nas_messages.cpp"
+                },
+                "region": {
+                  "startLine": 27
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "diffHash": "ad5ea812d5a8f7df5d7f234e59fabf2f0d33e9ffab562f346cbbe41dbf537618",
+            "findingIndex": "default/stack/nas/src/nas_messages.cpp:27"
+          },
+          "properties": {
+            "confidence": 88,
+            "severity": "important",
+            "category": "conformance",
+            "checklist_item": null,
+            "refs": [],
+            "ruling": "trial-disposition: 对种子本身的元发现正确；分支将删除",
+            "resolved": false
+          }
+        }
+      ],
+      "properties": {
+        "verdict": "ESCALATED",
+        "diff_hash": "ad5ea812d5a8f7df5d7f234e59fabf2f0d33e9ffab562f346cbbe41dbf537618",
+        "reviewed_at": "2026-08-26T09:11:44+00:00",
+        "scenarios_scanned": [
+          "cwe-125",
+          "cwe-190",
+          "cwe-362",
+          "cwe-401",
+          "cwe-416",
+          "cwe-476",
+          "cwe-78",
+          "cwe-787",
+          "default"
+        ]
+      }
+    }
+  ]
+}
