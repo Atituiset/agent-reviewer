@@ -59,13 +59,14 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}   # 绕过 Claude GitHub App 安装要求
           anthropic_api_key: ${{ secrets.AI_REVIEW_API_KEY }}
+          claude_args: --allowedTools "Read,Write,Grep,Glob,Bash"
           prompt: |
             你是 task-reviewer。读取 /tmp/pr.diff 与 .reviewer/rules/registry.json：
             1. 用 .reviewer/scripts/_lib.py scenarios-for 对 diff 触及的每个文件做场景路由
             2. 对每个命中场景，读 .reviewer/rules/scenarios/<key>/SKILL.md 清单逐项评审
                （需要深入项时读 references/detailed-checks.md）
             3. 纪律：只报有 file:line 证据的具体缺陷；置信度 ≥80 才报；风格问题不报
-            4. 将结果写为 /tmp/review-artifact.json，schema：
+            4. 将结果写为 .review/review-artifact.json（用 Write 工具；先 mkdir -p .review），schema：
                {diff_hash(对 /tmp/pr.diff 的 sha256), verdict(CLEAN|ISSUES_FOUND),
                 reviewed_at(ISO8601), reviewer:"ci-task-reviewer", spec_ref:"none",
                 findings:[{file,line,severity(critical|important|minor),category,
@@ -82,8 +83,8 @@ jobs:
       - name: 工件 → SARIF
         if: steps.gate.outputs.skip == '' && steps.review.outcome == 'success'
         run: |
-          ls -la /tmp/review-artifact.json || { echo "工件缺失（评审未产出）——fail-open 跳过"; exit 0; }
-          cd .reviewer && bash scripts/artifact-to-sarif.sh /tmp/review-artifact.json /tmp/review.sarif
+          ls -la "$GITHUB_WORKSPACE/.review/review-artifact.json" || { echo "工件缺失（评审未产出）——fail-open 跳过"; exit 0; }
+          cd .reviewer && bash scripts/artifact-to-sarif.sh "$GITHUB_WORKSPACE/.review/review-artifact.json" /tmp/review.sarif
           cp /tmp/review.sarif "$GITHUB_WORKSPACE/.review.sarif" || cp /tmp/review.sarif ./review.sarif
 
       - uses: github/codeql-action/upload-sarif@v3
