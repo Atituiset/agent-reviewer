@@ -106,7 +106,7 @@ def known_scenarios() -> set[str]:
     base = SRC_ROOT / "rules" / "scenarios"
     if not base.is_dir():
         return set()
-    return {p.name for p in base.iterdir() if (p / "meta.yaml").exists()}
+    return {p.name for p in base.iterdir() if (p / "SKILL.md").exists()}
 
 
 # ---------------------------------------------------------------- metrics (§4)
@@ -301,6 +301,24 @@ CREATE TABLE IF NOT EXISTS memories (
   reviewed_by TEXT,
   reviewed_at TEXT
 );
+CREATE TABLE IF NOT EXISTS labels (
+  id TEXT PRIMARY KEY,
+  finding_index TEXT NOT NULL,
+  rule_id TEXT NOT NULL,
+  uri TEXT NOT NULL,
+  line INTEGER NOT NULL,
+  label TEXT NOT NULL,            -- tp | fp
+  reason TEXT,
+  sarif_path TEXT NOT NULL,
+  labeled_by TEXT NOT NULL,
+  labeled_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS scenario_trust (
+  rule_id TEXT PRIMARY KEY,
+  violations INTEGER NOT NULL DEFAULT 0,
+  last_violation_at TEXT,
+  notes TEXT
+);
 """
 
 
@@ -366,6 +384,127 @@ def memory_recall(paths: list[str]) -> int:
     return 0
 
 
+# ---------------------------------------------------------------- 标注飞轮（memory-label）
+
+FP_THRESHOLD = 3          # 30 天内同一场景 FP 达到此次数 → 触发场景改进提案
+FP_WINDOW_DAYS = 30
+
+
+def _find_sarif_result(sarif_path: Path, finding_index: str) -> dict | None:
+    try:
+        doc = json.loads(sarif_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    for run in doc.get("runs", []):
+        for r in run.get("results", []):
+            fp = (r.get("partialFingerprints") or {}).get("findingIndex")
+            if fp == finding_index:
+                loc = (r.get("locations") or [{}])[0].get("physicalLocation", {})
+                return {
+                    "ruleId": r.get("ruleId", "default"),
+                    "uri": loc.get("artifactLocation", {}).get("uri", ""),
+                    "line": (loc.get("region") or {}).get("startLine", 0),
+                    "message": (r.get("message") or {}).get("text", ""),
+                    "confidence": (r.get("properties") or {}).get("confidence"),
+                }
+    return None
+
+
+def cmd_memory_label(rest: list[str]) -> int:
+    """memory-label <sarif-path> <findingIndex> <tp|fp> [reason]（飞轮：人工标注回传）。
+
+    TP → 自动生成 incident_pattern 提案进 quarantine；FP → scenario_trust 累加，
+    30 天内 ≥3 次 → 自动生成场景 SKILL 改进提案进 quarantine。
+    """
+    if len(rest) < 3:
+        print(json.dumps({"ok": False, "code": "E_USAGE",
+                          "message": "usage: memory-label <sarif> <findingIndex> <tp|fp> [reason]"},
+                         ensure_ascii=False))
+        return 2
+    sarif_path, finding_index, label = Path(rest[0]), rest[1], rest[2]
+    reason = rest[3] if len(rest) > 3 else ""
+    if label not in ("tp", "fp"):
+        print(json.dumps({"ok": False, "code": "E_LABEL", "message": "label 必须是 tp|fp"},
+                         ensure_ascii=False))
+        return 2
+    hit = _find_sarif_result(sarif_path, finding_index)
+    if hit is None:
+        print(json.dumps({"ok": False, "code": "E_FINDING_NOT_FOUND",
+                          "message": f"{finding_index} 不在 {sarif_path} 中"}, ensure_ascii=False))
+        return 2
+
+    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    conn = db()
+    lid = f"lbl-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S%f')}"
+    conn.execute(
+        "INSERT INTO labels (id,finding_index,rule_id,uri,line,label,reason,sarif_path,labeled_by,labeled_at)"
+        " VALUES (?,?,?,?,?,?,?,?,?,?)",
+        (lid, finding_index, hit["ruleId"], hit["uri"], hit["line"], label, reason,
+         str(sarif_path), os.environ.get("USER", "unknown"), now))
+    conn.commit()
+    append_metrics({"event": "label", "id": lid, "rule_id": hit["ruleId"], "label": label,
+                    "uri": hit["uri"], "line": hit["line"]})
+
+    outcome: dict = {"ok": True, "id": lid, "label": label, "rule_id": hit["ruleId"]}
+
+    if label == "tp":
+        # TP → incident_pattern 提案（content 必含 file:line，过 memory_propose 红线）
+        summary = hit["message"].splitlines()[0] if hit["message"] else finding_index
+        uri_dir = str(Path(hit["uri"]).parent)
+        rc = memory_propose({
+            "content": f"模式确认（人工标注 TP）：{hit['uri']}:{hit['line']} {summary}",
+            "modules": [f"{uri_dir}/**"] if uri_dir not in ("", ".") else ["**/*"],
+            "bound_paths": [hit["uri"]],
+            "evidence": {"sarif": str(sarif_path), "finding_index": finding_index,
+                         "label_id": lid, "rule_id": hit["ruleId"]},
+        })
+        outcome["tp_proposal"] = "quarantine" if rc == 0 else "rejected"
+        return 0 if rc == 0 else rc
+
+    # FP → scenario_trust 累加 + 阈值检查
+    conn.execute(
+        "INSERT INTO scenario_trust (rule_id,violations,last_violation_at,notes) VALUES (?,1,?,?)"
+        " ON CONFLICT(rule_id) DO UPDATE SET violations=violations+1,last_violation_at=?,notes=?",
+        (hit["ruleId"], now, reason, now, reason))
+    conn.commit()
+    row = conn.execute("SELECT violations,last_violation_at FROM scenario_trust WHERE rule_id=?",
+                       (hit["ruleId"],)).fetchone()
+    outcome["violations"] = row["violations"]
+
+    # 统计 30 天窗口内的 FP 数（labels 表为准）
+    since = (datetime.now(timezone.utc) - timedelta(days=FP_WINDOW_DAYS)).isoformat(timespec="seconds")
+    n_fp = conn.execute(
+        "SELECT COUNT(*) AS n FROM labels WHERE rule_id=? AND label='fp' AND labeled_at>=?",
+        (hit["ruleId"], since)).fetchone()["n"]
+    outcome["fp_in_window"] = n_fp
+
+    if n_fp >= FP_THRESHOLD:
+        # 防重复提案：同场景已有 quarantine 改进提案则跳过
+        dup = conn.execute(
+            "SELECT COUNT(*) AS n FROM memories WHERE status='quarantine'"
+            " AND kind='review_finding' AND content LIKE ?",
+            (f"%场景改进提案%{hit['ruleId']}%",)).fetchone()["n"]
+        if dup == 0:
+            sample = conn.execute(
+                "SELECT uri,line FROM labels WHERE rule_id=? AND label='fp' ORDER BY labeled_at DESC LIMIT 1",
+                (hit["ruleId"],)).fetchone()
+            rc = memory_propose({
+                "content": f"场景改进提案：{hit['ruleId']} 在 {FP_WINDOW_DAYS} 天内被标注 FP {n_fp} 次"
+                           f"（最近一例 {sample['uri']}:{sample['line']}），"
+                           f"请修订 rules/scenarios/{hit['ruleId']}/SKILL.md 的检测信号以降低误报",
+                "modules": ["rules/scenarios/**"],
+                "bound_paths": [f"rules/scenarios/{hit['ruleId']}/SKILL.md"],
+                "evidence": {"trigger": "fp_threshold", "rule_id": hit["ruleId"],
+                             "fp_in_window": n_fp, "label_id": lid},
+            })
+            outcome["improvement_proposal"] = "quarantine" if rc == 0 else "rejected"
+        else:
+            outcome["improvement_proposal"] = "already-pending"
+
+    print(json.dumps(outcome, ensure_ascii=False))
+    return 0
+
+
 # ---------------------------------------------------------------- 输入包打包（MVP §2.3）
 
 def cmd_package(rest: list[str]) -> int:
@@ -389,9 +528,9 @@ def cmd_package(rest: list[str]) -> int:
         if paths else ["default"]
 
     file_lines = [f"- {p}" for p in paths] or ["- （无）"]
-    ctx = ["# 变更文件", *file_lines, "", "# 命中场景索引（按需读对应 checklist）"]
+    ctx = ["# 变更文件", *file_lines, "", "# 命中场景索引（按需读对应 SKILL.md）"]
     for s in scen:
-        ctx.append(f"- {s} → rules/scenarios/{s}/checklist.md")
+        ctx.append(f"- {s} → rules/scenarios/{s}/SKILL.md")
     ctx.append("")
     recalled = []
     try:
@@ -456,6 +595,8 @@ def main() -> int:
         return memory_approve(rest[0], reason)
     if cmd == "memory-recall":
         return memory_recall(rest)
+    if cmd == "memory-label":
+        return cmd_memory_label(rest)
     if cmd == "package":
         return cmd_package(rest)
     if cmd == "replay-info":

@@ -98,8 +98,27 @@ echo '{"content":"无证据"}' | bash scripts/memory-propose.sh >/dev/null 2>&1;
 
 reset_tree; stage_big_c
 bash scripts/review-package.sh --out "$PWD/pkg" >/dev/null
-grep -q cwe-476 pkg/scenarios.json && grep -q "rules/scenarios/cwe-476/checklist.md" pkg/context.md && ok "⑮ C++ 变更注入命中场景索引" || no "⑮ 场景路由未进输入包"
+grep -q cwe-476 pkg/scenarios.json && grep -q "rules/scenarios/cwe-476/SKILL.md" pkg/context.md && ok "⑮ C++ 变更注入命中场景索引" || no "⑮ 场景路由未进输入包"
 [ -s .review/metrics.jsonl ] && ok "⑯ metrics 埋点落盘(.review/metrics.jsonl)" || no "⑯ metrics 为空"
+
+echo "— 标注飞轮（memory-label）—"
+reset_tree; stage_big_c
+write_artifact lbl '{"findings":[{"file":"src/x.c","line":5,"severity":"important","category":"bug","scenario":"cwe-476","summary":"malloc 未判空","confidence":90,"resolved":false}]}'
+bash scripts/artifact-to-sarif.sh .git/review-gate/lbl.json >/dev/null
+SARIF=.git/review-gate/lbl.sarif; FIDX="cwe-476/src/x.c:5"
+bash scripts/memory-label.sh "$SARIF" "$FIDX" tp >/dev/null
+Q=$(MVP_ROOT=$SUT "$PY" -c "import os,sys;sys.path.insert(0,'scripts');import _lib as l;c=l.db();print(c.execute(\"select count(*) from labels where label='tp'\").fetchone()[0], c.execute(\"select count(*) from memories where status='quarantine' and content like '%模式确认%'\").fetchone()[0])")
+[ "$Q" = "1 1" ] && ok "⑱ TP 标注 → labels 落库 + incident_pattern 提案进 quarantine" || no "⑱ TP 链路异常 ($Q)"
+
+bash scripts/memory-label.sh "$SARIF" "$FIDX" fp "疑似误报" >/dev/null
+V=$(MVP_ROOT=$SUT "$PY" -c "import os,sys;sys.path.insert(0,'scripts');import _lib as l;print(l.db().execute(\"select violations from scenario_trust where rule_id='cwe-476'\").fetchone()[0])")
+[ "$V" = "1" ] && ok "⑲ FP 标注 → scenario_trust violations 累加" || no "⑲ trust 累加异常 ($V)"
+
+bash scripts/memory-label.sh "$SARIF" "$FIDX" fp >/dev/null
+OUT=$(bash scripts/memory-label.sh "$SARIF" "$FIDX" fp 2>&1); RC=$?
+P=$(MVP_ROOT=$SUT "$PY" -c "import os,sys;sys.path.insert(0,'scripts');import _lib as l;print(l.db().execute(\"select count(*) from memories where status='quarantine' and content like '%场景改进提案%cwe-476%'\").fetchone()[0])")
+{ [ $RC = 0 ] && [ "$P" = "1" ] && grep -q improvement_proposal <<<"$OUT"; } && ok "⑳ 30 天内第 3 次 FP → 触发场景改进提案" || no "⑳ 阈值触发异常 rc=$RC P=$P"
+bash scripts/memory-label.sh "$SARIF" "cwe-476/src/x.c:999" tp >/dev/null 2>&1; [ $? = 2 ] && ok "㉑ 非法 findingIndex 被拒(E_FINDING_NOT_FOUND)" || no "㉑ findingIndex 校验缺失"
 
 echo "— fail-open（破坏内核后必须放行）—"
 reset_tree; stage_big_c

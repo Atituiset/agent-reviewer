@@ -21,7 +21,7 @@ for skill in sorted(scen_dir.glob("*/SKILL.md")):
     if not m:
         raise SystemExit(f"{skill}: missing frontmatter")
     fm = m.group(1)
-    name = re.search(r"^name:\s*(.+)$", fm, re.M).group(1).strip()
+    key = skill.parent.name  # 场景标识统一用目录键（与 known_scenarios/工件 scenario 字段一致）
     pm = re.search(r"^paths:\s*\[(.*?)\]", fm, re.M | re.S)
     if not pm:
         raise SystemExit(f"{skill}: missing paths")
@@ -35,7 +35,7 @@ for skill in sorted(scen_dir.glob("*/SKILL.md")):
             parts.append(tok)
     globs = [g.strip().strip('"').strip("'") for g in "".join(parts).split("|") if g.strip()]
     for g in globs:
-        path_to_scenarios.setdefault(g, []).append(name)
+        path_to_scenarios.setdefault(g, []).append(key)
 
 rules = [{"path": p, "scenarios": s} for p, s in path_to_scenarios.items()]
 out.write_text(json.dumps({"rules": rules}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
