@@ -80,8 +80,79 @@
               "CWE-190"
             ],
             "ruling": "pending-team-triage",
-            "resolved": false
-          }
+            "resolved": false,
+            "reasoning": "接纳逻辑用模序列、恢复逻辑用数值序，两套排序在 SN 回绕点必然冲突——不是推测性问题，是可构造的确定性错序。"
+          },
+          "codeFlows": [
+            {
+              "threadFlows": [
+                {
+                  "locations": [
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/rlc/src/rlc_um.cpp"
+                          },
+                          "region": {
+                            "startLine": 79
+                          }
+                        }
+                      },
+                      "message": {
+                        "text": "ahead() 按 int16_t 模运算判定：vr_next_=65530 时 sn=65531(d=1) 与 sn=2(d=8) 均判为窗内合法乱序包"
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/rlc/src/rlc_um.cpp"
+                          },
+                          "region": {
+                            "startLine": 78
+                          }
+                        }
+                      },
+                      "message": {
+                        "text": "两包入 buffer_（std::map 数值序：2 排在 65531 前）并启动 t_reorder"
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/rlc/src/rlc_um.cpp"
+                          },
+                          "region": {
+                            "startLine": 134
+                          }
+                        }
+                      },
+                      "message": {
+                        "text": "超时恢复 resume=buffer_.begin()->first 取数值最小键 2，而非模序列上更靠前的 65531"
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/rlc/src/rlc_um.cpp"
+                          },
+                          "region": {
+                            "startLine": 141
+                          }
+                        }
+                      },
+                      "message": {
+                        "text": "skipped=(uint16_t)(2-65530)=8 计入丢包，vr_next_=2，sn=2 先于 65531 交付——顺序反转"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
         },
         {
           "ruleId": "cwe-125",
@@ -114,8 +185,49 @@
               "CWE-125"
             ],
             "ruling": "pending-team-triage",
-            "resolved": false
-          }
+            "resolved": false,
+            "reasoning": "报文头字段 4+2+2+1+32=41 字节之后还有 1 字节 imsi_len，守卫少算了自己要读的这一个字节——经典 off-by-one。"
+          },
+          "codeFlows": [
+            {
+              "threadFlows": [
+                {
+                  "locations": [
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/core/src/bs_node.cpp"
+                          },
+                          "region": {
+                            "startLine": 1074
+                          }
+                        }
+                      },
+                      "message": {
+                        "text": "守卫 msg.value.size() < 41 放行 41 字节报文（格式最小长度实为 42）"
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/core/src/bs_node.cpp"
+                          },
+                          "region": {
+                            "startLine": 1082
+                          }
+                        }
+                      },
+                      "message": {
+                        "text": "msg.value[41] 越界读 imsi_len（有效下标仅 0..40）"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
         },
         {
           "ruleId": "cwe-401",
@@ -148,8 +260,64 @@
               "CWE-401"
             ],
             "ruling": "pending-team-triage",
-            "resolved": false
-          }
+            "resolved": false,
+            "reasoning": "旧代码无 guard 可自愈（重复发 HO_COMMAND），本 diff 新增的 guard 把「状态泄漏」升级为「活性故障」——缺陷模式是清理缺失，但严重度由新 guard 放大。"
+          },
+          "codeFlows": [
+            {
+              "threadFlows": [
+                {
+                  "locations": [
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/core/src/bs_node.cpp"
+                          },
+                          "region": {
+                            "startLine": 1298
+                          }
+                        }
+                      },
+                      "message": {
+                        "text": "Xn 路径记录 initiated_ho_[crnti]={target,0}，erase 仅在成功路径（868/1104/1127）"
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/core/src/bs_node.cpp"
+                          },
+                          "region": {
+                            "startLine": 1349
+                          }
+                        }
+                      },
+                      "message": {
+                        "text": "HO_COMMAND 经有损空口发送；丢失后无任何失败路径清理（无超时/无回滚）"
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/core/src/bs_node.cpp"
+                          },
+                          "region": {
+                            "startLine": 1274
+                          }
+                        }
+                      },
+                      "message": {
+                        "text": "后续 meas report 触发 request_handover，新引入的 guard `if (initiated_ho_.count(crnti)) return;` 对残留条目早退——UE 永久阻断切换"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
         },
         {
           "ruleId": "cwe-401",
@@ -182,8 +350,64 @@
               "CWE-401"
             ],
             "ruling": "pending-team-triage",
-            "resolved": false
-          }
+            "resolved": false,
+            "reasoning": "写入点明确、消费点只读不删、无超时回收——每次切入单调泄漏一份 HoContext。"
+          },
+          "codeFlows": [
+            {
+              "threadFlows": [
+                {
+                  "locations": [
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/core/src/bs_node.cpp"
+                          },
+                          "region": {
+                            "startLine": 1361
+                          }
+                        }
+                      },
+                      "message": {
+                        "text": "prepare_handover 写入 ho_prepared_[new_crnti]=ctx（含 32B UP 密钥与 IMSI）"
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/core/src/bs_node.cpp"
+                          },
+                          "region": {
+                            "startLine": 848
+                          }
+                        }
+                      },
+                      "message": {
+                        "text": "HO_COMPLETE 分支只 count/读取，全库无 ho_prepared_.erase"
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/core/src/bs_node.cpp"
+                          },
+                          "region": {
+                            "startLine": 1356
+                          }
+                        }
+                      },
+                      "message": {
+                        "text": "UE 永不到达时连带泄漏 flow(new_crnti)/RRC admit/NAS adopt 上下文与 tmsi→crnti 幻影映射"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
         }
       ],
       "properties": {

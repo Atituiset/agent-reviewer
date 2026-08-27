@@ -60,7 +60,9 @@ agent-reviewer/
     {"file": "src/x.go", "line": 42, "severity": "critical|important|minor",
      "category": "bug|security|...", "scenario": "null-deref|none",
      "type": "MISSING_IMPL|EXTRA_IMPL|SPEC_DEV|DOC_INCON|OUTDATED_DOC|AMBIGUOUS|none",
-     "summary": "…", "resolved": true, "ruling": null}
+     "summary": "…", "resolved": true, "ruling": null,
+     "flow": [{"file": "src/x.go", "line": 40, "message": "证据链有序步骤（分配点/绕过点/使用点…）"}],
+     "reasoning": "一句话判断理由（SARIF properties；原始分析轨迹不进工件）"}
   ],
   "spec_ref": "openspec/changes/<name>/"
 }

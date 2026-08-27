@@ -6,7 +6,19 @@
   "reviewer": "task-reviewer",
   "spec_ref": "none",
   "note": "SKILL 格式场景库对真实新代码（非播种）的首次验证：5 个并行场景评审 subagent（fresh context）+ 主控逐条人工核实。范围 = 8394245 的 stack/ C++ 改动（52 文件，+6929/-531）中抽取 5 个高危文件；3 文件零 finding（阴性记录见 REVIEW.md）。",
-  "scenarios_scanned": ["cwe-125", "cwe-190", "cwe-20", "cwe-362", "cwe-401", "cwe-416", "cwe-476", "cwe-78", "cwe-787", "cwe-798", "default"],
+  "scenarios_scanned": [
+    "cwe-125",
+    "cwe-190",
+    "cwe-20",
+    "cwe-362",
+    "cwe-401",
+    "cwe-416",
+    "cwe-476",
+    "cwe-78",
+    "cwe-787",
+    "cwe-798",
+    "default"
+  ],
   "files_reviewed": [
     "stack/app/src/u2u.cpp",
     "stack/nas/src/aka.cpp",
@@ -16,45 +28,154 @@
   ],
   "findings": [
     {
-      "file": "stack/rlc/src/rlc_um.cpp", "line": 134,
-      "severity": "important", "category": "bug",
-      "scenario": "cwe-190", "type": "none", "refs": ["CWE-190"],
+      "file": "stack/rlc/src/rlc_um.cpp",
+      "line": 134,
+      "severity": "important",
+      "category": "bug",
+      "scenario": "cwe-190",
+      "type": "none",
+      "refs": [
+        "CWE-190"
+      ],
       "summary": "reorder 超时用 std::map 数值最小键作恢复点，16 位 SN 回绕时选错 resume：乱序交付 + dropped_ 虚增 + vr_next_ 模意义倒退",
       "detail": "已核实：buffer_ 为 std::map<uint16_t,Held>（数值序），ahead() 按 int16_t 模运算接纳乱序包（vr_next_=65530 时 65531 与 2 均可入缓冲），但 on_reorder_timeout 的 resume=buffer_.begin()->first 取数值最小（2 而非序列上更靠前的 65531），交付顺序反转且 skipped=(uint16_t)(2-65530)=8 计入丢包；第二次超时 skipped 虚增约 65528。修复方向：按模序列空间选最靠前键（或以 vr_next_ 为基准扫描）。",
-      "confidence": 90, "resolved": false,
-      "ruling": "pending-team-triage"
+      "confidence": 90,
+      "resolved": false,
+      "ruling": "pending-team-triage",
+      "flow": [
+        {
+          "file": "stack/rlc/src/rlc_um.cpp",
+          "line": 79,
+          "message": "ahead() 按 int16_t 模运算判定：vr_next_=65530 时 sn=65531(d=1) 与 sn=2(d=8) 均判为窗内合法乱序包"
+        },
+        {
+          "file": "stack/rlc/src/rlc_um.cpp",
+          "line": 78,
+          "message": "两包入 buffer_（std::map 数值序：2 排在 65531 前）并启动 t_reorder"
+        },
+        {
+          "file": "stack/rlc/src/rlc_um.cpp",
+          "line": 134,
+          "message": "超时恢复 resume=buffer_.begin()->first 取数值最小键 2，而非模序列上更靠前的 65531"
+        },
+        {
+          "file": "stack/rlc/src/rlc_um.cpp",
+          "line": 141,
+          "message": "skipped=(uint16_t)(2-65530)=8 计入丢包，vr_next_=2，sn=2 先于 65531 交付——顺序反转"
+        }
+      ],
+      "reasoning": "接纳逻辑用模序列、恢复逻辑用数值序，两套排序在 SN 回绕点必然冲突——不是推测性问题，是可构造的确定性错序。"
     },
     {
-      "file": "stack/core/src/bs_node.cpp", "line": 1082,
-      "severity": "important", "category": "security",
-      "scenario": "cwe-125", "type": "none", "refs": ["CWE-125"],
+      "file": "stack/core/src/bs_node.cpp",
+      "line": 1082,
+      "severity": "important",
+      "category": "security",
+      "scenario": "cwe-125",
+      "type": "none",
+      "refs": [
+        "CWE-125"
+      ],
       "summary": "XN_HO_PREPARE 长度校验 off-by-one：size()==41 时越界读 msg.value[41]",
       "detail": "已核实：报文格式 {tmsi:4}{from:2}{to:2}{sec:1}{key:32}{imsi_len:1} 至少 42 字节，守卫为 `if (msg.value.size() < 41) break;`，恰好 41 字节时 `msg.value[41]` 越界读（imsi_len）。本 diff 新增代码（M22 Xn 切换）。修复：守卫改为 < 42。",
-      "confidence": 95, "resolved": false,
-      "ruling": "pending-team-triage"
+      "confidence": 95,
+      "resolved": false,
+      "ruling": "pending-team-triage",
+      "flow": [
+        {
+          "file": "stack/core/src/bs_node.cpp",
+          "line": 1074,
+          "message": "守卫 msg.value.size() < 41 放行 41 字节报文（格式最小长度实为 42）"
+        },
+        {
+          "file": "stack/core/src/bs_node.cpp",
+          "line": 1082,
+          "message": "msg.value[41] 越界读 imsi_len（有效下标仅 0..40）"
+        }
+      ],
+      "reasoning": "报文头字段 4+2+2+1+32=41 字节之后还有 1 字节 imsi_len，守卫少算了自己要读的这一个字节——经典 off-by-one。"
     },
     {
-      "file": "stack/core/src/bs_node.cpp", "line": 1274,
-      "severity": "important", "category": "bug",
-      "scenario": "cwe-401", "type": "none", "refs": ["CWE-401"],
+      "file": "stack/core/src/bs_node.cpp",
+      "line": 1274,
+      "severity": "important",
+      "category": "bug",
+      "scenario": "cwe-401",
+      "type": "none",
+      "refs": [
+        "CWE-401"
+      ],
       "summary": "Xn 切换失败/中止路径不清理 initiated_ho_/pending_xn_ho_，且本 diff 新引入的 in-flight guard 使残留条目永久阻断该 UE 后续切换",
       "detail": "已核实：erase 仅存在于成功路径（868/1104/1127）；detach 路径（651-680）只清 tmsi_to_crnti_/flows_；无超时无回滚。HO_COMMAND 经有损空口丢失或 UE 中途 detach 后，bs_node.cpp:1274 `if (initiated_ho_.count(crnti)) return;` 对该 UE 的所有后续 meas report 直接早退——UE 永久钉死在变差的服务小区。修复：超时/失败路径清理 + guard 增加时效判断。",
-      "confidence": 85, "resolved": false,
-      "ruling": "pending-team-triage"
+      "confidence": 85,
+      "resolved": false,
+      "ruling": "pending-team-triage",
+      "flow": [
+        {
+          "file": "stack/core/src/bs_node.cpp",
+          "line": 1298,
+          "message": "Xn 路径记录 initiated_ho_[crnti]={target,0}，erase 仅在成功路径（868/1104/1127）"
+        },
+        {
+          "file": "stack/core/src/bs_node.cpp",
+          "line": 1349,
+          "message": "HO_COMMAND 经有损空口发送；丢失后无任何失败路径清理（无超时/无回滚）"
+        },
+        {
+          "file": "stack/core/src/bs_node.cpp",
+          "line": 1274,
+          "message": "后续 meas report 触发 request_handover，新引入的 guard `if (initiated_ho_.count(crnti)) return;` 对残留条目早退——UE 永久阻断切换"
+        }
+      ],
+      "reasoning": "旧代码无 guard 可自愈（重复发 HO_COMMAND），本 diff 新增的 guard 把「状态泄漏」升级为「活性故障」——缺陷模式是清理缺失，但严重度由新 guard 放大。"
     },
     {
-      "file": "stack/core/src/bs_node.cpp", "line": 1361,
-      "severity": "minor", "category": "bug",
-      "scenario": "cwe-401", "type": "none", "refs": ["CWE-401"],
+      "file": "stack/core/src/bs_node.cpp",
+      "line": 1361,
+      "severity": "minor",
+      "category": "bug",
+      "scenario": "cwe-401",
+      "type": "none",
+      "refs": [
+        "CWE-401"
+      ],
       "summary": "目标侧 ho_prepared_ 条目在任何路径都不释放（含 UP 密钥与 IMSI 的 HoContext 每次切入永久泄漏一份）",
       "detail": "已核实：prepare_handover 写入 ho_prepared_[new_crnti]=ctx，全库无 ho_prepared_.erase；UE 永不到达时还连带泄漏 flow/RRC/NAS 上下文与 tmsi→crnti 幻影映射。修复：HO_COMPLETE 消费后 erase + 准备超时回收。",
-      "confidence": 88, "resolved": false,
-      "ruling": "pending-team-triage"
+      "confidence": 88,
+      "resolved": false,
+      "ruling": "pending-team-triage",
+      "flow": [
+        {
+          "file": "stack/core/src/bs_node.cpp",
+          "line": 1361,
+          "message": "prepare_handover 写入 ho_prepared_[new_crnti]=ctx（含 32B UP 密钥与 IMSI）"
+        },
+        {
+          "file": "stack/core/src/bs_node.cpp",
+          "line": 848,
+          "message": "HO_COMPLETE 分支只 count/读取，全库无 ho_prepared_.erase"
+        },
+        {
+          "file": "stack/core/src/bs_node.cpp",
+          "line": 1356,
+          "message": "UE 永不到达时连带泄漏 flow(new_crnti)/RRC admit/NAS adopt 上下文与 tmsi→crnti 幻影映射"
+        }
+      ],
+      "reasoning": "写入点明确、消费点只读不删、无超时回收——每次切入单调泄漏一份 HoContext。"
     }
   ],
   "negative_results": [
-    {"file": "stack/app/src/u2u.cpp", "result": "无 finding：decode 每步读取均有前置长度校验，输入字段白名单齐全，全托管内存"},
-    {"file": "stack/nas/src/aka.cpp", "result": "无 finding：定长 std::array 操作无越界路径，无硬编码密钥，SQN 运算有掩码"},
-    {"file": "stack/phy/src/frame.cpp", "result": "无 finding（本 diff 范围）：容量/偏移计算自洽，边界钳制完备；评审注意到 frame.cpp:190 附近一处本 diff 未触及的潜在越界读，按纪律不计入"}
+    {
+      "file": "stack/app/src/u2u.cpp",
+      "result": "无 finding：decode 每步读取均有前置长度校验，输入字段白名单齐全，全托管内存"
+    },
+    {
+      "file": "stack/nas/src/aka.cpp",
+      "result": "无 finding：定长 std::array 操作无越界路径，无硬编码密钥，SQN 运算有掩码"
+    },
+    {
+      "file": "stack/phy/src/frame.cpp",
+      "result": "无 finding（本 diff 范围）：容量/偏移计算自洽，边界钳制完备；评审注意到 frame.cpp:190 附近一处本 diff 未触及的潜在越界读，按纪律不计入"
+    }
   ]
 }
