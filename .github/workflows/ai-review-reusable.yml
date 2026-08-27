@@ -28,6 +28,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: Atituiset/agent-reviewer
+          ref: mvp
           path: .reviewer
 
       - name: 变更规模与豁免判定
@@ -78,6 +79,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: Atituiset/agent-reviewer
+          ref: mvp
           path: .reviewer
 
       - name: 工件 → SARIF
