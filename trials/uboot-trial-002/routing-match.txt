@@ -1,0 +1,16 @@
+# routing validation @ 2026-08-27, registry from 14 SKILL.md frontmatter
+target: common/cli.c
+matched (11):
+  - cwe-125-out-of-bounds-read
+  - cwe-190-integer-overflow
+  - cwe-20-input-validation
+  - cwe-362-race-condition
+  - cwe-401-memory-leak
+  - cwe-416-use-after-free
+  - cwe-476-null-pointer-dereference
+  - cwe-78-os-command-injection
+  - cwe-787-out-of-bounds-write
+  - cwe-798-hardcoded-credentials
+  - default
+cwe-787 present: True
+cwe-476 present: True
