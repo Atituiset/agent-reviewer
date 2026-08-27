@@ -57,6 +57,7 @@ jobs:
           ANTHROPIC_AUTH_TOKEN: ${{ secrets.AI_REVIEW_API_KEY }}
           ANTHROPIC_MODEL: ${{ vars.AI_REVIEW_MODEL }}
         with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}   # 绕过 Claude GitHub App 安装要求
           anthropic_api_key: ${{ secrets.AI_REVIEW_API_KEY }}
           prompt: |
             你是 task-reviewer。读取 /tmp/pr.diff 与 .reviewer/rules/registry.json：
