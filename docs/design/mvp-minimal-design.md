@@ -28,8 +28,8 @@ agent-reviewer/
 ├── hooks/
 │   └── pre-commit-gate.sh       # PreToolUse hook：拦截 git commit
 ├── rules/
-│   ├── registry.json            # 场景注册表：glob → 场景列表（§2.4）
-│   └── scenarios/               # 场景 checklist（memory-leak.md / null-deref.md / ...）
+│   ├── registry.json            # 派生物：由 scenarios/*/SKILL.md frontmatter 生成（§2.4）
+│   └── scenarios/               # 场景库：每场景一个目录，SKILL.md + cases/（§2.4.1）
 ├── scripts/
 │   ├── review-package.sh        # 打包 diff + spec + 场景规则 + 记忆 → 评审输入
 │   ├── verify-artifact.sh       # 校验评审工件（hash + verdict）
@@ -108,23 +108,20 @@ fail-open：脚本自身任何异常 → exit 0 放行
 
 ### 2.4 场景规则库（`rules/`，对接已有场景化评审资产）
 
-团队已沉淀的场景化 prompt/skill（内存泄露、空指针解引用、死锁等）是四元组中的「规则」元，按 OCR `system_rules.json` 模式组织（报告一 §3.5）：
+团队已沉淀的场景化 prompt/skill（内存泄露、空指针解引用、死锁等）是四元组中的「规则」元。**场景格式采用标准 SKILL.md，但路由保持确定性**——SKILL.md 只是格式不是发现机制，「该跑哪些场景」仍由脚本按 glob 判定，模型不参与选择（D5，OCR 对纯语言驱动评审的三大痛点：覆盖不全/位置漂移/质量不稳定，报告一 §3.5）：
 
-**注册表**（`rules/registry.json`）：
+**注册表由 SKILL.md frontmatter 生成**（单一数据源在 skill，不手工维护）：
 
-```json
-{
-  "rules": [
-    {"path": "**/*.{c,cc,cpp}",  "scenarios": ["cwe-476", "cwe-401", "cwe-416", "cwe-787"]},
-    {"path": "**/*.java",        "scenarios": ["cwe-476", "resource-leak"]},
-    {"path": "**/concurrent/**", "scenarios": ["cwe-362", "deadlock"]},
-    {"path": "**/*",             "scenarios": ["default"]}
-  ]
-}
+```
+scripts/build-registry.sh          # 扫描 rules/scenarios/*/SKILL.md 的 frontmatter
+    ↓ 生成
+rules/registry.json（派生物，gitignore 或定期重建）
+  {"rules": [{"path": "**/*.{c,cc,cpp}", "scenarios": ["cwe-476", ...]}, ...]}
 ```
 
 - 每个场景一个目录（`rules/scenarios/<cwe-key>/`），契约见 §2.4.1
-- **确定性路由**：`review-package.sh` 按 diff 触及路径匹配场景，只把命中场景的 checklist 注入 `context.md`；不相关的场景不注入——控制 prompt 长度就是控制误报率（D5）
+- **为什么用 SKILL.md 格式**：① 跨宿主标准（Claude Code/Codex/Cursor 均可加载），V2 多宿主迁移零改动；② 双重使用——管线里被确定性注入之外，开发者也可在交互会话中手动调用单个场景（skill 的 description 自动路由）；③ frontmatter + 正文 + references 的渐进式披露结构比裸 md 规范
+- **确定性路由**：`review-package.sh` 按 diff 触及路径匹配场景（读生成的 registry），只把命中场景的 SKILL.md 正文注入 `context.md`；不相关的场景不注入——控制 prompt 长度就是控制误报率（D5）
 - **编排分两档**：小 diff（默认）单 reviewer 注入命中场景一次评审；大 diff（V1）每个命中场景派一个独立场景 subagent 并行评审，findings 汇总后过验证 subagent 二次确认（报告一 §3.4 官方 /code-review 模式）
 - **severity 挂场景**：确定性高的场景（null-deref、memory-leak）finding 默认 high severity → 阻塞 commit；风格类场景降级为摘要提示——门禁松紧按场景分级，防 review theater（D9）
 - **场景库入治理循环**：现有人写场景 prompt 视为 MDE 撰写的 convention，直接 active 入库；之后的双向回喂——场景命中真实缺陷 → 提炼 `incident_pattern` 进 quarantine；场景漏检（缺陷逃逸）→ 提炼**场景 prompt 改进提案**进 quarantine，MDE 审核后更新 `rules/scenarios/`。场景库随评审历史演进，而非静态资产（ANDM 飞轮在规则层的复用）
@@ -137,8 +134,14 @@ fail-open：脚本自身任何异常 → exit 0 放行
 
 ```
 rules/scenarios/cwe-476-null-deref/
-├── checklist.md        # 注入 reviewer 的检测清单（现有场景 prompt 的 checklist 化）
-├── meta.yaml           # {cwe: 476, severity_default: high, languages: [c, cpp]}
+├── SKILL.md            # 标准 skill 格式，frontmatter 即路由与元数据：
+│                       #   name: cwe-476-null-deref
+│                       #   description: <触发描述，交互调用时由宿主 agent 路由>
+│                       #   cwe: 476
+│                       #   severity_default: high
+│                       #   paths: ["**/*.{c,cc,cpp}"]     # 确定性路由的 glob 来源
+│                       #   ---
+│                       #   正文 = 注入 reviewer 的检测清单
 └── cases/              # 回放基准样本（现有缺陷案例资产直接迁入）
     ├── pos-001/        # 正例：含缺陷
     │   ├── diff.patch          # 「修复前版本 + diff」= 一个待审 PR
