@@ -1,15 +1,50 @@
 {
-  "version": 1,
-  "comment": "glob → 场景键路由表。语义：一个文件路径命中多条规则时场景取并集；'**' 跨目录，'*' 单段。新增场景 = 新增 rules/scenarios/<key>/ 目录 + 本表加一行（插拔契约见 rules/scenarios/README.md）。",
   "rules": [
-    { "path": "**/*.{c,h,cc,cpp,hpp,cxx}", "scenarios": ["cwe-787", "cwe-125", "cwe-416", "cwe-476", "cwe-401", "cwe-190", "cwe-362", "cwe-78"] },
-    { "path": "**/*.java",                 "scenarios": ["cwe-476", "cwe-362", "cwe-89", "cwe-22", "cwe-798"] },
-    { "path": "**/*.{js,ts,jsx,tsx,mjs}",  "scenarios": ["cwe-79", "cwe-89", "cwe-22", "cwe-78", "cwe-798"] },
-    { "path": "**/*.py",                   "scenarios": ["cwe-78", "cwe-89", "cwe-22", "cwe-798"] },
-    { "path": "**/*.{go,rs}",              "scenarios": ["cwe-78", "cwe-89", "cwe-22", "cwe-798"] },
-    { "path": "**/*.{php}",                "scenarios": ["cwe-79", "cwe-89", "cwe-78", "cwe-22"] },
-    { "path": "**/concurrent/**",          "scenarios": ["cwe-362"] },
-    { "path": "**/*.{yaml,yml,toml,properties,env,ini,cfg}", "scenarios": ["cwe-798"] },
-    { "path": "**/*",                      "scenarios": ["default"] }
+    {
+      "path": "**/*.{c,cc,cpp,h,hpp}",
+      "scenarios": [
+        "cwe-190-integer-overflow",
+        "cwe-401-memory-leak",
+        "cwe-416-use-after-free",
+        "cwe-476-null-deref",
+        "cwe-787-buffer-overflow"
+      ]
+    },
+    {
+      "path": "**/*.{c,cc,cpp,h,hpp,java,go}",
+      "scenarios": [
+        "cwe-362-race-condition"
+      ]
+    },
+    {
+      "path": "**/concurrent/**",
+      "scenarios": [
+        "cwe-362-race-condition"
+      ]
+    },
+    {
+      "path": "**/thread*/**",
+      "scenarios": [
+        "cwe-362-race-condition"
+      ]
+    },
+    {
+      "path": "**/async*/**",
+      "scenarios": [
+        "cwe-362-race-condition"
+      ]
+    },
+    {
+      "path": "**/*.java",
+      "scenarios": [
+        "cwe-476-null-deref"
+      ]
+    },
+    {
+      "path": "**/*",
+      "scenarios": [
+        "default"
+      ]
+    }
   ]
 }
