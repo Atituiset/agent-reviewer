@@ -1,5 +1,11 @@
-<!-- 场景 checklist：注入 reviewer 的检测清单（MVP 设计 §2.4 三元组之一）
-     本文件只含通用技术模式；团队私有口径请以 origin=team-asset 的场景目录承载 -->
+---
+name: cwe-798-hardcoded-credentials
+description: 硬编码凭据（CWE-CWE-798）。
+cwe: 798
+severity_default: critical
+origin: mitre-top25
+paths: ["**/*"]
+---
 # cwe-798 · hardcoded-credentials
 
 硬编码凭据（CWE-CWE-798）

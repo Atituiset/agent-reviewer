@@ -1,5 +1,11 @@
-<!-- 场景 checklist：注入 reviewer 的检测清单（MVP 设计 §2.4 三元组之一）
-     本文件只含通用技术模式；团队私有口径请以 origin=team-asset 的场景目录承载 -->
+---
+name: cwe-416-use-after-free
+description: 释放后使用：访问已释放内存（CWE-CWE-416）。
+cwe: 416
+severity_default: high
+origin: mitre-top25
+paths: ["**/*.{c,h}", "**/*.{cc,cpp,hpp}"]
+---
 # cwe-416 · use-after-free
 
 释放后使用：访问已释放内存（CWE-CWE-416）

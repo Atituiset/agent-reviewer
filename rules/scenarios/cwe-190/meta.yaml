@@ -1,6 +1,0 @@
-# 场景元数据（MVP 设计 §2.4.1）；origin 标记来源：mitre-top25 | project-scenario | team-asset | builtin
-cwe: 190
-name: integer-overflow
-severity_default: important
-languages: [c, cpp]
-origin: project-scenario

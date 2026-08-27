@@ -1,49 +1,100 @@
 {
   "rules": [
     {
-      "path": "**/*.{c,cc,cpp,h,hpp}",
+      "path": "**/*.{c,h}",
       "scenarios": [
+        "cwe-125-out-of-bounds-read",
         "cwe-190-integer-overflow",
+        "cwe-362-race-condition",
         "cwe-401-memory-leak",
         "cwe-416-use-after-free",
-        "cwe-476-null-deref",
-        "cwe-787-buffer-overflow"
+        "cwe-476-null-pointer-dereference",
+        "cwe-78-os-command-injection",
+        "cwe-787-out-of-bounds-write"
       ]
     },
     {
-      "path": "**/*.{c,cc,cpp,h,hpp,java,go}",
+      "path": "**/*.{cc,cpp,hpp}",
       "scenarios": [
-        "cwe-362-race-condition"
-      ]
-    },
-    {
-      "path": "**/concurrent/**",
-      "scenarios": [
-        "cwe-362-race-condition"
-      ]
-    },
-    {
-      "path": "**/thread*/**",
-      "scenarios": [
-        "cwe-362-race-condition"
-      ]
-    },
-    {
-      "path": "**/async*/**",
-      "scenarios": [
-        "cwe-362-race-condition"
-      ]
-    },
-    {
-      "path": "**/*.java",
-      "scenarios": [
-        "cwe-476-null-deref"
+        "cwe-125-out-of-bounds-read",
+        "cwe-190-integer-overflow",
+        "cwe-22-path-traversal",
+        "cwe-362-race-condition",
+        "cwe-401-memory-leak",
+        "cwe-416-use-after-free",
+        "cwe-476-null-pointer-dereference",
+        "cwe-78-os-command-injection",
+        "cwe-787-out-of-bounds-write"
       ]
     },
     {
       "path": "**/*",
       "scenarios": [
+        "cwe-20-input-validation",
+        "cwe-798-hardcoded-credentials",
         "default"
+      ]
+    },
+    {
+      "path": "**/*.java",
+      "scenarios": [
+        "cwe-22-path-traversal",
+        "cwe-362-race-condition",
+        "cwe-476-null-pointer-dereference",
+        "cwe-78-os-command-injection",
+        "cwe-79-xss",
+        "cwe-89-sql-injection"
+      ]
+    },
+    {
+      "path": "**/*.py",
+      "scenarios": [
+        "cwe-22-path-traversal",
+        "cwe-78-os-command-injection",
+        "cwe-89-sql-injection"
+      ]
+    },
+    {
+      "path": "**/*.{js,jsx,mjs,cjs}",
+      "scenarios": [
+        "cwe-22-path-traversal",
+        "cwe-78-os-command-injection",
+        "cwe-79-xss",
+        "cwe-89-sql-injection"
+      ]
+    },
+    {
+      "path": "**/*.{ts,tsx}",
+      "scenarios": [
+        "cwe-22-path-traversal",
+        "cwe-78-os-command-injection",
+        "cwe-79-xss",
+        "cwe-89-sql-injection"
+      ]
+    },
+    {
+      "path": "**/*.go",
+      "scenarios": [
+        "cwe-22-path-traversal",
+        "cwe-362-race-condition",
+        "cwe-78-os-command-injection",
+        "cwe-89-sql-injection"
+      ]
+    },
+    {
+      "path": "**/*.php",
+      "scenarios": [
+        "cwe-22-path-traversal",
+        "cwe-78-os-command-injection",
+        "cwe-79-xss",
+        "cwe-89-sql-injection"
+      ]
+    },
+    {
+      "path": "**/*.rs",
+      "scenarios": [
+        "cwe-22-path-traversal",
+        "cwe-89-sql-injection"
       ]
     }
   ]

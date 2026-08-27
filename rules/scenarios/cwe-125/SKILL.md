@@ -1,5 +1,11 @@
-<!-- 场景 checklist：注入 reviewer 的检测清单（MVP 设计 §2.4 三元组之一）
-     本文件只含通用技术模式；团队私有口径请以 origin=team-asset 的场景目录承载 -->
+---
+name: cwe-125-out-of-bounds-read
+description: 读越界：读取超出缓冲区边界的数据（CWE-CWE-125）。
+cwe: 125
+severity_default: high
+origin: mitre-top25
+paths: ["**/*.{c,h}", "**/*.{cc,cpp,hpp}"]
+---
 # cwe-125 · out-of-bounds-read
 
 读越界：读取超出缓冲区边界的数据（CWE-CWE-125）

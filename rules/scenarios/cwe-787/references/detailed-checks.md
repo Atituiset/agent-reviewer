@@ -1,11 +1,3 @@
----
-name: cwe-787-buffer-overflow
-description: 越界读写检测。评审 C/C++ 内存拷贝、数组/缓冲区访问、字符串处理、长度计算相关改动时调用，关注边界条件与长度来源的可达性。
-cwe: 787
-severity_default: critical
-paths: ["**/*.{c,cc,cpp,h,hpp}"]
----
-
 # CWE-787 越界读写 评审清单
 
 ## 1. 长度从哪来，可信吗

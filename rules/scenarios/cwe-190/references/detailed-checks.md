@@ -1,11 +1,3 @@
----
-name: cwe-190-integer-overflow
-description: 整数溢出/回绕检测。评审长度/大小/索引计算、内存分配大小、类型转换相关改动时调用，关注溢出后被用作边界或分配大小的场景。
-cwe: 190
-severity_default: high
-paths: ["**/*.{c,cc,cpp,h,hpp}"]
----
-
 # CWE-190 整数溢出 评审清单
 
 ## 1. 溢出后流向哪里

@@ -1,11 +1,3 @@
----
-name: cwe-416-use-after-free
-description: 释放后使用（UAF）检测。评审 C/C++ 对象销毁、指针释放、容器元素移除、回调注册相关改动时调用，关注释放后仍被引用的指针与悬垂引用。
-cwe: 416
-severity_default: critical
-paths: ["**/*.{c,cc,cpp,h,hpp}"]
----
-
 # CWE-416 释放后使用 评审清单
 
 ## 1. 释放点之后的使用

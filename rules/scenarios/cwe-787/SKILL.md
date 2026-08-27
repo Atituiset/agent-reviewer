@@ -1,5 +1,11 @@
-<!-- 场景 checklist：注入 reviewer 的检测清单（MVP 设计 §2.4 三元组之一）
-     本文件只含通用技术模式；团队私有口径请以 origin=team-asset 的场景目录承载 -->
+---
+name: cwe-787-out-of-bounds-write
+description: 写越界：向缓冲区写入超出其分配大小的数据（CWE-CWE-787）。
+cwe: 787
+severity_default: high
+origin: mitre-top25
+paths: ["**/*.{c,h}", "**/*.{cc,cpp,hpp}"]
+---
 # cwe-787 · out-of-bounds-write
 
 写越界：向缓冲区写入超出其分配大小的数据（CWE-CWE-787）

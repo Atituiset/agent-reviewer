@@ -1,5 +1,11 @@
-<!-- 场景 checklist：注入 reviewer 的检测清单（MVP 设计 §2.4 三元组之一）
-     本文件只含通用技术模式；团队私有口径请以 origin=team-asset 的场景目录承载 -->
+---
+name: cwe-362-race-condition
+description: 竞态条件：共享状态访问缺乏同步（CWE-CWE-362）。
+cwe: 362
+severity_default: high
+origin: mitre-top25
+paths: ["**/*.{c,h}", "**/*.{cc,cpp,hpp}", "**/*.java", "**/*.go"]
+---
 # cwe-362 · race-condition
 
 竞态条件：共享状态访问缺乏同步（CWE-CWE-362）

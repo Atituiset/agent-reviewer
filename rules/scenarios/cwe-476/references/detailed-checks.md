@@ -1,11 +1,3 @@
----
-name: cwe-476-null-deref
-description: 空指针解引用检测。评审 C/C++/Java 等语言的指针/可空引用使用时调用，关注解引用前是否校验、失败路径返回值、智能指针与所有权转移后的空状态。
-cwe: 476
-severity_default: high
-paths: ["**/*.{c,cc,cpp,h,hpp}", "**/*.java"]
----
-
 # CWE-476 空指针解引用 评审清单
 
 逐处检查 diff 中每个解引用点（`->`、`.*`、`*p`、`[]` 迭代器、Java 的 `.` 调用），回答以下问题：

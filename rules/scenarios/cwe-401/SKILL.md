@@ -1,5 +1,11 @@
-<!-- 场景 checklist：注入 reviewer 的检测清单（MVP 设计 §2.4 三元组之一）
-     本文件只含通用技术模式；团队私有口径请以 origin=team-asset 的场景目录承载 -->
+---
+name: cwe-401-memory-leak
+description: 内存泄漏：分配后所有路径均未释放（CWE-CWE-401）。
+cwe: 401
+severity_default: important
+origin: project-scenario
+paths: ["**/*.{c,h}", "**/*.{cc,cpp,hpp}"]
+---
 # cwe-401 · memory-leak
 
 内存泄漏：分配后所有路径均未释放（CWE-CWE-401）

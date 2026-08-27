@@ -1,5 +1,11 @@
-<!-- 场景 checklist：注入 reviewer 的检测清单（MVP 设计 §2.4 三元组之一）
-     本文件只含通用技术模式；团队私有口径请以 origin=team-asset 的场景目录承载 -->
+---
+name: cwe-78-os-command-injection
+description: OS 命令注入：外部输入进入 shell 执行（CWE-CWE-78）。
+cwe: 78
+severity_default: critical
+origin: mitre-top25
+paths: ["**/*.{c,h}", "**/*.{cc,cpp,hpp}", "**/*.java", "**/*.py", "**/*.go", "**/*.{js,jsx,mjs,cjs}", "**/*.{ts,tsx}", "**/*.php"]
+---
 # cwe-78 · os-command-injection
 
 OS 命令注入：外部输入进入 shell 执行（CWE-CWE-78）

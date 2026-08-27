@@ -1,11 +1,3 @@
----
-name: cwe-362-race-condition
-description: 竞争条件检测。评审并发/多线程/共享状态/锁相关改动时调用，关注共享数据的所有访问路径是否同步、锁粒度与顺序、TOCTOU 窗口。
-cwe: 362
-severity_default: high
-paths: ["**/*.{c,cc,cpp,h,hpp,java,go}", "**/concurrent/**", "**/thread*/**", "**/async*/**"]
----
-
 # CWE-362 竞争条件 评审清单
 
 ## 1. 共享数据的每个访问路径

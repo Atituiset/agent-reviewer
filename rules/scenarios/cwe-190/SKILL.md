@@ -1,5 +1,11 @@
-<!-- 场景 checklist：注入 reviewer 的检测清单（MVP 设计 §2.4 三元组之一）
-     本文件只含通用技术模式；团队私有口径请以 origin=team-asset 的场景目录承载 -->
+---
+name: cwe-190-integer-overflow
+description: 整数溢出/回绕（CWE-CWE-190）。
+cwe: 190
+severity_default: important
+origin: project-scenario
+paths: ["**/*.{c,h}", "**/*.{cc,cpp,hpp}"]
+---
 # cwe-190 · integer-overflow
 
 整数溢出/回绕（CWE-CWE-190）

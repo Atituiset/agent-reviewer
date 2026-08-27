@@ -1,5 +1,11 @@
-<!-- 场景 checklist：注入 reviewer 的检测清单（MVP 设计 §2.4 三元组之一）
-     本文件只含通用技术模式；团队私有口径请以 origin=team-asset 的场景目录承载 -->
+---
+name: cwe-79-xss
+description: 跨站脚本：不可信数据进入 HTML 上下文（CWE-CWE-79）。
+cwe: 79
+severity_default: high
+origin: mitre-top25
+paths: ["**/*.{js,jsx,mjs,cjs}", "**/*.{ts,tsx}", "**/*.php", "**/*.java"]
+---
 # cwe-79 · xss
 
 跨站脚本：不可信数据进入 HTML 上下文（CWE-CWE-79）

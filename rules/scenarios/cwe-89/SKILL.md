@@ -1,5 +1,11 @@
-<!-- 场景 checklist：注入 reviewer 的检测清单（MVP 设计 §2.4 三元组之一）
-     本文件只含通用技术模式；团队私有口径请以 origin=team-asset 的场景目录承载 -->
+---
+name: cwe-89-sql-injection
+description: SQL 注入：外部输入拼进 SQL 文本（CWE-CWE-89）。
+cwe: 89
+severity_default: critical
+origin: mitre-top25
+paths: ["**/*.java", "**/*.py", "**/*.{js,jsx,mjs,cjs}", "**/*.{ts,tsx}", "**/*.go", "**/*.php", "**/*.rs"]
+---
 # cwe-89 · sql-injection
 
 SQL 注入：外部输入拼进 SQL 文本（CWE-CWE-89）

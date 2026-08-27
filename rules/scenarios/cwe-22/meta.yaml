@@ -1,6 +1,0 @@
-# 场景元数据（MVP 设计 §2.4.1）；origin 标记来源：mitre-top25 | project-scenario | team-asset | builtin
-cwe: 22
-name: path-traversal
-severity_default: high
-languages: [java, python, js, ts, go, php, rs, cpp]
-origin: mitre-top25

@@ -1,11 +1,3 @@
----
-name: cwe-401-memory-leak
-description: 内存泄露检测。评审 C/C++ 动态内存/资源申请与释放路径时调用，关注所有退出路径（含异常、错误分支）上的配对释放。
-cwe: 401
-severity_default: high
-paths: ["**/*.{c,cc,cpp,h,hpp}"]
----
-
 # CWE-401 内存泄露 评审清单
 
 对 diff 中每个资源申请点（`malloc/calloc/new/new[]/strdup/ fopen/socket/句柄类 API`），追踪其所有权的完整生命周期：

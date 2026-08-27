@@ -1,5 +1,11 @@
-<!-- 场景 checklist：注入 reviewer 的检测清单（MVP 设计 §2.4 三元组之一）
-     本文件只含通用技术模式；团队私有口径请以 origin=team-asset 的场景目录承载 -->
+---
+name: cwe-20-input-validation
+description: 输入校验缺失：外部输入未经约束即使用（CWE-CWE-20）。
+cwe: 20
+severity_default: medium
+origin: mitre-top25
+paths: ["**/*"]
+---
 # cwe-20 · input-validation
 
 输入校验缺失：外部输入未经约束即使用（CWE-CWE-20）
