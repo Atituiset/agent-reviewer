@@ -39,6 +39,26 @@ def scen_meta():
 LEVEL = {"critical": "error", "important": "error", "minor": "note",
          "high": "error", "medium": "warning", "low": "note"}
 
+# region.snippet：从被审源码提取代码行（SARIF_SRC_ROOT = 被审仓根目录；读不到则空串）
+SRC_ROOT = pathlib.Path(os.environ.get("SARIF_SRC_ROOT") or
+                        (os.environ.get("GITHUB_WORKSPACE") or "."))
+_src_cache: dict = {}
+
+def code_snippet(uri: str, line: int, span: int = 1) -> str:
+    if not uri or not line:
+        return ""
+    try:
+        if uri not in _src_cache:
+            p = SRC_ROOT / uri
+            _src_cache[uri] = p.read_text(encoding="utf-8", errors="replace").splitlines() if p.is_file() else None
+        lines = _src_cache[uri]
+        if not lines:
+            return ""
+        start = max(0, line - 1)
+        return "\n".join(l.strip() for l in lines[start:start + span])[:400]
+    except OSError:
+        return ""
+
 rules_by_id = scen_meta()
 used_rule_ids, results = [], []
 for i, f in enumerate(art.get("findings", [])):
@@ -63,7 +83,7 @@ for i, f in enumerate(art.get("findings", [])):
         "locations": [{
             "physicalLocation": {
                 "artifactLocation": {"uri": f.get("file", "")},
-                "region": {"startLine": f.get("line", 1)},
+                "region": {"startLine": f.get("line", 1), "snippet": {"text": code_snippet(f.get("file", ""), f.get("line", 1))}},
             }
         }],
         "partialFingerprints": {
@@ -90,7 +110,8 @@ for i, f in enumerate(art.get("findings", [])):
                         "location": {
                             "physicalLocation": {
                                 "artifactLocation": {"uri": step.get("file", "")},
-                                "region": {"startLine": step.get("line", 1)},
+                                "region": {"startLine": step.get("line", 1),
+                                           "snippet": {"text": code_snippet(step.get("file", ""), step.get("line", 1))}},
                             },
                             "message": {"text": step.get("message", "")},
                         }

@@ -63,7 +63,10 @@
                   "uri": "stack/rlc/src/rlc_um.cpp"
                 },
                 "region": {
-                  "startLine": 134
+                  "startLine": 134,
+                  "snippet": {
+                    "text": "const uint16_t resume = buffer_.begin()->first;"
+                  }
                 }
               }
             }
@@ -96,7 +99,10 @@
                             "uri": "stack/rlc/src/rlc_um.cpp"
                           },
                           "region": {
-                            "startLine": 79
+                            "startLine": 79,
+                            "snippet": {
+                              "text": "if (!timer_running_) {"
+                            }
                           }
                         },
                         "message": {
@@ -111,7 +117,10 @@
                             "uri": "stack/rlc/src/rlc_um.cpp"
                           },
                           "region": {
-                            "startLine": 78
+                            "startLine": 78,
+                            "snippet": {
+                              "text": "buffer_[sn] = {fi, {pdu.begin() + 3, pdu.end()}};"
+                            }
                           }
                         },
                         "message": {
@@ -126,7 +135,10 @@
                             "uri": "stack/rlc/src/rlc_um.cpp"
                           },
                           "region": {
-                            "startLine": 134
+                            "startLine": 134,
+                            "snippet": {
+                              "text": "const uint16_t resume = buffer_.begin()->first;"
+                            }
                           }
                         },
                         "message": {
@@ -141,7 +153,10 @@
                             "uri": "stack/rlc/src/rlc_um.cpp"
                           },
                           "region": {
-                            "startLine": 141
+                            "startLine": 141,
+                            "snippet": {
+                              "text": "LOG_WARN(ev::RLC_UM_GAP_SKIP, {{\"skipped\", std::to_string(skipped)}});"
+                            }
                           }
                         },
                         "message": {
@@ -169,7 +184,10 @@
                   "uri": "stack/core/src/bs_node.cpp"
                 },
                 "region": {
-                  "startLine": 1082
+                  "startLine": 1082,
+                  "snippet": {
+                    "text": "const size_t ilen = msg.value[41];"
+                  }
                 }
               }
             }
@@ -202,7 +220,10 @@
                             "uri": "stack/core/src/bs_node.cpp"
                           },
                           "region": {
-                            "startLine": 1074
+                            "startLine": 1074,
+                            "snippet": {
+                              "text": "if (msg.value.size() < 41) break;"
+                            }
                           }
                         },
                         "message": {
@@ -217,7 +238,10 @@
                             "uri": "stack/core/src/bs_node.cpp"
                           },
                           "region": {
-                            "startLine": 1082
+                            "startLine": 1082,
+                            "snippet": {
+                              "text": "const size_t ilen = msg.value[41];"
+                            }
                           }
                         },
                         "message": {
@@ -245,7 +269,10 @@
                   "uri": "stack/core/src/bs_node.cpp"
                 },
                 "region": {
-                  "startLine": 1274
+                  "startLine": 1274,
+                  "snippet": {
+                    "text": "if (initiated_ho_.count(crnti)) {"
+                  }
                 }
               }
             }
@@ -278,7 +305,10 @@
                             "uri": "stack/core/src/bs_node.cpp"
                           },
                           "region": {
-                            "startLine": 1298
+                            "startLine": 1298,
+                            "snippet": {
+                              "text": "initiated_ho_[crnti] = {target_cell_id, 0}; // rnti known at ACK"
+                            }
                           }
                         },
                         "message": {
@@ -293,7 +323,10 @@
                             "uri": "stack/core/src/bs_node.cpp"
                           },
                           "region": {
-                            "startLine": 1349
+                            "startLine": 1349,
+                            "snippet": {
+                              "text": "downlink_send(crnti, mac::LCID_CCCH, cmd.encode());"
+                            }
                           }
                         },
                         "message": {
@@ -308,7 +341,10 @@
                             "uri": "stack/core/src/bs_node.cpp"
                           },
                           "region": {
-                            "startLine": 1274
+                            "startLine": 1274,
+                            "snippet": {
+                              "text": "if (initiated_ho_.count(crnti)) {"
+                            }
                           }
                         },
                         "message": {
@@ -336,7 +372,10 @@
                   "uri": "stack/core/src/bs_node.cpp"
                 },
                 "region": {
-                  "startLine": 1361
+                  "startLine": 1361,
+                  "snippet": {
+                    "text": "ho_prepared_[new_crnti] = ctx;"
+                  }
                 }
               }
             }
@@ -369,7 +408,10 @@
                             "uri": "stack/core/src/bs_node.cpp"
                           },
                           "region": {
-                            "startLine": 1361
+                            "startLine": 1361,
+                            "snippet": {
+                              "text": "ho_prepared_[new_crnti] = ctx;"
+                            }
                           }
                         },
                         "message": {
@@ -384,7 +426,10 @@
                             "uri": "stack/core/src/bs_node.cpp"
                           },
                           "region": {
-                            "startLine": 848
+                            "startLine": 848,
+                            "snippet": {
+                              "text": "if (ho_prepared_.count(new_crnti)) {"
+                            }
                           }
                         },
                         "message": {
@@ -399,7 +444,10 @@
                             "uri": "stack/core/src/bs_node.cpp"
                           },
                           "region": {
-                            "startLine": 1356
+                            "startLine": 1356,
+                            "snippet": {
+                              "text": "auto& f = flow(new_crnti);"
+                            }
                           }
                         },
                         "message": {

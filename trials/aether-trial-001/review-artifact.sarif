@@ -53,7 +53,8 @@
           "ruleId": "default",
           "level": "error",
           "message": {
-            "text": "decode 缺少收尾大括号，make_padding_frame 被嵌套定义在 NasMessage::decode 函数体内，翻译单元无法编译\n\ng++ -fsyntax-only 复现：function-definition is not allowed here"
+            "text": "decode 缺少收尾大括号，make_padding_frame 被嵌套定义在 NasMessage::decode 函数体内，翻译单元无法编译\n\ng++ -fsyntax-only 复现：function-definition is not allowed here",
+            "markdown": "decode 缺少收尾大括号，make_padding_frame 被嵌套定义在 NasMessage::decode 函数体内，翻译单元无法编译\n\ng++ -fsyntax-only 复现：function-definition is not allowed here"
           },
           "locations": [
             {
@@ -62,7 +63,10 @@
                   "uri": "stack/nas/src/nas_messages.cpp"
                 },
                 "region": {
-                  "startLine": 29
+                  "startLine": 29,
+                  "snippet": {
+                    "text": ""
+                  }
                 }
               }
             }
@@ -85,7 +89,8 @@
           "ruleId": "cwe-401",
           "level": "error",
           "message": {
-            "text": "tag 为空的 early-return 路径未 free(frame)，内存泄漏\n\nmalloc 于 L32-33，唯一释放点 L44，early-return 绕过"
+            "text": "tag 为空的 early-return 路径未 free(frame)，内存泄漏\n\nmalloc 于 L32-33，唯一释放点 L44，early-return 绕过",
+            "markdown": "tag 为空的 early-return 路径未 free(frame)，内存泄漏\n\nmalloc 于 L32-33，唯一释放点 L44，early-return 绕过"
           },
           "locations": [
             {
@@ -94,7 +99,10 @@
                   "uri": "stack/nas/src/nas_messages.cpp"
                 },
                 "region": {
-                  "startLine": 35
+                  "startLine": 35,
+                  "snippet": {
+                    "text": ""
+                  }
                 }
               }
             }
@@ -119,7 +127,8 @@
           "ruleId": "cwe-401",
           "level": "error",
           "message": {
-            "text": "body 超限的 early-return 同样泄漏，第二条路径\n\n与 L35 同型；超限校验发生在 malloc 之后"
+            "text": "body 超限的 early-return 同样泄漏，第二条路径\n\n与 L35 同型；超限校验发生在 malloc 之后",
+            "markdown": "body 超限的 early-return 同样泄漏，第二条路径\n\n与 L35 同型；超限校验发生在 malloc 之后"
           },
           "locations": [
             {
@@ -128,7 +137,10 @@
                   "uri": "stack/nas/src/nas_messages.cpp"
                 },
                 "region": {
-                  "startLine": 38
+                  "startLine": 38,
+                  "snippet": {
+                    "text": ""
+                  }
                 }
               }
             }
@@ -153,7 +165,8 @@
           "ruleId": "cwe-476",
           "level": "error",
           "message": {
-            "text": "malloc 返回值未判空即被 memcpy 当写入目标\n\n分配失败时 L40 对空指针写入 UB"
+            "text": "malloc 返回值未判空即被 memcpy 当写入目标\n\n分配失败时 L40 对空指针写入 UB",
+            "markdown": "malloc 返回值未判空即被 memcpy 当写入目标\n\n分配失败时 L40 对空指针写入 UB"
           },
           "locations": [
             {
@@ -162,7 +175,10 @@
                   "uri": "stack/nas/src/nas_messages.cpp"
                 },
                 "region": {
-                  "startLine": 33
+                  "startLine": 33,
+                  "snippet": {
+                    "text": ""
+                  }
                 }
               }
             }
@@ -187,7 +203,8 @@
           "ruleId": "default",
           "level": "error",
           "message": {
-            "text": "试验脚手架落入产品源文件，无声明且全仓零调用\n\nTRIAL SEED 注释自述；spec_ref=none 有 AMBIGUOUS 风险"
+            "text": "试验脚手架落入产品源文件，无声明且全仓零调用\n\nTRIAL SEED 注释自述；spec_ref=none 有 AMBIGUOUS 风险",
+            "markdown": "试验脚手架落入产品源文件，无声明且全仓零调用\n\nTRIAL SEED 注释自述；spec_ref=none 有 AMBIGUOUS 风险"
           },
           "locations": [
             {
@@ -196,7 +213,10 @@
                   "uri": "stack/nas/src/nas_messages.cpp"
                 },
                 "region": {
-                  "startLine": 27
+                  "startLine": 27,
+                  "snippet": {
+                    "text": ""
+                  }
                 }
               }
             }

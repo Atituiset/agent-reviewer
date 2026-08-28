@@ -53,7 +53,8 @@
           "ruleId": "cwe-787",
           "level": "error",
           "message": {
-            "text": "strcpy copies unconstrained parameter 'board' into fixed 32-byte stack buffer with no length check\n\ncli_build_banner() does strcpy(scratch, board) where scratch is char[32]; any input >=32 bytes smashes the stack frame."
+            "text": "strcpy copies unconstrained parameter 'board' into fixed 32-byte stack buffer with no length check\n\ncli_build_banner() does strcpy(scratch, board) where scratch is char[32]; any input >=32 bytes smashes the stack frame.",
+            "markdown": "strcpy copies unconstrained parameter 'board' into fixed 32-byte stack buffer with no length check\n\ncli_build_banner() does strcpy(scratch, board) where scratch is char[32]; any input >=32 bytes smashes the stack frame."
           },
           "locations": [
             {
@@ -62,7 +63,10 @@
                   "uri": "common/cli.c"
                 },
                 "region": {
-                  "startLine": 361
+                  "startLine": 361,
+                  "snippet": {
+                    "text": ""
+                  }
                 }
               }
             }
@@ -88,7 +92,8 @@
           "ruleId": "cwe-476",
           "level": "error",
           "message": {
-            "text": "malloc return value passed directly to snprintf without NULL check\n\nvsnprintf_internal has no NULL guard; allocation failure becomes write-to-NULL. Tree convention is to check malloc."
+            "text": "malloc return value passed directly to snprintf without NULL check\n\nvsnprintf_internal has no NULL guard; allocation failure becomes write-to-NULL. Tree convention is to check malloc.",
+            "markdown": "malloc return value passed directly to snprintf without NULL check\n\nvsnprintf_internal has no NULL guard; allocation failure becomes write-to-NULL. Tree convention is to check malloc."
           },
           "locations": [
             {
@@ -97,7 +102,10 @@
                   "uri": "common/cli.c"
                 },
                 "region": {
-                  "startLine": 362
+                  "startLine": 362,
+                  "snippet": {
+                    "text": "banner = malloc(32);"
+                  }
                 }
               }
             }
@@ -122,7 +130,8 @@
           "ruleId": "default",
           "level": "note",
           "message": {
-            "text": "New global function has no prototype in include/cli.h and no caller anywhere in the tree\n\nExported-but-undeclared uncalled helper."
+            "text": "New global function has no prototype in include/cli.h and no caller anywhere in the tree\n\nExported-but-undeclared uncalled helper.",
+            "markdown": "New global function has no prototype in include/cli.h and no caller anywhere in the tree\n\nExported-but-undeclared uncalled helper."
           },
           "locations": [
             {
@@ -131,7 +140,10 @@
                   "uri": "common/cli.c"
                 },
                 "region": {
-                  "startLine": 356
+                  "startLine": 356,
+                  "snippet": {
+                    "text": ""
+                  }
                 }
               }
             }

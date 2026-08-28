@@ -87,7 +87,7 @@ jobs:
             echo "    findings:[{file,line,severity(critical|important|minor),category,"
             echo "               scenario(必须是 registry 中存在的场景键),summary,detail,"
             echo "               confidence,resolved:false,"
-            echo "               flow:[{file,line,message}](证据链有序步骤，必填),"
+            echo "               flow:[{file,line,message}](证据链有序步骤：从上游源头（分配/构造/注册点）到缺陷点完整覆盖，必填),"
             echo "               reasoning(一句话判断理由)}]}"
           } > /tmp/review-prompt.txt
           echo "prompt<<PROMPT_EOF" >> "$GITHUB_OUTPUT"

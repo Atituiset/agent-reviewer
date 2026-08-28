@@ -14,7 +14,7 @@
 纪律红线（违反即输出作废）：spec-before-code 顺序；只收置信度 ≥80 且带 file:line 的 finding；无风格类意见；CLEAN 也必须记录扫描范围。
 
 **证据链结构化**（SARIF codeFlows 的数据源，每条 finding 必填）：
-- `flow`: 证据路径的有序数组 `[{file, line, message}]`——如「malloc 分配点 → early-return 绕过 → 释放点不可达」「释放点 → 使用点」「两条可交错执行路径」；message 用一句话说明该步发生了什么
+- `flow`: 证据路径的有序数组 `[{file, line, message}]`——**从上游源头到缺陷点完整覆盖**：源头指分配点/构造点/注册点/声明点（如越界类要追到报文或长度的构造处、空指针类要追到指针的产生处），而非只给 defect 邻近两行；message 用一句话说明该步发生了什么
 - `reasoning`: 一句话提炼的判断理由（为什么这是缺陷而非误报）；原始分析过程不进工件
 
 spec_ref = "{{SPEC_REF}}"
