@@ -202,6 +202,7 @@
   /* ---------- 通用分栏 / 代码块 ---------- */
   .split{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
   .pane-title{font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:.08em;margin-bottom:10px;}
+  .pane-note{font-size:12px;color:var(--dim);margin:8px 0 2px;line-height:1.5;}
   .codeblock{
     background:#090c12;border:1px solid var(--line);border-radius:12px;padding:16px 18px;
     font-family:var(--mono);font-size:12.5px;line-height:1.75;overflow-x:auto;color:#c6d0de;white-space:pre;
@@ -711,7 +712,20 @@
     <div class="case-cap">案例 1 · 真实缺陷 — bs_node.cpp:1082 cwe-125 off-by-one（完整 case 块）</div>
     <div class="case">
       <div>
-        <div class="pane-title">bs_node.cpp · XN_HO_PREPARE 分支（行 1072–1085）</div>
+        <div class="pane-title">① 发送侧：报文是怎么构造的（bs_node.cpp:1286–1294，字节数逐行可算）</div>
+        <div class="lcode">
+          <div class="lc" id="c1s-1286"><span class="ln-no">1286</span>    cn::CnMessage m;</div>
+          <div class="lc" id="c1s-1287"><span class="ln-no">1287</span>    m.msg_type = cn::MsgType::XN_HO_PREPARE;</div>
+          <div class="lc" id="c1s-1288"><span class="ln-no">1288</span>    cn::put32(m.value, ctx.tmsi);                    <span class="cm">// +4 字节</span></div>
+          <div class="lc" id="c1s-1289"><span class="ln-no">1289</span>    cn::put16(m.value, config_.cell_id);           <span class="cm">// +2</span></div>
+          <div class="lc" id="c1s-1290"><span class="ln-no">1290</span>    cn::put16(m.value, target_cell_id);           <span class="cm">// +2</span></div>
+          <div class="lc" id="c1s-1291"><span class="ln-no">1291</span>    m.value.push_back(ctx.sec_on ? 1 : 0);        <span class="cm">// +1</span></div>
+          <div class="lc" id="c1s-1292"><span class="ln-no">1292</span>    m.value.insert(m.value.end(), ctx.up_key.begin(), ctx.up_key.end()); <span class="cm">// +32</span></div>
+          <div class="lc hl-y" id="c1s-1293"><span class="ln-no">1293</span>    m.value.push_back(static_cast&lt;uint8_t&gt;(ctx.imsi.size())); <span class="cm">// +1 ← 第 42 字节 imsi_len</span></div>
+          <div class="lc" id="c1s-1294"><span class="ln-no">1294</span>    m.value.insert(m.value.end(), ctx.imsi.begin(), ctx.imsi.end()); <span class="cm">// +imsi（变长）</span></div>
+        </div>
+        <div class="pane-note">固定部分 = 4+2+2+1+32+1 = <b>42 字节</b>——布局不只在注释里，发送侧代码逐行可算。</div>
+        <div class="pane-title" style="margin-top:14px;">② 接收侧：bs_node.cpp · XN_HO_PREPARE 分支（行 1072–1085）</div>
         <div class="lcode">
           <div class="lc" id="c1-1072"><span class="ln-no">1072</span>case cn::MsgType::XN_HO_PREPARE: {</div>
           <div class="lc" id="c1-1073"><span class="ln-no">1073</span>    <span class="cm">// {tmsi:4}{from:2}{to:2}{sec:1}{key:32}{imsi_len:1}{imsi}</span></div>
