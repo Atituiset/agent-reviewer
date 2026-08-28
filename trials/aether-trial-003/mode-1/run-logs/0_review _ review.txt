@@ -1,0 +1,839 @@
+﻿2026-08-28T03:30:47.7395081Z Current runner version: '2.336.0'
+2026-08-28T03:30:47.7412926Z ##[group]Runner Image Provisioner
+2026-08-28T03:30:47.7413597Z Hosted Compute Agent
+2026-08-28T03:30:47.7413998Z Version: 20260819.586
+2026-08-28T03:30:47.7414434Z Commit: 3cc4a88dfa507ef76119ad1bb3eccc6378bb2b76
+2026-08-28T03:30:47.7414974Z Build Date: 2026-08-18T23:20:18Z
+2026-08-28T03:30:47.7415439Z Worker ID: {fbfdc8cc-88a0-4284-8124-45b443cdda8c}
+2026-08-28T03:30:47.7415969Z Azure Region: centralus
+2026-08-28T03:30:47.7416374Z ##[endgroup]
+2026-08-28T03:30:47.7417244Z ##[group]Operating System
+2026-08-28T03:30:47.7417680Z Ubuntu
+2026-08-28T03:30:47.7418073Z 24.04.4
+2026-08-28T03:30:47.7418409Z LTS
+2026-08-28T03:30:47.7419104Z ##[endgroup]
+2026-08-28T03:30:47.7419552Z ##[group]Runner Image
+2026-08-28T03:30:47.7420006Z Image: ubuntu-24.04
+2026-08-28T03:30:47.7420395Z Version: 20260823.283.1
+2026-08-28T03:30:47.7421289Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260823.283/images/ubuntu/Ubuntu2404-Readme.md
+2026-08-28T03:30:47.7422324Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260823.283
+2026-08-28T03:30:47.7423083Z ##[endgroup]
+2026-08-28T03:30:47.7424027Z ##[group]GITHUB_TOKEN Permissions
+2026-08-28T03:30:47.7425607Z Contents: read
+2026-08-28T03:30:47.7425995Z Metadata: read
+2026-08-28T03:30:47.7426396Z PullRequests: write
+2026-08-28T03:30:47.7426806Z SecurityEvents: write
+2026-08-28T03:30:47.7427202Z ##[endgroup]
+2026-08-28T03:30:47.7428901Z Secret source: Actions
+2026-08-28T03:30:47.7429667Z Prepare workflow directory
+2026-08-28T03:30:47.7663265Z Prepare all required actions
+2026-08-28T03:30:47.7697697Z Getting action download info
+2026-08-28T03:30:47.9932436Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-08-28T03:30:48.1421666Z Download action repository 'anthropics/claude-code-action@v1' (SHA:a60f3e1db3edbceed2b1e6c6a9d34c36b8a15eba)
+2026-08-28T03:30:48.4474849Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-08-28T03:30:48.7433879Z Download action repository 'github/codeql-action@v3' (SHA:6f5948dfacef28e207b48d0905cf90c03365536d)
+2026-08-28T03:30:49.4198309Z Getting action download info
+2026-08-28T03:30:49.5059996Z Download action repository 'oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6' (SHA:0c5077e51419868618aeaa5fe8019c62421857d6)
+2026-08-28T03:30:49.8787402Z Uses: Atituiset/agent-reviewer/.github/workflows/ai-review-reusable.yml@refs/heads/mvp (931848512f565e4480ee9b4f3b5cd2d275132972)
+2026-08-28T03:30:49.8790961Z Complete job name: review / review
+2026-08-28T03:30:49.9261191Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-08-28T03:30:49.9266683Z ##[group]Run actions/checkout@v4
+2026-08-28T03:30:49.9267022Z with:
+2026-08-28T03:30:49.9267210Z   fetch-depth: 0
+2026-08-28T03:30:49.9267419Z   repository: Atituiset/AetherStack
+2026-08-28T03:30:49.9269535Z   token: ***
+2026-08-28T03:30:49.9269739Z   ssh-strict: true
+2026-08-28T03:30:49.9269932Z   ssh-user: git
+2026-08-28T03:30:49.9270140Z   persist-credentials: true
+2026-08-28T03:30:49.9270359Z   clean: true
+2026-08-28T03:30:49.9270563Z   sparse-checkout-cone-mode: true
+2026-08-28T03:30:49.9270786Z   fetch-tags: false
+2026-08-28T03:30:49.9270974Z   show-progress: true
+2026-08-28T03:30:49.9271159Z   lfs: false
+2026-08-28T03:30:49.9271381Z   submodules: false
+2026-08-28T03:30:49.9271572Z   set-safe-directory: true
+2026-08-28T03:30:49.9271790Z   allow-unsafe-pr-checkout: false
+2026-08-28T03:30:49.9272096Z ##[endgroup]
+2026-08-28T03:30:49.9984176Z Syncing repository: Atituiset/AetherStack
+2026-08-28T03:30:49.9985156Z ##[group]Getting Git version info
+2026-08-28T03:30:49.9985462Z Working directory is '/home/runner/work/AetherStack/AetherStack'
+2026-08-28T03:30:49.9986219Z [command]/usr/bin/git version
+2026-08-28T03:30:50.1079172Z git version 2.55.0
+2026-08-28T03:30:50.1092477Z ##[endgroup]
+2026-08-28T03:30:50.1104363Z Temporarily overriding HOME='/home/runner/work/_temp/ab401f2a-0f54-4ae3-a094-7b6795543622' before making global git config changes
+2026-08-28T03:30:50.1105311Z Adding repository directory to the temporary git global config as a safe directory
+2026-08-28T03:30:50.1109336Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/AetherStack/AetherStack
+2026-08-28T03:30:50.1151903Z Deleting the contents of '/home/runner/work/AetherStack/AetherStack'
+2026-08-28T03:30:50.1155905Z ##[group]Initializing the repository
+2026-08-28T03:30:50.1158635Z [command]/usr/bin/git init /home/runner/work/AetherStack/AetherStack
+2026-08-28T03:30:50.1250977Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-08-28T03:30:50.1251612Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-08-28T03:30:50.1252016Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-08-28T03:30:50.1252451Z hint: call:
+2026-08-28T03:30:50.1252792Z hint:
+2026-08-28T03:30:50.1253194Z hint: 	git config --global init.defaultBranch <name>
+2026-08-28T03:30:50.1253601Z hint:
+2026-08-28T03:30:50.1254040Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-08-28T03:30:50.1254593Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-08-28T03:30:50.1255030Z hint:
+2026-08-28T03:30:50.1255377Z hint: 	git branch -m <name>
+2026-08-28T03:30:50.1255739Z hint:
+2026-08-28T03:30:50.1256176Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-08-28T03:30:50.1256794Z Initialized empty Git repository in /home/runner/work/AetherStack/AetherStack/.git/
+2026-08-28T03:30:50.1260501Z [command]/usr/bin/git remote add origin https://github.com/Atituiset/AetherStack
+2026-08-28T03:30:50.1296198Z ##[endgroup]
+2026-08-28T03:30:50.1296601Z ##[group]Disabling automatic garbage collection
+2026-08-28T03:30:50.1298980Z [command]/usr/bin/git config --local gc.auto 0
+2026-08-28T03:30:50.1319507Z ##[endgroup]
+2026-08-28T03:30:50.1319937Z ##[group]Setting up auth
+2026-08-28T03:30:50.1325171Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-08-28T03:30:50.1347949Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-08-28T03:30:50.1645906Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-08-28T03:30:50.1668290Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-08-28T03:30:50.1814106Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-08-28T03:30:50.1836537Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-08-28T03:30:50.1982724Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-08-28T03:30:50.2007478Z ##[endgroup]
+2026-08-28T03:30:50.2007997Z ##[group]Fetching the repository
+2026-08-28T03:30:50.2015919Z [command]/usr/bin/git -c protocol.version=2 fetch --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/* +d001eb84c2aa4c1c02253d3e5e17a1918dc707e4:refs/remotes/pull/2/merge
+2026-08-28T03:30:50.9834225Z From https://github.com/Atituiset/AetherStack
+2026-08-28T03:30:50.9834621Z  * [new branch]      master                                   -> origin/master
+2026-08-28T03:30:50.9834980Z  * [new branch]      navmap-outputs                           -> origin/navmap-outputs
+2026-08-28T03:30:50.9835392Z  * [new branch]      trial/ai-review-ci                       -> origin/trial/ai-review-ci
+2026-08-28T03:30:50.9835920Z  * [new branch]      trial/mode-1                             -> origin/trial/mode-1
+2026-08-28T03:30:50.9836256Z  * [new branch]      trial/mode-2                             -> origin/trial/mode-2
+2026-08-28T03:30:50.9836629Z  * [new branch]      trial/mode-3                             -> origin/trial/mode-3
+2026-08-28T03:30:50.9837097Z  * [new branch]      trial/review-gate                        -> origin/trial/review-gate
+2026-08-28T03:30:50.9837489Z  * [new tag]         M0                                       -> M0
+2026-08-28T03:30:50.9837752Z  * [new tag]         M1                                       -> M1
+2026-08-28T03:30:50.9838026Z  * [new tag]         M1.1                                     -> M1.1
+2026-08-28T03:30:50.9838284Z  * [new tag]         M1.3                                     -> M1.3
+2026-08-28T03:30:50.9838533Z  * [new tag]         M2                                       -> M2
+2026-08-28T03:30:50.9838939Z  * [new tag]         M3                                       -> M3
+2026-08-28T03:30:50.9839266Z  * [new tag]         M4                                       -> M4
+2026-08-28T03:30:50.9839524Z  * [new tag]         M5                                       -> M5
+2026-08-28T03:30:50.9839771Z  * [new tag]         M6                                       -> M6
+2026-08-28T03:30:50.9840070Z  * [new ref]         d001eb84c2aa4c1c02253d3e5e17a1918dc707e4 -> pull/2/merge
+2026-08-28T03:30:50.9841175Z ##[endgroup]
+2026-08-28T03:30:50.9841569Z ##[group]Determining the checkout info
+2026-08-28T03:30:50.9841967Z ##[endgroup]
+2026-08-28T03:30:50.9854067Z [command]/usr/bin/git sparse-checkout disable
+2026-08-28T03:30:50.9892776Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-08-28T03:30:50.9913304Z ##[group]Checking out the ref
+2026-08-28T03:30:50.9920107Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/2/merge
+2026-08-28T03:30:51.0921391Z Note: switching to 'refs/remotes/pull/2/merge'.
+2026-08-28T03:30:51.0921787Z 
+2026-08-28T03:30:51.0922014Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-08-28T03:30:51.0922496Z changes and commit them, and you can discard any commits you make in this
+2026-08-28T03:30:51.0922981Z state without impacting any branches by switching back to a branch.
+2026-08-28T03:30:51.0923242Z 
+2026-08-28T03:30:51.0923430Z If you want to create a new branch to retain commits you create, you may
+2026-08-28T03:30:51.0923913Z do so (now or later) by using -c with the switch command. Example:
+2026-08-28T03:30:51.0924416Z 
+2026-08-28T03:30:51.0924544Z   git switch -c <new-branch-name>
+2026-08-28T03:30:51.0924695Z 
+2026-08-28T03:30:51.0924778Z Or undo this operation with:
+2026-08-28T03:30:51.0924896Z 
+2026-08-28T03:30:51.0924970Z   git switch -
+2026-08-28T03:30:51.0925056Z 
+2026-08-28T03:30:51.0925223Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-08-28T03:30:51.0925433Z 
+2026-08-28T03:30:51.0925698Z HEAD is now at d001eb8 Merge e12fe114ce99e5d3dd64cf7bab18deaf52faf3eb into 1ef3134f152392d7d786fa76120648c2a8bedd5c
+2026-08-28T03:30:51.0928946Z ##[endgroup]
+2026-08-28T03:30:51.0964193Z [command]/usr/bin/git log -1 --format=%H
+2026-08-28T03:30:51.0983098Z d001eb84c2aa4c1c02253d3e5e17a1918dc707e4
+2026-08-28T03:30:51.1166370Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-08-28T03:30:51.1167993Z ##[group]Run actions/checkout@v4
+2026-08-28T03:30:51.1168319Z with:
+2026-08-28T03:30:51.1168824Z   repository: Atituiset/agent-reviewer
+2026-08-28T03:30:51.1169268Z   ref: mvp
+2026-08-28T03:30:51.1169570Z   path: .reviewer
+2026-08-28T03:30:51.1171563Z   token: ***
+2026-08-28T03:30:51.1171811Z   ssh-strict: true
+2026-08-28T03:30:51.1172179Z   ssh-user: git
+2026-08-28T03:30:51.1172416Z   persist-credentials: true
+2026-08-28T03:30:51.1172660Z   clean: true
+2026-08-28T03:30:51.1172890Z   sparse-checkout-cone-mode: true
+2026-08-28T03:30:51.1173132Z   fetch-depth: 1
+2026-08-28T03:30:51.1173411Z   fetch-tags: false
+2026-08-28T03:30:51.1173674Z   show-progress: true
+2026-08-28T03:30:51.1173941Z   lfs: false
+2026-08-28T03:30:51.1174209Z   submodules: false
+2026-08-28T03:30:51.1174451Z   set-safe-directory: true
+2026-08-28T03:30:51.1174711Z   allow-unsafe-pr-checkout: false
+2026-08-28T03:30:51.1174951Z ##[endgroup]
+2026-08-28T03:30:51.1787097Z Syncing repository: Atituiset/agent-reviewer
+2026-08-28T03:30:51.1796277Z ##[group]Getting Git version info
+2026-08-28T03:30:51.1797607Z Working directory is '/home/runner/work/AetherStack/AetherStack/.reviewer'
+2026-08-28T03:30:51.1822023Z [command]/usr/bin/git version
+2026-08-28T03:30:51.1848471Z git version 2.55.0
+2026-08-28T03:30:51.1897037Z ##[endgroup]
+2026-08-28T03:30:51.1901989Z Temporarily overriding HOME='/home/runner/work/_temp/8ccf6a6a-0063-4c54-a781-1a0911831346' before making global git config changes
+2026-08-28T03:30:51.1902717Z Adding repository directory to the temporary git global config as a safe directory
+2026-08-28T03:30:51.1906180Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/AetherStack/AetherStack/.reviewer
+2026-08-28T03:30:51.1929361Z ##[group]Initializing the repository
+2026-08-28T03:30:51.1933424Z [command]/usr/bin/git init /home/runner/work/AetherStack/AetherStack/.reviewer
+2026-08-28T03:30:51.1958890Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-08-28T03:30:51.1959491Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-08-28T03:30:51.1960031Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-08-28T03:30:51.1960439Z hint: call:
+2026-08-28T03:30:51.1960703Z hint:
+2026-08-28T03:30:51.1961084Z hint: 	git config --global init.defaultBranch <name>
+2026-08-28T03:30:51.1961441Z hint:
+2026-08-28T03:30:51.1961800Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-08-28T03:30:51.1962324Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-08-28T03:30:51.1962657Z hint:
+2026-08-28T03:30:51.1963021Z hint: 	git branch -m <name>
+2026-08-28T03:30:51.1963313Z hint:
+2026-08-28T03:30:51.1963707Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-08-28T03:30:51.1964362Z Initialized empty Git repository in /home/runner/work/AetherStack/AetherStack/.reviewer/.git/
+2026-08-28T03:30:51.1968334Z [command]/usr/bin/git remote add origin https://github.com/Atituiset/agent-reviewer
+2026-08-28T03:30:51.1993703Z ##[endgroup]
+2026-08-28T03:30:51.1994180Z ##[group]Disabling automatic garbage collection
+2026-08-28T03:30:51.1996926Z [command]/usr/bin/git config --local gc.auto 0
+2026-08-28T03:30:51.2017049Z ##[endgroup]
+2026-08-28T03:30:51.2017589Z ##[group]Setting up auth
+2026-08-28T03:30:51.2022774Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-08-28T03:30:51.2047000Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-08-28T03:30:51.2210891Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-08-28T03:30:51.2234147Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-08-28T03:30:51.2384274Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-08-28T03:30:51.2406053Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-08-28T03:30:51.2562235Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-08-28T03:30:51.2586015Z ##[endgroup]
+2026-08-28T03:30:51.2586423Z ##[group]Fetching the repository
+2026-08-28T03:30:51.2593656Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/mvp*:refs/remotes/origin/mvp* +refs/tags/mvp*:refs/tags/mvp*
+2026-08-28T03:30:51.7844289Z From https://github.com/Atituiset/agent-reviewer
+2026-08-28T03:30:51.7844964Z  * [new branch]      mvp        -> origin/mvp
+2026-08-28T03:30:51.7863113Z ##[endgroup]
+2026-08-28T03:30:51.7870607Z ##[group]Determining the checkout info
+2026-08-28T03:30:51.7871343Z [command]/usr/bin/git branch --list --remote origin/mvp
+2026-08-28T03:30:51.7884688Z   origin/mvp
+2026-08-28T03:30:51.7887984Z ##[endgroup]
+2026-08-28T03:30:51.7891619Z [command]/usr/bin/git sparse-checkout disable
+2026-08-28T03:30:51.7920247Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-08-28T03:30:51.7939983Z ##[group]Checking out the ref
+2026-08-28T03:30:51.7943961Z [command]/usr/bin/git checkout --progress --force -B mvp refs/remotes/origin/mvp
+2026-08-28T03:30:51.8287157Z Switched to a new branch 'mvp'
+2026-08-28T03:30:51.8287758Z branch 'mvp' set up to track 'origin/mvp'.
+2026-08-28T03:30:51.8291377Z ##[endgroup]
+2026-08-28T03:30:51.8316175Z [command]/usr/bin/git log -1 --format=%H
+2026-08-28T03:30:51.8332456Z 931848512f565e4480ee9b4f3b5cd2d275132972
+2026-08-28T03:30:51.8442521Z ##[group]Run BASE="05284edc5fda1a781b44a804879d92422044785a"
+2026-08-28T03:30:51.8442975Z [36;1mBASE="05284edc5fda1a781b44a804879d92422044785a"[0m
+2026-08-28T03:30:51.8443346Z [36;1mSTATS=$(git diff --numstat "$BASE"...HEAD | awk '{a+=$1; d+=$2} END {print a+d}')[0m
+2026-08-28T03:30:51.8443823Z [36;1mDOC_ONLY=$(git diff --name-only "$BASE"...HEAD | grep -vcE '\.(md|txt)$|^docs/' || true)[0m
+2026-08-28T03:30:51.8444278Z [36;1mif [ "${STATS:-0}" -lt 20 ]; then echo "skip=small" >> "$GITHUB_OUTPUT";[0m
+2026-08-28T03:30:51.8444680Z [36;1melif [ "$DOC_ONLY" = "0" ]; then echo "skip=docs" >> "$GITHUB_OUTPUT";[0m
+2026-08-28T03:30:51.8445060Z [36;1melse echo "skip=" >> "$GITHUB_OUTPUT"; fi[0m
+2026-08-28T03:30:51.8445354Z [36;1mMODE=$(cat .ai-review-mode 2>/dev/null || echo "2")[0m
+2026-08-28T03:30:51.8445686Z [36;1mecho "mode=$MODE" >> "$GITHUB_OUTPUT"[0m
+2026-08-28T03:30:51.8446021Z [36;1mecho "评审模式: $MODE (1=纯场景库 2=+codegraph 3=+navmap)"[0m
+2026-08-28T03:30:51.8468001Z shell: /usr/bin/bash -e {0}
+2026-08-28T03:30:51.8468345Z ##[endgroup]
+2026-08-28T03:30:51.8573359Z 评审模式: 1 (1=纯场景库 2=+codegraph 3=+navmap)
+2026-08-28T03:30:51.8624131Z ##[group]Run git diff "05284edc5fda1a781b44a804879d92422044785a"...HEAD > /tmp/pr.diff
+2026-08-28T03:30:51.8624687Z [36;1mgit diff "05284edc5fda1a781b44a804879d92422044785a"...HEAD > /tmp/pr.diff[0m
+2026-08-28T03:30:51.8625074Z [36;1mcd .reviewer && bash scripts/setup-env.sh || true[0m
+2026-08-28T03:30:51.8639826Z shell: /usr/bin/bash -e {0}
+2026-08-28T03:30:51.8640096Z ##[endgroup]
+2026-08-28T03:30:54.5706973Z [setup-env] 已创建 /home/runner/work/AetherStack/AetherStack/.reviewer/.venv
+2026-08-28T03:30:54.5867675Z [setup-env] stdlib ok: 3.12.3
+2026-08-28T03:30:54.5943677Z ##[group]Run {
+2026-08-28T03:30:54.5943974Z [36;1m{[0m
+2026-08-28T03:30:54.5944358Z [36;1m  echo "你是 task-reviewer。读取 /tmp/pr.diff 与 .reviewer/rules/registry.json："[0m
+2026-08-28T03:30:54.5944789Z [36;1m  echo "1. 用 .reviewer/scripts/_lib.py scenarios-for 对 diff 触及的每个文件做场景路由"[0m
+2026-08-28T03:30:54.5945274Z [36;1m  echo "2. 对每个命中场景，读 .reviewer/rules/scenarios/<key>/SKILL.md 清单逐项评审（需要深入项时读 references/detailed-checks.md）"[0m
+2026-08-28T03:30:54.5945707Z [36;1m  echo "3. 纪律：只报有 file:line 证据的具体缺陷；置信度 ≥80 才报；风格问题不报"[0m
+2026-08-28T03:30:54.5945989Z [36;1m  if [ "1" != "1" ]; then[0m
+2026-08-28T03:30:54.5946600Z [36;1m    echo "3.5 跨函数判空链回溯（cwe-476 类候选必做）：上报「解引用未判空」前，用 codegraph CLI（codegraph callers <fn> / callees <fn>）沿调用链回溯 ≤10 跳：上游找到判空（同一指针）→ 不报（FP 证伪，可在 reasoning 记录证伪链）；链在函数指针/虚函数处中断 → 保留但 reasoning 必须标注「链中断于 X，静态不可判定」；未做链回溯的跨函数判空 finding 不报"[0m
+2026-08-28T03:30:54.5947330Z [36;1m  fi[0m
+2026-08-28T03:30:54.5947549Z [36;1m  if [ "1" == "3" ]; then[0m
+2026-08-28T03:30:54.5948140Z [36;1m    echo "3.6 navmap 语义导航图可用：.navmap-out/.navmap/out/ 下有本仓消息分发表/状态机表（JSON+md）。判空链在函数指针/分发表处中断时，读对应表把「不确定目标」展开为 handler 集合做保守近似：集合内全部 handler 有判空才可证伪（REFUTED），任一缺失只能 PLAUSIBLE 并标注依据的表"[0m
+2026-08-28T03:30:54.5948609Z [36;1m  fi[0m
+2026-08-28T03:30:54.5949190Z [36;1m  echo "4. 将结果写为 .review/review-artifact.json（用 Write 工具；先 mkdir -p .review），schema："[0m
+2026-08-28T03:30:54.5949619Z [36;1m  echo "   {diff_hash(对 /tmp/pr.diff 的 sha256), verdict(CLEAN|ISSUES_FOUND),"[0m
+2026-08-28T03:30:54.5950068Z [36;1m  echo "    reviewed_at(ISO8601), reviewer:\"ci-task-reviewer\", spec_ref:\"none\","[0m
+2026-08-28T03:30:54.5950497Z [36;1m  echo "    findings:[{file,line,severity(critical|important|minor),category,"[0m
+2026-08-28T03:30:54.5950975Z [36;1m  echo "               scenario(必须是 registry 中存在的场景键),summary,detail,"[0m
+2026-08-28T03:30:54.5951341Z [36;1m  echo "               confidence,resolved:false,"[0m
+2026-08-28T03:30:54.5951652Z [36;1m  echo "               flow:[{file,line,message}](证据链有序步骤，必填),"[0m
+2026-08-28T03:30:54.5951982Z [36;1m  echo "               reasoning(一句话判断理由)}]}"[0m
+2026-08-28T03:30:54.5952260Z [36;1m} > /tmp/review-prompt.txt[0m
+2026-08-28T03:30:54.5952578Z [36;1mecho "prompt<<PROMPT_EOF" >> "$GITHUB_OUTPUT"[0m
+2026-08-28T03:30:54.5952900Z [36;1mcat /tmp/review-prompt.txt >> "$GITHUB_OUTPUT"[0m
+2026-08-28T03:30:54.5953186Z [36;1mecho "PROMPT_EOF" >> "$GITHUB_OUTPUT"[0m
+2026-08-28T03:30:54.5970741Z shell: /usr/bin/bash -e {0}
+2026-08-28T03:30:54.5971065Z ##[endgroup]
+2026-08-28T03:30:54.6467537Z ##[group]Run anthropics/claude-code-action@v1
+2026-08-28T03:30:54.6467774Z with:
+2026-08-28T03:30:54.6469893Z   github_token: ***
+2026-08-28T03:30:54.6470179Z   anthropic_api_key: ***
+2026-08-28T03:30:54.6470467Z   claude_args: --allowedTools "Read,Write,Grep,Glob,Bash"
+2026-08-28T03:30:54.6472542Z   prompt: 你是 task-reviewer。读取 /tmp/pr.diff 与 .reviewer/rules/registry.json：
+1. 用 .reviewer/scripts/_lib.py scenarios-for 对 diff 触及的每个文件做场景路由
+2. 对每个命中场景，读 .reviewer/rules/scenarios/<key>/SKILL.md 清单逐项评审（需要深入项时读 references/detailed-checks.md）
+3. 纪律：只报有 file:line 证据的具体缺陷；置信度 ≥80 才报；风格问题不报
+4. 将结果写为 .review/review-artifact.json（用 Write 工具；先 mkdir -p .review），schema：
+   {diff_hash(对 /tmp/pr.diff 的 sha256), verdict(CLEAN|ISSUES_FOUND),
+    reviewed_at(ISO8601), reviewer:"ci-task-reviewer", spec_ref:"none",
+    findings:[{file,line,severity(critical|important|minor),category,
+               scenario(必须是 registry 中存在的场景键),summary,detail,
+               confidence,resolved:false,
+               flow:[{file,line,message}](证据链有序步骤，必填),
+               reasoning(一句话判断理由)}]}
+2026-08-28T03:30:54.6474232Z   trigger_phrase: @claude
+2026-08-28T03:30:54.6474411Z   label_trigger: claude
+2026-08-28T03:30:54.6474589Z   branch_prefix: claude/
+2026-08-28T03:30:54.6474757Z   use_bedrock: false
+2026-08-28T03:30:54.6474916Z   use_vertex: false
+2026-08-28T03:30:54.6475085Z   use_foundry: false
+2026-08-28T03:30:54.6475244Z   use_sticky_comment: false
+2026-08-28T03:30:54.6475425Z   classify_inline_comments: true
+2026-08-28T03:30:54.6475615Z   use_commit_signing: false
+2026-08-28T03:30:54.6475780Z   bot_id: 41898282
+2026-08-28T03:30:54.6475931Z   bot_name: claude[bot]
+2026-08-28T03:30:54.6476097Z   track_progress: false
+2026-08-28T03:30:54.6476260Z   include_fix_links: true
+2026-08-28T03:30:54.6476429Z   display_report: false
+2026-08-28T03:30:54.6476591Z   show_full_output: false
+2026-08-28T03:30:54.6476762Z env:
+2026-08-28T03:30:54.6476963Z   ANTHROPIC_BASE_URL: https://api.deepseek.com/anthropic
+2026-08-28T03:30:54.6477279Z   ANTHROPIC_AUTH_TOKEN: ***
+2026-08-28T03:30:54.6477465Z   ANTHROPIC_MODEL: deepseek-v4-flash
+2026-08-28T03:30:54.6477659Z ##[endgroup]
+2026-08-28T03:30:54.6528023Z ##[start-action display=Install Bun;id=review.setup-bun]
+2026-08-28T03:30:54.6574478Z ##[group]Run oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+2026-08-28T03:30:54.6574888Z with:
+2026-08-28T03:30:54.6575052Z   bun-version: 1.3.14
+2026-08-28T03:30:54.6576920Z   token: ***
+2026-08-28T03:30:54.6577097Z   no-cache: true
+2026-08-28T03:30:54.6577251Z env:
+2026-08-28T03:30:54.6577456Z   ANTHROPIC_BASE_URL: https://api.deepseek.com/anthropic
+2026-08-28T03:30:54.6577883Z   ANTHROPIC_AUTH_TOKEN: ***
+2026-08-28T03:30:54.6578185Z   ANTHROPIC_MODEL: deepseek-v4-flash
+2026-08-28T03:30:54.6578383Z ##[endgroup]
+2026-08-28T03:30:54.7654223Z Downloading a new version of Bun: https://github.com/oven-sh/bun/releases/download/bun-v1.3.14/bun-linux-x64.zip
+2026-08-28T03:30:55.1851955Z [command]/usr/bin/unzip -o -q /home/runner/work/_temp/fa4e60bb-aa0a-4218-b01f-83f99627cf17.zip
+2026-08-28T03:30:55.7382069Z [command]/home/runner/.bun/bin/bun --revision
+2026-08-28T03:30:55.7416356Z 1.3.14+0d9b296af
+2026-08-28T03:30:55.7470791Z ##[end-action id=review.setup-bun;outcome=success;conclusion=success;duration_ms=1094]
+2026-08-28T03:30:55.7473762Z ##[start-action display=Setup Custom Bun Path;id=review.__run]
+2026-08-28T03:30:55.7477750Z ##[end-action id=review.__run;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-08-28T03:30:55.7479364Z ##[start-action display=Install Dependencies;id=review.__run_2]
+2026-08-28T03:30:55.7490405Z ##[group]Run cd ${GITHUB_ACTION_PATH}
+2026-08-28T03:30:55.7490641Z [36;1mcd ${GITHUB_ACTION_PATH}[0m
+2026-08-28T03:30:55.7490840Z [36;1mbun install --production[0m
+2026-08-28T03:30:55.7514253Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-08-28T03:30:55.7514521Z env:
+2026-08-28T03:30:55.7514734Z   ANTHROPIC_BASE_URL: https://api.deepseek.com/anthropic
+2026-08-28T03:30:55.7515312Z   ANTHROPIC_AUTH_TOKEN: ***
+2026-08-28T03:30:55.7515723Z   ANTHROPIC_MODEL: deepseek-v4-flash
+2026-08-28T03:30:55.7515918Z ##[endgroup]
+2026-08-28T03:30:55.7589495Z bun install v1.3.14 (0d9b296a)
+2026-08-28T03:30:56.7186612Z 
+2026-08-28T03:30:56.7186971Z + @actions/core@1.11.1
+2026-08-28T03:30:56.7187213Z + @actions/github@6.0.1
+2026-08-28T03:30:56.7187406Z + @anthropic-ai/claude-agent-sdk@0.3.250
+2026-08-28T03:30:56.7187662Z + @modelcontextprotocol/sdk@1.16.0
+2026-08-28T03:30:56.7187968Z + @octokit/graphql@8.2.2
+2026-08-28T03:30:56.7188173Z + @octokit/rest@21.1.1
+2026-08-28T03:30:56.7188371Z + @octokit/webhooks-types@7.6.1
+2026-08-28T03:30:56.7188608Z + node-fetch@3.3.2
+2026-08-28T03:30:56.7188949Z + shell-quote@1.8.4
+2026-08-28T03:30:56.7189131Z + zod@3.25.76
+2026-08-28T03:30:56.7189232Z 
+2026-08-28T03:30:56.7189362Z 140 packages installed [962.00ms]
+2026-08-28T03:30:56.7247125Z ##[end-action id=review.__run_2;outcome=success;conclusion=success;duration_ms=976]
+2026-08-28T03:30:56.7249935Z ##[start-action display=Install subprocess isolation dependencies;id=review.__run_3]
+2026-08-28T03:30:56.7253295Z ##[end-action id=review.__run_3;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-08-28T03:30:56.7255018Z ##[start-action display=Pin bun binary for post-steps;id=review.__run_4]
+2026-08-28T03:30:56.7257431Z ##[end-action id=review.__run_4;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-08-28T03:30:56.7258869Z ##[start-action display=Prepend system bin dirs to PATH;id=review.__run_5]
+2026-08-28T03:30:56.7261194Z ##[end-action id=review.__run_5;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-08-28T03:30:56.7290810Z ##[start-action display=Run Claude Code Action;id=review.run]
+2026-08-28T03:30:56.7303414Z ##[group]Run # Do NOT pass --tsconfig-override here. It triggers a Bun runtime bug
+2026-08-28T03:30:56.7303974Z [36;1m# Do NOT pass --tsconfig-override here. It triggers a Bun runtime bug[0m
+2026-08-28T03:30:56.7304318Z [36;1m# ("Internal error: directory mismatch for directory .../tsconfig.json")[0m
+2026-08-28T03:30:56.7304782Z [36;1m# that aborts the run with exit code 1. Bun already auto-discovers the[0m
+2026-08-28T03:30:56.7305115Z [36;1m# action's own tsconfig.json by walking up from the entry file, so the[0m
+2026-08-28T03:30:56.7305688Z [36;1m# override is redundant. See oven-sh/bun#25730.[0m
+2026-08-28T03:30:56.7305944Z [36;1mbun --no-env-file \[0m
+2026-08-28T03:30:56.7306381Z [36;1m  --config="${GITHUB_ACTION_PATH}/bunfig.toml" \[0m
+2026-08-28T03:30:56.7306638Z [36;1m  run ${GITHUB_ACTION_PATH}/src/entrypoints/run.ts[0m
+2026-08-28T03:30:56.7327056Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-08-28T03:30:56.7327303Z env:
+2026-08-28T03:30:56.7327509Z   ANTHROPIC_BASE_URL: https://api.deepseek.com/anthropic
+2026-08-28T03:30:56.7327865Z   ANTHROPIC_AUTH_TOKEN: ***
+2026-08-28T03:30:56.7328052Z   ANTHROPIC_MODEL: deepseek-v4-flash
+2026-08-28T03:30:56.7328240Z   MODE: 
+2026-08-28T03:30:56.7329980Z   PROMPT: 你是 task-reviewer。读取 /tmp/pr.diff 与 .reviewer/rules/registry.json：
+1. 用 .reviewer/scripts/_lib.py scenarios-for 对 diff 触及的每个文件做场景路由
+2. 对每个命中场景，读 .reviewer/rules/scenarios/<key>/SKILL.md 清单逐项评审（需要深入项时读 references/detailed-checks.md）
+3. 纪律：只报有 file:line 证据的具体缺陷；置信度 ≥80 才报；风格问题不报
+4. 将结果写为 .review/review-artifact.json（用 Write 工具；先 mkdir -p .review），schema：
+   {diff_hash(对 /tmp/pr.diff 的 sha256), verdict(CLEAN|ISSUES_FOUND),
+    reviewed_at(ISO8601), reviewer:"ci-task-reviewer", spec_ref:"none",
+    findings:[{file,line,severity(critical|important|minor),category,
+               scenario(必须是 registry 中存在的场景键),summary,detail,
+               confidence,resolved:false,
+               flow:[{file,line,message}](证据链有序步骤，必填),
+               reasoning(一句话判断理由)}]}
+2026-08-28T03:30:56.7331601Z   TRIGGER_PHRASE: @claude
+2026-08-28T03:30:56.7331775Z   ASSIGNEE_TRIGGER: 
+2026-08-28T03:30:56.7331946Z   LABEL_TRIGGER: claude
+2026-08-28T03:30:56.7332108Z   BASE_BRANCH: 
+2026-08-28T03:30:56.7332263Z   BRANCH_PREFIX: claude/
+2026-08-28T03:30:56.7332432Z   BRANCH_NAME_TEMPLATE: 
+2026-08-28T03:30:56.7334341Z   OVERRIDE_GITHUB_TOKEN: ***
+2026-08-28T03:30:56.7334516Z   ALLOWED_BOTS: 
+2026-08-28T03:30:56.7334668Z   ALLOWED_NON_WRITE_USERS: 
+2026-08-28T03:30:56.7334841Z   CLAUDE_CODE_SUBPROCESS_ENV_SCRUB: 
+2026-08-28T03:30:56.7335029Z   CLAUDE_CODE_SCRIPT_CAPS: 
+2026-08-28T03:30:56.7335203Z   INCLUDE_COMMENTS_BY_ACTOR: 
+2026-08-28T03:30:56.7335379Z   EXCLUDE_COMMENTS_BY_ACTOR: 
+2026-08-28T03:30:56.7335555Z   GITHUB_RUN_ID: 33139101947
+2026-08-28T03:30:56.7335721Z   USE_STICKY_COMMENT: false
+2026-08-28T03:30:56.7335886Z   CLASSIFY_INLINE_COMMENTS: true
+2026-08-28T03:30:56.7337638Z   DEFAULT_WORKFLOW_TOKEN: ***
+2026-08-28T03:30:56.7337809Z   USE_COMMIT_SIGNING: false
+2026-08-28T03:30:56.7337967Z   SSH_SIGNING_KEY: 
+2026-08-28T03:30:56.7338112Z   BOT_ID: 41898282
+2026-08-28T03:30:56.7338255Z   BOT_NAME: claude[bot]
+2026-08-28T03:30:56.7338412Z   TRACK_PROGRESS: false
+2026-08-28T03:30:56.7338580Z   INCLUDE_FIX_LINKS: true
+2026-08-28T03:30:56.7338942Z   ADDITIONAL_PERMISSIONS: 
+2026-08-28T03:30:56.7339162Z   CLAUDE_ARGS: --allowedTools "Read,Write,Grep,Glob,Bash"
+2026-08-28T03:30:56.7344572Z   ALL_INPUTS: {
+  "github_token": "***",
+  "anthropic_api_key": "***",
+  "claude_args": "--allowedTools \"Read,Write,Grep,Glob,Bash\"",
+  "prompt": "你是 task-reviewer。读取 /tmp/pr.diff 与 .reviewer/rules/registry.json：\n1. 用 .reviewer/scripts/_lib.py scenarios-for 对 diff 触及的每个文件做场景路由\n2. 对每个命中场景，读 .reviewer/rules/scenarios/<key>/SKILL.md 清单逐项评审（需要深入项时读 references/detailed-checks.md）\n3. 纪律：只报有 file:line 证据的具体缺陷；置信度 ≥80 才报；风格问题不报\n4. 将结果写为 .review/review-artifact.json（用 Write 工具；先 mkdir -p .review），schema：\n   {diff_hash(对 /tmp/pr.diff 的 sha256), verdict(CLEAN|ISSUES_FOUND),\n    reviewed_at(ISO8601), reviewer:\"ci-task-reviewer\", spec_ref:\"none\",\n    findings:[{file,line,severity(critical|important|minor),category,\n               scenario(必须是 registry 中存在的场景键),summary,detail,\n               confidence,resolved:false,\n               flow:[{file,line,message}](证据链有序步骤，必填),\n               reasoning(一句话判断理由)}]}",
+  "trigger_phrase": "@claude",
+  "assignee_trigger": "",
+  "label_trigger": "claude",
+  "base_branch": "",
+  "branch_prefix": "claude/",
+  "branch_name_template": "",
+  "allowed_bots": "",
+  "allowed_non_write_users": "",
+  "include_comments_by_actor": "",
+  "exclude_comments_by_actor": "",
+  "settings": "",
+  "claude_code_oauth_token": "",
+  "anthropic_federation_rule_id": "",
+  "anthropic_organization_id": "",
+  "anthropic_service_account_id": "",
+  "anthropic_workspace_id": "",
+  "anthropic_oidc_audience": "",
+  "use_bedrock": "false",
+  "use_vertex": "false",
+  "use_foundry": "false",
+  "additional_permissions": "",
+  "use_sticky_comment": "false",
+  "classify_inline_comments": "true",
+  "use_commit_signing": "false",
+  "ssh_signing_key": "",
+  "bot_id": "41898282",
+  "bot_name": "claude[bot]",
+  "track_progress": "false",
+  "include_fix_links": "true",
+  "path_to_claude_code_executable": "",
+  "path_to_bun_executable": "",
+  "display_report": "false",
+  "show_full_output": "false",
+  "plugins": "",
+  "plugin_marketplaces": ""
+}
+2026-08-28T03:30:56.7349077Z   INPUT_PROMPT_FILE: /home/runner/work/_temp/claude-prompts/claude-prompt.txt
+2026-08-28T03:30:56.7349432Z   INPUT_SETTINGS: 
+2026-08-28T03:30:56.7349838Z   INPUT_EXPERIMENTAL_SLASH_COMMANDS_DIR: /home/runner/work/_actions/anthropics/claude-code-action/v1/slash-commands
+2026-08-28T03:30:56.7350264Z   INPUT_PATH_TO_CLAUDE_CODE_EXECUTABLE: 
+2026-08-28T03:30:56.7350493Z   INPUT_PATH_TO_BUN_EXECUTABLE: 
+2026-08-28T03:30:56.7350736Z   INPUT_SHOW_FULL_OUTPUT: false
+2026-08-28T03:30:56.7350943Z   DISPLAY_REPORT: false
+2026-08-28T03:30:56.7351125Z   INPUT_PLUGINS: 
+2026-08-28T03:30:56.7351316Z   INPUT_PLUGIN_MARKETPLACES: 
+2026-08-28T03:30:56.7351541Z   PATH_TO_CLAUDE_CODE_EXECUTABLE: 
+2026-08-28T03:30:56.7351761Z   NODE_VERSION: 
+2026-08-28T03:30:56.7351995Z   ANTHROPIC_API_KEY: ***
+2026-08-28T03:30:56.7352187Z   CLAUDE_CODE_OAUTH_TOKEN: 
+2026-08-28T03:30:56.7352404Z   ANTHROPIC_FEDERATION_RULE_ID: 
+2026-08-28T03:30:56.7352622Z   ANTHROPIC_ORGANIZATION_ID: 
+2026-08-28T03:30:56.7352930Z   ANTHROPIC_SERVICE_ACCOUNT_ID: 
+2026-08-28T03:30:56.7353146Z   ANTHROPIC_WORKSPACE_ID: 
+2026-08-28T03:30:56.7353387Z   ANTHROPIC_OIDC_AUDIENCE: 
+2026-08-28T03:30:56.7353613Z   ANTHROPIC_CUSTOM_HEADERS: 
+2026-08-28T03:30:56.7353809Z   CLAUDE_CODE_USE_BEDROCK: 
+2026-08-28T03:30:56.7354014Z   CLAUDE_CODE_USE_VERTEX: 
+2026-08-28T03:30:56.7354228Z   CLAUDE_CODE_USE_FOUNDRY: 
+2026-08-28T03:30:56.7354447Z   AWS_REGION: 
+2026-08-28T03:30:56.7354646Z   AWS_ACCESS_KEY_ID: 
+2026-08-28T03:30:56.7354841Z   AWS_SECRET_ACCESS_KEY: 
+2026-08-28T03:30:56.7355039Z   AWS_SESSION_TOKEN: 
+2026-08-28T03:30:56.7355222Z   AWS_BEARER_TOKEN_BEDROCK: 
+2026-08-28T03:30:56.7355476Z   ANTHROPIC_BEDROCK_BASE_URL: 
+2026-08-28T03:30:56.7355721Z   ANTHROPIC_VERTEX_PROJECT_ID: 
+2026-08-28T03:30:56.7356154Z   CLOUD_ML_REGION: 
+2026-08-28T03:30:56.7356500Z   GOOGLE_APPLICATION_CREDENTIALS: 
+2026-08-28T03:30:56.7356744Z   ANTHROPIC_VERTEX_BASE_URL: 
+2026-08-28T03:30:56.7356964Z   VERTEX_REGION_CLAUDE_3_5_HAIKU: 
+2026-08-28T03:30:56.7357191Z   VERTEX_REGION_CLAUDE_3_5_SONNET: 
+2026-08-28T03:30:56.7357404Z   VERTEX_REGION_CLAUDE_3_7_SONNET: 
+2026-08-28T03:30:56.7357624Z   ANTHROPIC_FOUNDRY_RESOURCE: 
+2026-08-28T03:30:56.7357849Z   ANTHROPIC_FOUNDRY_BASE_URL: 
+2026-08-28T03:30:56.7358034Z   ANTHROPIC_DEFAULT_SONNET_MODEL: 
+2026-08-28T03:30:56.7358292Z   ANTHROPIC_DEFAULT_HAIKU_MODEL: 
+2026-08-28T03:30:56.7358860Z   ANTHROPIC_DEFAULT_OPUS_MODEL: 
+2026-08-28T03:30:56.7359106Z   MCP_TIMEOUT: 
+2026-08-28T03:30:56.7359275Z   MCP_TOOL_TIMEOUT: 
+2026-08-28T03:30:56.7359453Z   MAX_MCP_OUTPUT_TOKENS: 
+2026-08-28T03:30:56.7359644Z   CLAUDE_CODE_ENABLE_TELEMETRY: 
+2026-08-28T03:30:56.7359855Z   OTEL_METRICS_EXPORTER: 
+2026-08-28T03:30:56.7360037Z   OTEL_LOGS_EXPORTER: 
+2026-08-28T03:30:56.7360210Z   OTEL_EXPORTER_OTLP_PROTOCOL: 
+2026-08-28T03:30:56.7360399Z   OTEL_EXPORTER_OTLP_ENDPOINT: 
+2026-08-28T03:30:56.7360586Z   OTEL_EXPORTER_OTLP_HEADERS: 
+2026-08-28T03:30:56.7360769Z   OTEL_METRIC_EXPORT_INTERVAL: 
+2026-08-28T03:30:56.7361090Z   OTEL_LOGS_EXPORT_INTERVAL: 
+2026-08-28T03:30:56.7361282Z   OTEL_RESOURCE_ATTRIBUTES: 
+2026-08-28T03:30:56.7361478Z ##[endgroup]
+2026-08-28T03:30:56.9531676Z Auto-detected mode: agent for event: pull_request
+2026-08-28T03:30:56.9531996Z Using provided GITHUB_TOKEN for authentication
+2026-08-28T03:30:56.9543400Z Checking permissions for actor: Atituiset
+2026-08-28T03:30:57.2161248Z Permission level retrieved: admin
+2026-08-28T03:30:57.2161599Z Actor has write access: admin
+2026-08-28T03:30:57.2161824Z Mode: agent
+2026-08-28T03:30:57.2162495Z Context prompt: 你是 task-reviewer。读取 /tmp/pr.diff 与 .reviewer/rules/registry.json：
+2026-08-28T03:30:57.2162983Z 1. 用 .reviewer/scripts/_lib.py scenarios-for 对 diff 触及的每个文件做场景路由
+2026-08-28T03:30:57.2163436Z 2. 对每个命中场景，读 .reviewer/rules/scenarios/<key>/SKILL.md 清单逐项评审（需要深入项时读 references/detailed-checks.md）
+2026-08-28T03:30:57.2163820Z 3. 纪律：只报有 file:line 证据的具体缺陷；置信度 ≥80 才报；风格问题不报
+2026-08-28T03:30:57.2164150Z 4. 将结果写为 .review/review-artifact.json（用 Write 工具；先 mkdir -p .review），schema：
+2026-08-28T03:30:57.2164541Z    {diff_hash(对 /tmp/pr.diff 的 sha256), verdict(CLEAN|ISSUES_FOUND),
+2026-08-28T03:30:57.2164915Z     reviewed_at(ISO8601), reviewer:"ci-task-reviewer", spec_ref:"none",
+2026-08-28T03:30:57.2165341Z     findings:[{file,line,severity(critical|important|minor),category,
+2026-08-28T03:30:57.2165824Z                scenario(必须是 registry 中存在的场景键),summary,detail,
+2026-08-28T03:30:57.2166090Z                confidence,resolved:false,
+2026-08-28T03:30:57.2166352Z                flow:[{file,line,message}](证据链有序步骤，必填),
+2026-08-28T03:30:57.2166601Z                reasoning(一句话判断理由)}]}
+2026-08-28T03:30:57.2166776Z Trigger result: true
+2026-08-28T03:30:57.2167033Z Preparing with mode: agent for event: pull_request
+2026-08-28T03:30:57.3221411Z Actor type: User
+2026-08-28T03:30:57.3221703Z Verified human actor: Atituiset
+2026-08-28T03:30:57.3222383Z Configuring git authentication for non-signing mode
+2026-08-28T03:30:57.3222687Z Configuring git user...
+2026-08-28T03:30:57.3222912Z Setting git user as claude[bot]...
+2026-08-28T03:30:57.3259792Z ✓ Set git user as claude[bot]
+2026-08-28T03:30:57.3262220Z Removing existing git authentication headers...
+2026-08-28T03:30:57.3284583Z ✓ Removed existing authentication headers
+2026-08-28T03:30:57.3284892Z Updating remote URL with authentication...
+2026-08-28T03:30:57.3296185Z ✓ Updated remote URL with authentication token
+2026-08-28T03:30:57.3296545Z Git authentication configured successfully
+2026-08-28T03:30:57.3310551Z Installing Claude Code v2.1.250...
+2026-08-28T03:30:57.3310815Z Installation attempt 1...
+2026-08-28T03:30:59.1064452Z Setting up Claude Code...
+2026-08-28T03:30:59.7019742Z 
+2026-08-28T03:30:59.7153998Z Checking installation status...
+2026-08-28T03:31:03.1830150Z Installing Claude Code native build 2.1.250...
+2026-08-28T03:31:10.5945125Z Setting up launcher and shell integration...
+2026-08-28T03:31:10.5945661Z ✔ Claude Code successfully installed!
+2026-08-28T03:31:10.5945803Z 
+2026-08-28T03:31:10.5945875Z   Version: 2.1.250
+2026-08-28T03:31:10.5945966Z 
+2026-08-28T03:31:10.5946079Z   Location: ~/.local/bin/claude
+2026-08-28T03:31:10.5946192Z 
+2026-08-28T03:31:10.5946202Z 
+2026-08-28T03:31:12.5957126Z   Next: Run claude --help to get started
+2026-08-28T03:31:12.6918235Z 
+2026-08-28T03:31:12.6919057Z ✅ Installation complete!
+2026-08-28T03:31:12.6919249Z 
+2026-08-28T03:31:12.6930490Z Claude Code installed successfully
+2026-08-28T03:31:12.6939294Z Restoring .claude, .mcp.json, .claude.json, .gitmodules, .ripgreprc, CLAUDE.md, CLAUDE.local.md, .husky from origin/master (PR head is untrusted)
+2026-08-28T03:31:12.9463606Z From https://github.com/Atituiset/AetherStack
+2026-08-28T03:31:12.9463919Z  * branch            master     -> FETCH_HEAD
+2026-08-28T03:31:12.9636284Z Setting up Claude settings at: /home/runner/.claude/settings.json
+2026-08-28T03:31:12.9654580Z Creating .claude directory...
+2026-08-28T03:31:12.9654858Z No existing settings file found, creating new one
+2026-08-28T03:31:12.9655137Z Updated settings with enableAllProjectMcpServers: true
+2026-08-28T03:31:12.9655897Z Settings saved successfully
+2026-08-28T03:31:12.9658644Z No marketplaces specified, skipping marketplace setup
+2026-08-28T03:31:12.9659145Z No plugins specified, skipping plugins installation
+2026-08-28T03:31:12.9674003Z Running Claude Code via SDK (full output hidden for security)...
+2026-08-28T03:31:12.9674503Z Rerun in debug mode or enable `show_full_output: true` in your workflow file for full output.
+2026-08-28T03:31:12.9674921Z Running Claude with prompt from file: /home/runner/work/_temp/claude-prompts/claude-prompt.txt
+2026-08-28T03:31:12.9675212Z SDK options: {
+2026-08-28T03:31:12.9675373Z   "model": "deepseek-v4-flash",
+2026-08-28T03:31:12.9675548Z   "allowedTools": [
+2026-08-28T03:31:12.9675693Z     "Read",
+2026-08-28T03:31:12.9675835Z     "Write",
+2026-08-28T03:31:12.9675966Z     "Grep",
+2026-08-28T03:31:12.9676088Z     "Glob",
+2026-08-28T03:31:12.9676215Z     "Bash"
+2026-08-28T03:31:12.9676340Z   ],
+2026-08-28T03:31:12.9676471Z   "systemPrompt": {
+2026-08-28T03:31:12.9676625Z     "type": "preset",
+2026-08-28T03:31:12.9676787Z     "preset": "claude_code"
+2026-08-28T03:31:12.9676938Z   },
+2026-08-28T03:31:12.9677136Z   "pathToClaudeCodeExecutable": "/home/runner/.local/bin/claude",
+2026-08-28T03:31:12.9677378Z   "settingSources": [
+2026-08-28T03:31:12.9677520Z     "user",
+2026-08-28T03:31:12.9677649Z     "project",
+2026-08-28T03:31:12.9677797Z     "local"
+2026-08-28T03:31:12.9677923Z   ]
+2026-08-28T03:31:12.9678049Z }
+2026-08-28T03:31:13.3525086Z {
+2026-08-28T03:31:13.3525329Z   "type": "system",
+2026-08-28T03:31:13.3525521Z   "subtype": "init",
+2026-08-28T03:31:13.3525700Z   "message": "Claude Code initialized",
+2026-08-28T03:31:13.3525913Z   "model": "deepseek-v4-flash"
+2026-08-28T03:31:13.3526090Z }
+2026-08-28T03:32:58.5462625Z {
+2026-08-28T03:32:58.5462870Z   "type": "result",
+2026-08-28T03:32:58.5463103Z   "subtype": "success",
+2026-08-28T03:32:58.5463335Z   "is_error": false,
+2026-08-28T03:32:58.5463544Z   "duration_ms": 105232,
+2026-08-28T03:32:58.5463747Z   "num_turns": 19,
+2026-08-28T03:32:58.5464419Z   "total_cost_usd": 0.7714960000000001,
+2026-08-28T03:32:58.5464695Z   "permission_denials_count": 0,
+2026-08-28T03:32:58.5464907Z   "modelUsage": {
+2026-08-28T03:32:58.5465103Z     "deepseek-v4-flash": {
+2026-08-28T03:32:58.5465337Z       "contextWindow": 200000,
+2026-08-28T03:32:58.5465524Z       "maxOutputTokens": 32000
+2026-08-28T03:32:58.5465702Z     }
+2026-08-28T03:32:58.5465839Z   }
+2026-08-28T03:32:58.5465964Z }
+2026-08-28T03:32:58.6480750Z Log saved to /home/runner/work/_temp/claude-execution-output.json
+2026-08-28T03:32:58.6483754Z Set session_id: bd542614-7a67-4cb0-a519-9f0fbf23c6ea
+2026-08-28T03:32:58.6538321Z ##[end-action id=review.run;outcome=success;conclusion=success;duration_ms=121924]
+2026-08-28T03:32:58.6540902Z ##[start-action display=Re-prepend system bin dirs to PATH;id=review.__run_6]
+2026-08-28T03:32:58.6545449Z ##[end-action id=review.__run_6;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-08-28T03:32:58.6546737Z ##[start-action display=Cleanup SSH signing key;id=review.__run_7]
+2026-08-28T03:32:58.6549011Z ##[end-action id=review.__run_7;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-08-28T03:32:58.6551935Z ##[start-action display=Post buffered inline comments;id=review.__run_8]
+2026-08-28T03:32:58.6563618Z ##[group]Run BUN_BIN="${GITHUB_ACTION_PATH}/bin/bun"
+2026-08-28T03:32:58.6563907Z [36;1mBUN_BIN="${GITHUB_ACTION_PATH}/bin/bun"[0m
+2026-08-28T03:32:58.6564245Z [36;1m[ -x "$BUN_BIN" ] || BUN_BIN="bun"[0m
+2026-08-28T03:32:58.6564540Z [36;1m# No --tsconfig-override: see the "Run Claude Code Action" step above.[0m
+2026-08-28T03:32:58.6564825Z [36;1m"$BUN_BIN" --no-env-file \[0m
+2026-08-28T03:32:58.6565049Z [36;1m  --config="${GITHUB_ACTION_PATH}/bunfig.toml" \[0m
+2026-08-28T03:32:58.6565364Z [36;1m  run ${GITHUB_ACTION_PATH}/src/entrypoints/post-buffered-inline-comments.ts[0m
+2026-08-28T03:32:58.6587025Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-08-28T03:32:58.6587273Z env:
+2026-08-28T03:32:58.6587498Z   ANTHROPIC_BASE_URL: https://api.deepseek.com/anthropic
+2026-08-28T03:32:58.6587939Z   ANTHROPIC_AUTH_TOKEN: ***
+2026-08-28T03:32:58.6588132Z   ANTHROPIC_MODEL: deepseek-v4-flash
+2026-08-28T03:32:58.6590233Z   GITHUB_TOKEN: ***
+2026-08-28T03:32:58.6590402Z   REPO_OWNER: Atituiset
+2026-08-28T03:32:58.6590569Z   REPO_NAME: AetherStack
+2026-08-28T03:32:58.6590748Z   PR_NUMBER: 2
+2026-08-28T03:32:58.6590950Z   ANTHROPIC_API_KEY: ***
+2026-08-28T03:32:58.6591110Z ##[endgroup]
+2026-08-28T03:32:58.6893362Z No buffered inline comments
+2026-08-28T03:32:58.6907476Z ##[end-action id=review.__run_8;outcome=success;conclusion=success;duration_ms=35]
+2026-08-28T03:32:58.6909370Z ##[start-action display=Revoke app token;id=review.__run_9]
+2026-08-28T03:32:58.6916079Z ##[end-action id=review.__run_9;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-08-28T03:32:58.7000889Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-08-28T03:32:58.7001951Z ##[group]Run actions/checkout@v4
+2026-08-28T03:32:58.7002139Z with:
+2026-08-28T03:32:58.7002318Z   repository: Atituiset/agent-reviewer
+2026-08-28T03:32:58.7002521Z   ref: mvp
+2026-08-28T03:32:58.7002681Z   path: .reviewer
+2026-08-28T03:32:58.7004615Z   token: ***
+2026-08-28T03:32:58.7004777Z   ssh-strict: true
+2026-08-28T03:32:58.7004984Z   ssh-user: git
+2026-08-28T03:32:58.7005150Z   persist-credentials: true
+2026-08-28T03:32:58.7005332Z   clean: true
+2026-08-28T03:32:58.7005501Z   sparse-checkout-cone-mode: true
+2026-08-28T03:32:58.7005691Z   fetch-depth: 1
+2026-08-28T03:32:58.7005845Z   fetch-tags: false
+2026-08-28T03:32:58.7006047Z   show-progress: true
+2026-08-28T03:32:58.7006210Z   lfs: false
+2026-08-28T03:32:58.7006355Z   submodules: false
+2026-08-28T03:32:58.7006515Z   set-safe-directory: true
+2026-08-28T03:32:58.7006701Z   allow-unsafe-pr-checkout: false
+2026-08-28T03:32:58.7006891Z ##[endgroup]
+2026-08-28T03:32:58.7646300Z Syncing repository: Atituiset/agent-reviewer
+2026-08-28T03:32:58.7646982Z ##[group]Getting Git version info
+2026-08-28T03:32:58.7647450Z Working directory is '/home/runner/work/AetherStack/AetherStack/.reviewer'
+2026-08-28T03:32:58.7699182Z [command]/usr/bin/git version
+2026-08-28T03:32:58.7719824Z git version 2.55.0
+2026-08-28T03:32:58.7739849Z ##[endgroup]
+2026-08-28T03:32:58.7771882Z Temporarily overriding HOME='/home/runner/work/_temp/d7edcd74-4b53-44d7-8d5a-c8d755bd1089' before making global git config changes
+2026-08-28T03:32:58.7772761Z Adding repository directory to the temporary git global config as a safe directory
+2026-08-28T03:32:58.7775578Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/AetherStack/AetherStack/.reviewer
+2026-08-28T03:32:58.7805163Z [command]/usr/bin/git config --local --get remote.origin.url
+2026-08-28T03:32:58.7827962Z https://github.com/Atituiset/agent-reviewer
+2026-08-28T03:32:58.7833260Z ##[group]Removing previously created refs, to avoid conflicts
+2026-08-28T03:32:58.7836479Z [command]/usr/bin/git rev-parse --symbolic-full-name --verify --quiet HEAD
+2026-08-28T03:32:58.7853419Z refs/heads/mvp
+2026-08-28T03:32:58.7862516Z [command]/usr/bin/git checkout --detach
+2026-08-28T03:32:58.7905407Z HEAD is now at 9318485 ci: 评审模式按 PR 可选（.ai-review-mode=1/2/3）——prompt 按模式组装，navmap 产物模式 3 注入
+2026-08-28T03:32:58.7941316Z [command]/usr/bin/git branch --delete --force mvp
+2026-08-28T03:32:58.7960882Z Deleted branch mvp (was 9318485).
+2026-08-28T03:32:58.7999852Z ##[endgroup]
+2026-08-28T03:32:58.8000100Z [command]/usr/bin/git submodule status
+2026-08-28T03:32:58.8153733Z ##[group]Cleaning the repository
+2026-08-28T03:32:58.8154268Z [command]/usr/bin/git clean -ffdx
+2026-08-28T03:32:58.8334003Z Removing .venv/
+2026-08-28T03:32:58.8342271Z [command]/usr/bin/git reset --hard HEAD
+2026-08-28T03:32:58.8368203Z HEAD is now at 9318485 ci: 评审模式按 PR 可选（.ai-review-mode=1/2/3）——prompt 按模式组装，navmap 产物模式 3 注入
+2026-08-28T03:32:58.8373324Z ##[endgroup]
+2026-08-28T03:32:58.8373757Z ##[group]Disabling automatic garbage collection
+2026-08-28T03:32:58.8378407Z [command]/usr/bin/git config --local gc.auto 0
+2026-08-28T03:32:58.8400438Z ##[endgroup]
+2026-08-28T03:32:58.8400814Z ##[group]Setting up auth
+2026-08-28T03:32:58.8406256Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-08-28T03:32:58.8430174Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-08-28T03:32:58.8594043Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-08-28T03:32:58.8610269Z http.https://github.com/.extraheader
+2026-08-28T03:32:58.8614339Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-08-28T03:32:58.8634482Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-08-28T03:32:58.8777396Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-08-28T03:32:58.8798902Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-08-28T03:32:58.8948422Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-08-28T03:32:58.8973822Z ##[endgroup]
+2026-08-28T03:32:58.8974257Z ##[group]Fetching the repository
+2026-08-28T03:32:58.8980760Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/mvp*:refs/remotes/origin/mvp* +refs/tags/mvp*:refs/tags/mvp*
+2026-08-28T03:32:59.3213037Z ##[endgroup]
+2026-08-28T03:32:59.3213515Z ##[group]Determining the checkout info
+2026-08-28T03:32:59.3220432Z [command]/usr/bin/git branch --list --remote origin/mvp
+2026-08-28T03:32:59.3241741Z   origin/mvp
+2026-08-28T03:32:59.3243970Z ##[endgroup]
+2026-08-28T03:32:59.3249036Z [command]/usr/bin/git sparse-checkout disable
+2026-08-28T03:32:59.3283722Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-08-28T03:32:59.3305094Z ##[group]Checking out the ref
+2026-08-28T03:32:59.3309545Z [command]/usr/bin/git checkout --progress --force -B mvp refs/remotes/origin/mvp
+2026-08-28T03:32:59.3343958Z Switched to a new branch 'mvp'
+2026-08-28T03:32:59.3344287Z branch 'mvp' set up to track 'origin/mvp'.
+2026-08-28T03:32:59.3347726Z ##[endgroup]
+2026-08-28T03:32:59.3389518Z [command]/usr/bin/git log -1 --format=%H
+2026-08-28T03:32:59.3396220Z 931848512f565e4480ee9b4f3b5cd2d275132972
+2026-08-28T03:32:59.3491632Z ##[group]Run ls -la "$GITHUB_WORKSPACE/.review/review-artifact.json" || { echo "工件缺失（评审未产出）——fail-open 跳过"; exit 0; }
+2026-08-28T03:32:59.3492181Z [36;1mls -la "$GITHUB_WORKSPACE/.review/review-artifact.json" || { echo "工件缺失（评审未产出）——fail-open 跳过"; exit 0; }[0m
+2026-08-28T03:32:59.3492675Z [36;1mexport SARIF_VIEWER_URI="https://github.com/Atituiset/AetherStack/actions/runs/33139101947"[0m
+2026-08-28T03:32:59.3493186Z [36;1mcd .reviewer && bash scripts/artifact-to-sarif.sh "$GITHUB_WORKSPACE/.review/review-artifact.json" /tmp/review.sarif[0m
+2026-08-28T03:32:59.3493789Z [36;1mcp /tmp/review.sarif "$GITHUB_WORKSPACE/.review.sarif" || cp /tmp/review.sarif ./review.sarif[0m
+2026-08-28T03:32:59.3515318Z shell: /usr/bin/bash -e {0}
+2026-08-28T03:32:59.3515522Z ##[endgroup]
+2026-08-28T03:32:59.3556450Z -rw-r--r-- 1 runner runner 3255 Aug 28 03:32 /home/runner/work/AetherStack/AetherStack/.review/review-artifact.json
+2026-08-28T03:32:59.3770359Z wrote /tmp/review.sarif: 2 results, 2 rules
+2026-08-28T03:32:59.3862229Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-08-28T03:32:59.3863112Z ##[group]Run actions/upload-artifact@v4
+2026-08-28T03:32:59.3863322Z with:
+2026-08-28T03:32:59.3863482Z   name: review-transcript
+2026-08-28T03:32:59.3863766Z   path: /home/runner/work/_temp/claude-execution-output.json
+/tmp/review.sarif
+
+2026-08-28T03:32:59.3864104Z   if-no-files-found: ignore
+2026-08-28T03:32:59.3864287Z   compression-level: 6
+2026-08-28T03:32:59.3864456Z   overwrite: false
+2026-08-28T03:32:59.3864629Z   include-hidden-files: false
+2026-08-28T03:32:59.3864813Z ##[endgroup]
+2026-08-28T03:32:59.5060691Z (node:2913) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-08-28T03:32:59.5061308Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-08-28T03:32:59.5097247Z Multiple search paths detected. Calculating the least common ancestor of all paths
+2026-08-28T03:32:59.5102162Z The least common ancestor is /. This will be the root directory of the artifact
+2026-08-28T03:32:59.5102607Z With the provided path, there will be 2 files uploaded
+2026-08-28T03:32:59.5103090Z Artifact name is valid!
+2026-08-28T03:32:59.5106073Z Root directory input is valid!
+2026-08-28T03:32:59.8209015Z Beginning upload of artifact content to blob storage
+2026-08-28T03:32:59.8604156Z (node:2913) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-08-28T03:33:00.1383439Z Uploaded bytes 286397
+2026-08-28T03:33:00.1824181Z Finished uploading artifact content to blob storage!
+2026-08-28T03:33:00.1825317Z SHA256 digest of uploaded artifact zip is 58a20568714aad497ca17f714a2f5c98b9a8db853c356d788448e801825abbab
+2026-08-28T03:33:00.1826396Z Finalizing artifact upload
+2026-08-28T03:33:00.4475377Z Artifact review-transcript.zip successfully finalized. Artifact ID 9673237173
+2026-08-28T03:33:00.4477281Z Artifact review-transcript has been successfully uploaded! Final size is 286397 bytes. Artifact ID is 9673237173
+2026-08-28T03:33:00.4485749Z Artifact download URL: https://github.com/Atituiset/AetherStack/actions/runs/33139101947/artifacts/9673237173
+2026-08-28T03:33:00.4683377Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-08-28T03:33:00.4685165Z ##[group]Run github/codeql-action/upload-sarif@v3
+2026-08-28T03:33:00.4685676Z with:
+2026-08-28T03:33:00.4686110Z   sarif_file: /tmp/review.sarif
+2026-08-28T03:33:00.4686542Z   category: agent-reviewer
+2026-08-28T03:33:00.4687307Z   checkout_path: /home/runner/work/AetherStack/AetherStack
+2026-08-28T03:33:00.4692427Z   token: ***
+2026-08-28T03:33:00.4692873Z   matrix: null
+2026-08-28T03:33:00.4693275Z   wait-for-processing: true
+2026-08-28T03:33:00.4694063Z ##[endgroup]
+2026-08-28T03:33:00.6602507Z Job run UUID is b28529cc-7b73-4886-9cd2-92e82aa07a5b.
+2026-08-28T03:33:00.6650877Z ##[warning]CodeQL Action v3 will be deprecated in December 2026. Please update all occurrences of the CodeQL Action in your workflow files to v4. For more information, see https://github.blog/changelog/2025-10-28-upcoming-deprecation-of-codeql-action-v3/
+2026-08-28T03:33:01.1616481Z Post-processing sarif files: ["/tmp/review.sarif"]
+2026-08-28T03:33:01.1618312Z Validating /tmp/review.sarif
+2026-08-28T03:33:01.1798659Z Adding fingerprints to SARIF file. See https://docs.github.com/en/code-security/reference/code-scanning/sarif-support-for-code-scanning#data-for-preventing-duplicated-alerts for more information.
+2026-08-28T03:33:01.1877723Z ##[group]Uploading code scanning results
+2026-08-28T03:33:01.2133587Z Uploading results
+2026-08-28T03:33:01.7392236Z Successfully uploaded results
+2026-08-28T03:33:01.7392899Z ##[endgroup]
+2026-08-28T03:33:01.7393536Z ##[group]Waiting for processing to finish
+2026-08-28T03:33:06.9339496Z Analysis upload status is complete.
+2026-08-28T03:33:06.9340442Z ##[endgroup]
+2026-08-28T03:33:07.0827925Z ##[group]Run if [ -n "" ]; then
+2026-08-28T03:33:07.0828307Z [36;1mif [ -n "" ]; then[0m
+2026-08-28T03:33:07.0828578Z [36;1m  echo "ai-review skipped: （豁免）"[0m
+2026-08-28T03:33:07.0829223Z [36;1melif [ "success" != "success" ]; then[0m
+2026-08-28T03:33:07.0829564Z [36;1m  echo "ai-review failed but not blocking（fail-open）"[0m
+2026-08-28T03:33:07.0829862Z [36;1mfi[0m
+2026-08-28T03:33:07.0850038Z shell: /usr/bin/bash -e {0}
+2026-08-28T03:33:07.0850320Z env:
+2026-08-28T03:33:07.0850606Z   CODEQL_ACTION_JOB_RUN_UUID: b28529cc-7b73-4886-9cd2-92e82aa07a5b
+2026-08-28T03:33:07.0851020Z   CODEQL_ACTION_FEATURE_MULTI_LANGUAGE: false
+2026-08-28T03:33:07.0851312Z   CODEQL_ACTION_FEATURE_SANDWICH: false
+2026-08-28T03:33:07.0851610Z   CODEQL_ACTION_FEATURE_SARIF_COMBINE: true
+2026-08-28T03:33:07.0851930Z   CODEQL_ACTION_FEATURE_WILL_UPLOAD: true
+2026-08-28T03:33:07.0852201Z   CODEQL_ACTION_VERSION: 3.37.9
+2026-08-28T03:33:07.0852492Z   CODEQL_ACTION_DID_LOG_VERSION_DEPRECATION: true
+2026-08-28T03:33:07.0852914Z   CODEQL_ACTION_ANALYSIS_KEY: .github/workflows/ai-review.yml:review
+2026-08-28T03:33:07.0853328Z   CODEQL_WORKFLOW_STARTED_AT: 2026-08-28T03:33:00.659Z
+2026-08-28T03:33:07.0853757Z   CODEQL_UPLOAD_SARIF_AGENT_REVIEWER__AGENT_REVIEWER: CODEQL_UPLOAD_SARIF_AGENT_REVIEWER__AGENT_REVIEWER
+2026-08-28T03:33:07.0854154Z ##[endgroup]
+2026-08-28T03:33:07.0951151Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-08-28T03:33:07.0952093Z Post job cleanup.
+2026-08-28T03:33:07.2645762Z ##[group]Uploading combined SARIF debug artifact
+2026-08-28T03:33:07.2646463Z ##[endgroup]
+2026-08-28T03:33:07.2802056Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-08-28T03:33:07.2803450Z Post job cleanup.
+2026-08-28T03:33:07.3514207Z [command]/usr/bin/git version
+2026-08-28T03:33:07.3554964Z git version 2.55.0
+2026-08-28T03:33:07.3586475Z Temporarily overriding HOME='/home/runner/work/_temp/e87b26fb-e15d-42d6-a938-329bf210ecb7' before making global git config changes
+2026-08-28T03:33:07.3587333Z Adding repository directory to the temporary git global config as a safe directory
+2026-08-28T03:33:07.3591571Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/AetherStack/AetherStack/.reviewer
+2026-08-28T03:33:07.3622734Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-08-28T03:33:07.3650392Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-08-28T03:33:07.3809262Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-08-28T03:33:07.3825619Z http.https://github.com/.extraheader
+2026-08-28T03:33:07.3841040Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-08-28T03:33:07.3871553Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-08-28T03:33:07.4020951Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-08-28T03:33:07.4052519Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-08-28T03:33:07.4544582Z Post job cleanup.
+2026-08-28T03:33:07.4548062Z ##[start-action display=Install Bun;id=__495c6f77-5b7f-4ece-94d6-9f6449011f7e.setup-bun]
+2026-08-28T03:33:07.4578382Z Post job cleanup.
+2026-08-28T03:33:07.5797403Z ##[end-action id=__495c6f77-5b7f-4ece-94d6-9f6449011f7e.setup-bun;outcome=success;conclusion=success;duration_ms=124]
+2026-08-28T03:33:07.5856026Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-08-28T03:33:07.5856955Z Post job cleanup.
+2026-08-28T03:33:07.6515432Z [command]/usr/bin/git version
+2026-08-28T03:33:07.6546621Z git version 2.55.0
+2026-08-28T03:33:07.6571902Z Temporarily overriding HOME='/home/runner/work/_temp/7c3be62a-30d8-4fb3-a608-d4e5b76d0582' before making global git config changes
+2026-08-28T03:33:07.6572996Z Adding repository directory to the temporary git global config as a safe directory
+2026-08-28T03:33:07.6576115Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/AetherStack/AetherStack/.reviewer
+2026-08-28T03:33:07.6606458Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-08-28T03:33:07.6634116Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-08-28T03:33:07.6799155Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-08-28T03:33:07.6824748Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-08-28T03:33:07.6997909Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-08-28T03:33:07.7022730Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-08-28T03:33:07.7313330Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-08-28T03:33:07.7314318Z Post job cleanup.
+2026-08-28T03:33:07.7970702Z [command]/usr/bin/git version
+2026-08-28T03:33:07.8016716Z git version 2.55.0
+2026-08-28T03:33:07.8037747Z Temporarily overriding HOME='/home/runner/work/_temp/343b7c09-8c57-40b9-a9d6-07c60e2f88d6' before making global git config changes
+2026-08-28T03:33:07.8039061Z Adding repository directory to the temporary git global config as a safe directory
+2026-08-28T03:33:07.8042339Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/AetherStack/AetherStack
+2026-08-28T03:33:07.8071339Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-08-28T03:33:07.8096882Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-08-28T03:33:07.8265011Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-08-28T03:33:07.8288088Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-08-28T03:33:07.8454407Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-08-28T03:33:07.8479741Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-08-28T03:33:07.8774010Z Cleaning up orphan processes
+2026-08-28T03:33:07.8941651Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/upload-artifact@v4, github/codeql-action/upload-sarif@v3. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

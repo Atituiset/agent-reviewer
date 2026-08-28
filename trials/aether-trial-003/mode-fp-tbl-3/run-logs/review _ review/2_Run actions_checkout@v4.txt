@@ -1,0 +1,111 @@
+﻿2026-08-28T03:52:42.7772791Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-08-28T03:52:42.7783144Z ##[group]Run actions/checkout@v4
+2026-08-28T03:52:42.7784110Z with:
+2026-08-28T03:52:42.7784607Z   fetch-depth: 0
+2026-08-28T03:52:42.7785141Z   repository: Atituiset/AetherStack
+2026-08-28T03:52:42.7790053Z   token: ***
+2026-08-28T03:52:42.7790771Z   ssh-strict: true
+2026-08-28T03:52:42.7791301Z   ssh-user: git
+2026-08-28T03:52:42.7791829Z   persist-credentials: true
+2026-08-28T03:52:42.7792407Z   clean: true
+2026-08-28T03:52:42.7792935Z   sparse-checkout-cone-mode: true
+2026-08-28T03:52:42.7793585Z   fetch-tags: false
+2026-08-28T03:52:42.7794091Z   show-progress: true
+2026-08-28T03:52:42.7794603Z   lfs: false
+2026-08-28T03:52:42.7795074Z   submodules: false
+2026-08-28T03:52:42.7795651Z   set-safe-directory: true
+2026-08-28T03:52:42.7796231Z   allow-unsafe-pr-checkout: false
+2026-08-28T03:52:42.7797194Z ##[endgroup]
+2026-08-28T03:52:42.8939518Z Syncing repository: Atituiset/AetherStack
+2026-08-28T03:52:42.8943209Z ##[group]Getting Git version info
+2026-08-28T03:52:42.8944765Z Working directory is '/home/runner/work/AetherStack/AetherStack'
+2026-08-28T03:52:42.8947424Z [command]/usr/bin/git version
+2026-08-28T03:52:42.8988386Z git version 2.55.0
+2026-08-28T03:52:42.9058655Z ##[endgroup]
+2026-08-28T03:52:42.9091915Z Temporarily overriding HOME='/home/runner/work/_temp/50421484-9ea5-400c-a65b-3946f3dfefba' before making global git config changes
+2026-08-28T03:52:42.9130915Z Adding repository directory to the temporary git global config as a safe directory
+2026-08-28T03:52:42.9133569Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/AetherStack/AetherStack
+2026-08-28T03:52:42.9169125Z Deleting the contents of '/home/runner/work/AetherStack/AetherStack'
+2026-08-28T03:52:42.9172822Z ##[group]Initializing the repository
+2026-08-28T03:52:42.9174601Z [command]/usr/bin/git init /home/runner/work/AetherStack/AetherStack
+2026-08-28T03:52:42.9366214Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-08-28T03:52:42.9368982Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-08-28T03:52:42.9371651Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-08-28T03:52:42.9374191Z hint: call:
+2026-08-28T03:52:42.9375283Z hint:
+2026-08-28T03:52:42.9376742Z hint: 	git config --global init.defaultBranch <name>
+2026-08-28T03:52:42.9378184Z hint:
+2026-08-28T03:52:42.9379405Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-08-28T03:52:42.9381702Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-08-28T03:52:42.9383275Z hint:
+2026-08-28T03:52:42.9384195Z hint: 	git branch -m <name>
+2026-08-28T03:52:42.9385247Z hint:
+2026-08-28T03:52:42.9386726Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-08-28T03:52:42.9389019Z Initialized empty Git repository in /home/runner/work/AetherStack/AetherStack/.git/
+2026-08-28T03:52:42.9392924Z [command]/usr/bin/git remote add origin https://github.com/Atituiset/AetherStack
+2026-08-28T03:52:42.9454883Z ##[endgroup]
+2026-08-28T03:52:42.9456806Z ##[group]Disabling automatic garbage collection
+2026-08-28T03:52:42.9459239Z [command]/usr/bin/git config --local gc.auto 0
+2026-08-28T03:52:42.9516262Z ##[endgroup]
+2026-08-28T03:52:42.9518028Z ##[group]Setting up auth
+2026-08-28T03:52:42.9526698Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-08-28T03:52:42.9577939Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-08-28T03:52:43.0016874Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-08-28T03:52:43.0062520Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-08-28T03:52:43.0317535Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-08-28T03:52:43.0364332Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-08-28T03:52:43.0628865Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-08-28T03:52:43.0677945Z ##[endgroup]
+2026-08-28T03:52:43.0679157Z ##[group]Fetching the repository
+2026-08-28T03:52:43.0692808Z [command]/usr/bin/git -c protocol.version=2 fetch --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/* +e5103dcd94f4ef9e248d5337a1a69dee0dc56e75:refs/remotes/pull/9/merge
+2026-08-28T03:52:43.8775686Z From https://github.com/Atituiset/AetherStack
+2026-08-28T03:52:43.8778414Z  * [new branch]      master                                   -> origin/master
+2026-08-28T03:52:43.8780840Z  * [new branch]      navmap-outputs                           -> origin/navmap-outputs
+2026-08-28T03:52:43.8783137Z  * [new branch]      trial/ai-review-ci                       -> origin/trial/ai-review-ci
+2026-08-28T03:52:43.8786247Z  * [new branch]      trial/mode-1                             -> origin/trial/mode-1
+2026-08-28T03:52:43.8788605Z  * [new branch]      trial/mode-2                             -> origin/trial/mode-2
+2026-08-28T03:52:43.8790900Z  * [new branch]      trial/mode-3                             -> origin/trial/mode-3
+2026-08-28T03:52:43.8793059Z  * [new branch]      trial/mode-fp-1                          -> origin/trial/mode-fp-1
+2026-08-28T03:52:43.8796126Z  * [new branch]      trial/mode-fp-2                          -> origin/trial/mode-fp-2
+2026-08-28T03:52:43.8799859Z  * [new branch]      trial/mode-fp-tbl-1                      -> origin/trial/mode-fp-tbl-1
+2026-08-28T03:52:43.8803266Z  * [new branch]      trial/mode-fp-tbl-2                      -> origin/trial/mode-fp-tbl-2
+2026-08-28T03:52:43.8805864Z  * [new branch]      trial/mode-fp-tbl-3                      -> origin/trial/mode-fp-tbl-3
+2026-08-28T03:52:43.8808405Z  * [new branch]      trial/review-gate                        -> origin/trial/review-gate
+2026-08-28T03:52:43.8811124Z  * [new tag]         M0                                       -> M0
+2026-08-28T03:52:43.8812882Z  * [new tag]         M1                                       -> M1
+2026-08-28T03:52:43.8814613Z  * [new tag]         M1.1                                     -> M1.1
+2026-08-28T03:52:43.8816365Z  * [new tag]         M1.3                                     -> M1.3
+2026-08-28T03:52:43.8818245Z  * [new tag]         M2                                       -> M2
+2026-08-28T03:52:43.8820095Z  * [new tag]         M3                                       -> M3
+2026-08-28T03:52:43.8822207Z  * [new tag]         M4                                       -> M4
+2026-08-28T03:52:43.8824104Z  * [new tag]         M5                                       -> M5
+2026-08-28T03:52:43.8825962Z  * [new tag]         M6                                       -> M6
+2026-08-28T03:52:43.8828050Z  * [new ref]         e5103dcd94f4ef9e248d5337a1a69dee0dc56e75 -> pull/9/merge
+2026-08-28T03:52:43.8832992Z ##[endgroup]
+2026-08-28T03:52:43.8834951Z ##[group]Determining the checkout info
+2026-08-28T03:52:43.8837082Z ##[endgroup]
+2026-08-28T03:52:43.8838335Z [command]/usr/bin/git sparse-checkout disable
+2026-08-28T03:52:43.8864258Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-08-28T03:52:43.8905054Z ##[group]Checking out the ref
+2026-08-28T03:52:43.8908410Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/9/merge
+2026-08-28T03:52:43.9156130Z Note: switching to 'refs/remotes/pull/9/merge'.
+2026-08-28T03:52:43.9157783Z 
+2026-08-28T03:52:43.9158786Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-08-28T03:52:43.9161431Z changes and commit them, and you can discard any commits you make in this
+2026-08-28T03:52:43.9163673Z state without impacting any branches by switching back to a branch.
+2026-08-28T03:52:43.9164995Z 
+2026-08-28T03:52:43.9166140Z If you want to create a new branch to retain commits you create, you may
+2026-08-28T03:52:43.9168931Z do so (now or later) by using -c with the switch command. Example:
+2026-08-28T03:52:43.9170346Z 
+2026-08-28T03:52:43.9170903Z   git switch -c <new-branch-name>
+2026-08-28T03:52:43.9171743Z 
+2026-08-28T03:52:43.9172256Z Or undo this operation with:
+2026-08-28T03:52:43.9173017Z 
+2026-08-28T03:52:43.9173668Z   git switch -
+2026-08-28T03:52:43.9174360Z 
+2026-08-28T03:52:43.9175336Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-08-28T03:52:43.9176756Z 
+2026-08-28T03:52:43.9178355Z HEAD is now at e5103dc Merge e558221bd0a881405bb9cd2941b7b76cac079311 into 1ef3134f152392d7d786fa76120648c2a8bedd5c
+2026-08-28T03:52:43.9183450Z ##[endgroup]
+2026-08-28T03:52:43.9224808Z [command]/usr/bin/git log -1 --format=%H
+2026-08-28T03:52:43.9259898Z e5103dcd94f4ef9e248d5337a1a69dee0dc56e75

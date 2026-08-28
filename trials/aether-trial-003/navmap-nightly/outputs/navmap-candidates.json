@@ -1,0 +1,51 @@
+[
+  {
+    "file": "/home/runner/work/AetherStack/AetherStack/.navmap-tool/tests/fixtures/mini_ims/disp.c",
+    "reasons": [
+      "array-init"
+    ]
+  },
+  {
+    "file": "/home/runner/work/AetherStack/AetherStack/.navmap-tool/tests/fixtures/mini_ims/disp2.c",
+    "reasons": [
+      "array-init"
+    ]
+  },
+  {
+    "file": "/home/runner/work/AetherStack/AetherStack/.navmap-tool/tests/fixtures/mini_ims/include/handlers.h",
+    "reasons": [
+      "func-ptr-member",
+      "register-api:MsgReg"
+    ]
+  },
+  {
+    "file": "/home/runner/work/AetherStack/AetherStack/.navmap-tool/tests/fixtures/mini_ims/include/oam_table.h",
+    "reasons": [
+      "array-init"
+    ]
+  },
+  {
+    "file": "/home/runner/work/AetherStack/AetherStack/.navmap-tool/tests/fixtures/mini_ims/nested.c",
+    "reasons": [
+      "array-init"
+    ]
+  },
+  {
+    "file": "/home/runner/work/AetherStack/AetherStack/.navmap-tool/tests/fixtures/mini_ims/reg.c",
+    "reasons": [
+      "register-api:MsgReg"
+    ]
+  },
+  {
+    "file": "/home/runner/work/AetherStack/AetherStack/.navmap-tool/tests/fixtures/mini_ims/sm.c",
+    "reasons": [
+      "array-init"
+    ]
+  },
+  {
+    "file": "/home/runner/work/AetherStack/AetherStack/.navmap-tool/tests/fixtures/mini_ims/xmacro.c",
+    "reasons": [
+      "array-init"
+    ]
+  }
+]

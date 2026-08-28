@@ -1,0 +1,17 @@
+{
+  "baseline_commit": "05284edc5fda1a781b44a804879d92422044785a",
+  "generated_at": "2026-08-28T03:14:06+00:00",
+  "subsystem": "stack",
+  "kind": "dispatch",
+  "tables": [],
+  "parse_failures": [
+    "/home/runner/work/AetherStack/AetherStack/.navmap-tool/tests/fixtures/mini_ims/disp.c: compile_commands.json 中无此文件，也未找到包含它的 TU",
+    "/home/runner/work/AetherStack/AetherStack/.navmap-tool/tests/fixtures/mini_ims/disp2.c: compile_commands.json 中无此文件，也未找到包含它的 TU",
+    "/home/runner/work/AetherStack/AetherStack/.navmap-tool/tests/fixtures/mini_ims/include/handlers.h: compile_commands.json 中无此文件，也未找到包含它的 TU",
+    "/home/runner/work/AetherStack/AetherStack/.navmap-tool/tests/fixtures/mini_ims/include/oam_table.h: compile_commands.json 中无此文件，也未找到包含它的 TU",
+    "/home/runner/work/AetherStack/AetherStack/.navmap-tool/tests/fixtures/mini_ims/nested.c: compile_commands.json 中无此文件，也未找到包含它的 TU",
+    "/home/runner/work/AetherStack/AetherStack/.navmap-tool/tests/fixtures/mini_ims/reg.c: compile_commands.json 中无此文件，也未找到包含它的 TU",
+    "/home/runner/work/AetherStack/AetherStack/.navmap-tool/tests/fixtures/mini_ims/sm.c: compile_commands.json 中无此文件，也未找到包含它的 TU",
+    "/home/runner/work/AetherStack/AetherStack/.navmap-tool/tests/fixtures/mini_ims/xmacro.c: compile_commands.json 中无此文件，也未找到包含它的 TU"
+  ]
+}

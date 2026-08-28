@@ -1,0 +1,28 @@
+﻿2026-08-28T03:54:04.4698993Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-08-28T03:54:04.4700172Z ##[group]Run actions/upload-artifact@v4
+2026-08-28T03:54:04.4700431Z with:
+2026-08-28T03:54:04.4700632Z   name: review-transcript
+2026-08-28T03:54:04.4700995Z   path: /home/runner/work/_temp/claude-execution-output.json
+/tmp/review.sarif
+
+2026-08-28T03:54:04.4701403Z   if-no-files-found: ignore
+2026-08-28T03:54:04.4701642Z   compression-level: 6
+2026-08-28T03:54:04.4701862Z   overwrite: false
+2026-08-28T03:54:04.4702079Z   include-hidden-files: false
+2026-08-28T03:54:04.4702312Z ##[endgroup]
+2026-08-28T03:54:04.6223140Z (node:2850) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-08-28T03:54:04.6223907Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-08-28T03:54:04.6287450Z Multiple search paths detected. Calculating the least common ancestor of all paths
+2026-08-28T03:54:04.6307252Z The least common ancestor is /. This will be the root directory of the artifact
+2026-08-28T03:54:04.6336794Z With the provided path, there will be 2 files uploaded
+2026-08-28T03:54:04.6347255Z Artifact name is valid!
+2026-08-28T03:54:04.6347689Z Root directory input is valid!
+2026-08-28T03:54:04.9749861Z Beginning upload of artifact content to blob storage
+2026-08-28T03:54:05.0143068Z (node:2850) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-08-28T03:54:05.4060319Z Uploaded bytes 247428
+2026-08-28T03:54:05.4636320Z Finished uploading artifact content to blob storage!
+2026-08-28T03:54:05.4637183Z SHA256 digest of uploaded artifact zip is 540d48f05b8df118d914c4adec29ba1a051bff77b2d06e34925eeb1e30a5c2a9
+2026-08-28T03:54:05.4639499Z Finalizing artifact upload
+2026-08-28T03:54:05.7087110Z Artifact review-transcript.zip successfully finalized. Artifact ID 9673641039
+2026-08-28T03:54:05.7088069Z Artifact review-transcript has been successfully uploaded! Final size is 247428 bytes. Artifact ID is 9673641039
+2026-08-28T03:54:05.7088822Z Artifact download URL: https://github.com/Atituiset/AetherStack/actions/runs/33140153365/artifacts/9673641039

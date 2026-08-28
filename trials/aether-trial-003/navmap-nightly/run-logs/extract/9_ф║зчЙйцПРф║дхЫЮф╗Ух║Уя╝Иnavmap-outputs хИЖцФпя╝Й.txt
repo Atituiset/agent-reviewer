@@ -1,0 +1,24 @@
+﻿2026-08-28T03:14:06.4314565Z ##[group]Run git config user.email "navmap-bot@users.noreply.github.com"
+2026-08-28T03:14:06.4315154Z [36;1mgit config user.email "navmap-bot@users.noreply.github.com"[0m
+2026-08-28T03:14:06.4315559Z [36;1mgit config user.name "navmap-bot"[0m
+2026-08-28T03:14:06.4315869Z [36;1mgit checkout -B navmap-outputs[0m
+2026-08-28T03:14:06.4316159Z [36;1mgit add -f .navmap/out/[0m
+2026-08-28T03:14:06.4316602Z [36;1mgit commit -qm "navmap: $(git rev-parse --short HEAD) 产物刷新" || { echo "无变化"; exit 0; }[0m
+2026-08-28T03:14:06.4317271Z [36;1mgit push -f origin navmap-outputs[0m
+2026-08-28T03:14:06.4352675Z shell: /usr/bin/bash -e {0}
+2026-08-28T03:14:06.4352937Z env:
+2026-08-28T03:14:06.4353127Z   SUBSYSTEM: stack
+2026-08-28T03:14:06.4353411Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-08-28T03:14:06.4353861Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-08-28T03:14:06.4354325Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-08-28T03:14:06.4354767Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-08-28T03:14:06.4355169Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-08-28T03:14:06.4355576Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-08-28T03:14:06.4355919Z ##[endgroup]
+2026-08-28T03:14:06.4528434Z Switched to a new branch 'navmap-outputs'
+2026-08-28T03:14:07.5804817Z remote: 
+2026-08-28T03:14:07.5810179Z remote: Create a pull request for 'navmap-outputs' on GitHub by visiting:        
+2026-08-28T03:14:07.5811439Z remote:      https://github.com/Atituiset/AetherStack/pull/new/navmap-outputs        
+2026-08-28T03:14:07.5812385Z remote: 
+2026-08-28T03:14:07.5813070Z To https://github.com/Atituiset/AetherStack
+2026-08-28T03:14:07.5813863Z  * [new branch]      navmap-outputs -> navmap-outputs

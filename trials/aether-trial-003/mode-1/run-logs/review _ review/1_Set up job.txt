@@ -1,0 +1,38 @@
+﻿2026-08-28T03:30:47.7394667Z Current runner version: '2.336.0'
+2026-08-28T03:30:47.7412891Z ##[group]Runner Image Provisioner
+2026-08-28T03:30:47.7413594Z Hosted Compute Agent
+2026-08-28T03:30:47.7413997Z Version: 20260819.586
+2026-08-28T03:30:47.7414432Z Commit: 3cc4a88dfa507ef76119ad1bb3eccc6378bb2b76
+2026-08-28T03:30:47.7414972Z Build Date: 2026-08-18T23:20:18Z
+2026-08-28T03:30:47.7415437Z Worker ID: {fbfdc8cc-88a0-4284-8124-45b443cdda8c}
+2026-08-28T03:30:47.7415967Z Azure Region: centralus
+2026-08-28T03:30:47.7416370Z ##[endgroup]
+2026-08-28T03:30:47.7417241Z ##[group]Operating System
+2026-08-28T03:30:47.7417678Z Ubuntu
+2026-08-28T03:30:47.7418071Z 24.04.4
+2026-08-28T03:30:47.7418407Z LTS
+2026-08-28T03:30:47.7419096Z ##[endgroup]
+2026-08-28T03:30:47.7419548Z ##[group]Runner Image
+2026-08-28T03:30:47.7420004Z Image: ubuntu-24.04
+2026-08-28T03:30:47.7420392Z Version: 20260823.283.1
+2026-08-28T03:30:47.7421098Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260823.283/images/ubuntu/Ubuntu2404-Readme.md
+2026-08-28T03:30:47.7422321Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260823.283
+2026-08-28T03:30:47.7423075Z ##[endgroup]
+2026-08-28T03:30:47.7424024Z ##[group]GITHUB_TOKEN Permissions
+2026-08-28T03:30:47.7425575Z Contents: read
+2026-08-28T03:30:47.7425993Z Metadata: read
+2026-08-28T03:30:47.7426394Z PullRequests: write
+2026-08-28T03:30:47.7426803Z SecurityEvents: write
+2026-08-28T03:30:47.7427200Z ##[endgroup]
+2026-08-28T03:30:47.7428892Z Secret source: Actions
+2026-08-28T03:30:47.7429664Z Prepare workflow directory
+2026-08-28T03:30:47.7663248Z Prepare all required actions
+2026-08-28T03:30:47.7697660Z Getting action download info
+2026-08-28T03:30:47.9932367Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-08-28T03:30:48.1421641Z Download action repository 'anthropics/claude-code-action@v1' (SHA:a60f3e1db3edbceed2b1e6c6a9d34c36b8a15eba)
+2026-08-28T03:30:48.4474812Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-08-28T03:30:48.7433847Z Download action repository 'github/codeql-action@v3' (SHA:6f5948dfacef28e207b48d0905cf90c03365536d)
+2026-08-28T03:30:49.4198267Z Getting action download info
+2026-08-28T03:30:49.5059965Z Download action repository 'oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6' (SHA:0c5077e51419868618aeaa5fe8019c62421857d6)
+2026-08-28T03:30:49.8787366Z Uses: Atituiset/agent-reviewer/.github/workflows/ai-review-reusable.yml@refs/heads/mvp (931848512f565e4480ee9b4f3b5cd2d275132972)
+2026-08-28T03:30:49.8790939Z Complete job name: review / review

@@ -1,0 +1,26 @@
+﻿2026-08-28T03:31:03.9555927Z ##[group]Run {
+2026-08-28T03:31:03.9556253Z [36;1m{[0m
+2026-08-28T03:31:03.9556683Z [36;1m  echo "你是 task-reviewer。读取 /tmp/pr.diff 与 .reviewer/rules/registry.json："[0m
+2026-08-28T03:31:03.9557272Z [36;1m  echo "1. 用 .reviewer/scripts/_lib.py scenarios-for 对 diff 触及的每个文件做场景路由"[0m
+2026-08-28T03:31:03.9558136Z [36;1m  echo "2. 对每个命中场景，读 .reviewer/rules/scenarios/<key>/SKILL.md 清单逐项评审（需要深入项时读 references/detailed-checks.md）"[0m
+2026-08-28T03:31:03.9558697Z [36;1m  echo "3. 纪律：只报有 file:line 证据的具体缺陷；置信度 ≥80 才报；风格问题不报"[0m
+2026-08-28T03:31:03.9559040Z [36;1m  if [ "2" != "1" ]; then[0m
+2026-08-28T03:31:03.9559816Z [36;1m    echo "3.5 跨函数判空链回溯（cwe-476 类候选必做）：上报「解引用未判空」前，用 codegraph CLI（codegraph callers <fn> / callees <fn>）沿调用链回溯 ≤10 跳：上游找到判空（同一指针）→ 不报（FP 证伪，可在 reasoning 记录证伪链）；链在函数指针/虚函数处中断 → 保留但 reasoning 必须标注「链中断于 X，静态不可判定」；未做链回溯的跨函数判空 finding 不报"[0m
+2026-08-28T03:31:03.9560561Z [36;1m  fi[0m
+2026-08-28T03:31:03.9560789Z [36;1m  if [ "2" == "3" ]; then[0m
+2026-08-28T03:31:03.9561420Z [36;1m    echo "3.6 navmap 语义导航图可用：.navmap-out/.navmap/out/ 下有本仓消息分发表/状态机表（JSON+md）。判空链在函数指针/分发表处中断时，读对应表把「不确定目标」展开为 handler 集合做保守近似：集合内全部 handler 有判空才可证伪（REFUTED），任一缺失只能 PLAUSIBLE 并标注依据的表"[0m
+2026-08-28T03:31:03.9562109Z [36;1m  fi[0m
+2026-08-28T03:31:03.9562503Z [36;1m  echo "4. 将结果写为 .review/review-artifact.json（用 Write 工具；先 mkdir -p .review），schema："[0m
+2026-08-28T03:31:03.9563092Z [36;1m  echo "   {diff_hash(对 /tmp/pr.diff 的 sha256), verdict(CLEAN|ISSUES_FOUND),"[0m
+2026-08-28T03:31:03.9563642Z [36;1m  echo "    reviewed_at(ISO8601), reviewer:\"ci-task-reviewer\", spec_ref:\"none\","[0m
+2026-08-28T03:31:03.9564199Z [36;1m  echo "    findings:[{file,line,severity(critical|important|minor),category,"[0m
+2026-08-28T03:31:03.9564838Z [36;1m  echo "               scenario(必须是 registry 中存在的场景键),summary,detail,"[0m
+2026-08-28T03:31:03.9565248Z [36;1m  echo "               confidence,resolved:false,"[0m
+2026-08-28T03:31:03.9565634Z [36;1m  echo "               flow:[{file,line,message}](证据链有序步骤，必填),"[0m
+2026-08-28T03:31:03.9566039Z [36;1m  echo "               reasoning(一句话判断理由)}]}"[0m
+2026-08-28T03:31:03.9566363Z [36;1m} > /tmp/review-prompt.txt[0m
+2026-08-28T03:31:03.9566690Z [36;1mecho "prompt<<PROMPT_EOF" >> "$GITHUB_OUTPUT"[0m
+2026-08-28T03:31:03.9567056Z [36;1mcat /tmp/review-prompt.txt >> "$GITHUB_OUTPUT"[0m
+2026-08-28T03:31:03.9567418Z [36;1mecho "PROMPT_EOF" >> "$GITHUB_OUTPUT"[0m
+2026-08-28T03:31:03.9608075Z shell: /usr/bin/bash -e {0}
+2026-08-28T03:31:03.9608362Z ##[endgroup]

@@ -1,0 +1,370 @@
+﻿2026-08-28T03:31:04.1816134Z ##[group]Run anthropics/claude-code-action@v1
+2026-08-28T03:31:04.1816511Z with:
+2026-08-28T03:31:04.1818898Z   github_token: ***
+2026-08-28T03:31:04.1819232Z   anthropic_api_key: ***
+2026-08-28T03:31:04.1819576Z   claude_args: --allowedTools "Read,Write,Grep,Glob,Bash"
+2026-08-28T03:31:04.1822597Z   prompt: 你是 task-reviewer。读取 /tmp/pr.diff 与 .reviewer/rules/registry.json：
+1. 用 .reviewer/scripts/_lib.py scenarios-for 对 diff 触及的每个文件做场景路由
+2. 对每个命中场景，读 .reviewer/rules/scenarios/<key>/SKILL.md 清单逐项评审（需要深入项时读 references/detailed-checks.md）
+3. 纪律：只报有 file:line 证据的具体缺陷；置信度 ≥80 才报；风格问题不报
+3.5 跨函数判空链回溯（cwe-476 类候选必做）：上报「解引用未判空」前，用 codegraph CLI（codegraph callers <fn> / callees <fn>）沿调用链回溯 ≤10 跳：上游找到判空（同一指针）→ 不报（FP 证伪，可在 reasoning 记录证伪链）；链在函数指针/虚函数处中断 → 保留但 reasoning 必须标注「链中断于 X，静态不可判定」；未做链回溯的跨函数判空 finding 不报
+4. 将结果写为 .review/review-artifact.json（用 Write 工具；先 mkdir -p .review），schema：
+   {diff_hash(对 /tmp/pr.diff 的 sha256), verdict(CLEAN|ISSUES_FOUND),
+    reviewed_at(ISO8601), reviewer:"ci-task-reviewer", spec_ref:"none",
+    findings:[{file,line,severity(critical|important|minor),category,
+               scenario(必须是 registry 中存在的场景键),summary,detail,
+               confidence,resolved:false,
+               flow:[{file,line,message}](证据链有序步骤，必填),
+               reasoning(一句话判断理由)}]}
+2026-08-28T03:31:04.1825859Z   trigger_phrase: @claude
+2026-08-28T03:31:04.1826142Z   label_trigger: claude
+2026-08-28T03:31:04.1826406Z   branch_prefix: claude/
+2026-08-28T03:31:04.1826665Z   use_bedrock: false
+2026-08-28T03:31:04.1826901Z   use_vertex: false
+2026-08-28T03:31:04.1827133Z   use_foundry: false
+2026-08-28T03:31:04.1827367Z   use_sticky_comment: false
+2026-08-28T03:31:04.1827633Z   classify_inline_comments: true
+2026-08-28T03:31:04.1827908Z   use_commit_signing: false
+2026-08-28T03:31:04.1828357Z   bot_id: 41898282
+2026-08-28T03:31:04.1828593Z   bot_name: claude[bot]
+2026-08-28T03:31:04.1828839Z   track_progress: false
+2026-08-28T03:31:04.1829077Z   include_fix_links: true
+2026-08-28T03:31:04.1829326Z   display_report: false
+2026-08-28T03:31:04.1829578Z   show_full_output: false
+2026-08-28T03:31:04.1829812Z env:
+2026-08-28T03:31:04.1830091Z   ANTHROPIC_BASE_URL: https://api.deepseek.com/anthropic
+2026-08-28T03:31:04.1830529Z   ANTHROPIC_AUTH_TOKEN: ***
+2026-08-28T03:31:04.1830816Z   ANTHROPIC_MODEL: deepseek-v4-flash
+2026-08-28T03:31:04.1831104Z ##[endgroup]
+2026-08-28T03:31:04.1964315Z ##[start-action display=Install Bun;id=review.setup-bun]
+2026-08-28T03:31:04.2356320Z ##[group]Run oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+2026-08-28T03:31:04.2356739Z with:
+2026-08-28T03:31:04.2356970Z   bun-version: 1.3.14
+2026-08-28T03:31:04.2359349Z   token: ***
+2026-08-28T03:31:04.2359594Z   no-cache: true
+2026-08-28T03:31:04.2359827Z env:
+2026-08-28T03:31:04.2360120Z   ANTHROPIC_BASE_URL: https://api.deepseek.com/anthropic
+2026-08-28T03:31:04.2360583Z   ANTHROPIC_AUTH_TOKEN: ***
+2026-08-28T03:31:04.2360859Z   ANTHROPIC_MODEL: deepseek-v4-flash
+2026-08-28T03:31:04.2361151Z ##[endgroup]
+2026-08-28T03:31:04.4018413Z Downloading a new version of Bun: https://github.com/oven-sh/bun/releases/download/bun-v1.3.14/bun-linux-x64.zip
+2026-08-28T03:31:04.7216443Z [command]/usr/bin/unzip -o -q /home/runner/work/_temp/4fe6ca97-974d-4c9d-95eb-9e4e3e6915f2.zip
+2026-08-28T03:31:05.4738713Z [command]/home/runner/.bun/bin/bun --revision
+2026-08-28T03:31:05.4786568Z 1.3.14+0d9b296af
+2026-08-28T03:31:05.4904147Z ##[end-action id=review.setup-bun;outcome=success;conclusion=success;duration_ms=1293]
+2026-08-28T03:31:05.5032295Z ##[start-action display=Setup Custom Bun Path;id=review.__run]
+2026-08-28T03:31:05.5073865Z ##[end-action id=review.__run;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-08-28T03:31:05.5143471Z ##[start-action display=Install Dependencies;id=review.__run_2]
+2026-08-28T03:31:05.5237511Z ##[group]Run cd ${GITHUB_ACTION_PATH}
+2026-08-28T03:31:05.5237883Z [36;1mcd ${GITHUB_ACTION_PATH}[0m
+2026-08-28T03:31:05.5238186Z [36;1mbun install --production[0m
+2026-08-28T03:31:05.5282520Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-08-28T03:31:05.5283199Z env:
+2026-08-28T03:31:05.5283515Z   ANTHROPIC_BASE_URL: https://api.deepseek.com/anthropic
+2026-08-28T03:31:05.5284032Z   ANTHROPIC_AUTH_TOKEN: ***
+2026-08-28T03:31:05.5284336Z   ANTHROPIC_MODEL: deepseek-v4-flash
+2026-08-28T03:31:05.5284801Z ##[endgroup]
+2026-08-28T03:31:05.5374209Z bun install v1.3.14 (0d9b296a)
+2026-08-28T03:31:06.8447700Z 
+2026-08-28T03:31:06.8448683Z + @actions/core@1.11.1
+2026-08-28T03:31:06.8449141Z + @actions/github@6.0.1
+2026-08-28T03:31:06.8449557Z + @anthropic-ai/claude-agent-sdk@0.3.250
+2026-08-28T03:31:06.8450055Z + @modelcontextprotocol/sdk@1.16.0
+2026-08-28T03:31:06.8450478Z + @octokit/graphql@8.2.2
+2026-08-28T03:31:06.8450841Z + @octokit/rest@21.1.1
+2026-08-28T03:31:06.8451187Z + @octokit/webhooks-types@7.6.1
+2026-08-28T03:31:06.8451965Z + node-fetch@3.3.2
+2026-08-28T03:31:06.8452291Z + shell-quote@1.8.4
+2026-08-28T03:31:06.8452619Z + zod@3.25.76
+2026-08-28T03:31:06.8452801Z 
+2026-08-28T03:31:06.8452989Z 140 packages installed [1308.00ms]
+2026-08-28T03:31:06.8506067Z ##[end-action id=review.__run_2;outcome=success;conclusion=success;duration_ms=1336]
+2026-08-28T03:31:06.8585268Z ##[start-action display=Install subprocess isolation dependencies;id=review.__run_3]
+2026-08-28T03:31:06.8661431Z ##[end-action id=review.__run_3;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-08-28T03:31:06.8747113Z ##[start-action display=Pin bun binary for post-steps;id=review.__run_4]
+2026-08-28T03:31:06.8790937Z ##[end-action id=review.__run_4;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-08-28T03:31:06.8913664Z ##[start-action display=Prepend system bin dirs to PATH;id=review.__run_5]
+2026-08-28T03:31:06.8956704Z ##[end-action id=review.__run_5;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-08-28T03:31:06.9133512Z ##[start-action display=Run Claude Code Action;id=review.run]
+2026-08-28T03:31:06.9223427Z ##[group]Run # Do NOT pass --tsconfig-override here. It triggers a Bun runtime bug
+2026-08-28T03:31:06.9224032Z [36;1m# Do NOT pass --tsconfig-override here. It triggers a Bun runtime bug[0m
+2026-08-28T03:31:06.9224867Z [36;1m# ("Internal error: directory mismatch for directory .../tsconfig.json")[0m
+2026-08-28T03:31:06.9225429Z [36;1m# that aborts the run with exit code 1. Bun already auto-discovers the[0m
+2026-08-28T03:31:06.9225976Z [36;1m# action's own tsconfig.json by walking up from the entry file, so the[0m
+2026-08-28T03:31:06.9226429Z [36;1m# override is redundant. See oven-sh/bun#25730.[0m
+2026-08-28T03:31:06.9226785Z [36;1mbun --no-env-file \[0m
+2026-08-28T03:31:06.9227130Z [36;1m  --config="${GITHUB_ACTION_PATH}/bunfig.toml" \[0m
+2026-08-28T03:31:06.9227529Z [36;1m  run ${GITHUB_ACTION_PATH}/src/entrypoints/run.ts[0m
+2026-08-28T03:31:06.9268227Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-08-28T03:31:06.9268600Z env:
+2026-08-28T03:31:06.9268901Z   ANTHROPIC_BASE_URL: https://api.deepseek.com/anthropic
+2026-08-28T03:31:06.9269396Z   ANTHROPIC_AUTH_TOKEN: ***
+2026-08-28T03:31:06.9269691Z   ANTHROPIC_MODEL: deepseek-v4-flash
+2026-08-28T03:31:06.9269980Z   MODE: 
+2026-08-28T03:31:06.9272886Z   PROMPT: 你是 task-reviewer。读取 /tmp/pr.diff 与 .reviewer/rules/registry.json：
+1. 用 .reviewer/scripts/_lib.py scenarios-for 对 diff 触及的每个文件做场景路由
+2. 对每个命中场景，读 .reviewer/rules/scenarios/<key>/SKILL.md 清单逐项评审（需要深入项时读 references/detailed-checks.md）
+3. 纪律：只报有 file:line 证据的具体缺陷；置信度 ≥80 才报；风格问题不报
+3.5 跨函数判空链回溯（cwe-476 类候选必做）：上报「解引用未判空」前，用 codegraph CLI（codegraph callers <fn> / callees <fn>）沿调用链回溯 ≤10 跳：上游找到判空（同一指针）→ 不报（FP 证伪，可在 reasoning 记录证伪链）；链在函数指针/虚函数处中断 → 保留但 reasoning 必须标注「链中断于 X，静态不可判定」；未做链回溯的跨函数判空 finding 不报
+4. 将结果写为 .review/review-artifact.json（用 Write 工具；先 mkdir -p .review），schema：
+   {diff_hash(对 /tmp/pr.diff 的 sha256), verdict(CLEAN|ISSUES_FOUND),
+    reviewed_at(ISO8601), reviewer:"ci-task-reviewer", spec_ref:"none",
+    findings:[{file,line,severity(critical|important|minor),category,
+               scenario(必须是 registry 中存在的场景键),summary,detail,
+               confidence,resolved:false,
+               flow:[{file,line,message}](证据链有序步骤，必填),
+               reasoning(一句话判断理由)}]}
+2026-08-28T03:31:06.9276233Z   TRIGGER_PHRASE: @claude
+2026-08-28T03:31:06.9276495Z   ASSIGNEE_TRIGGER: 
+2026-08-28T03:31:06.9276738Z   LABEL_TRIGGER: claude
+2026-08-28T03:31:06.9276983Z   BASE_BRANCH: 
+2026-08-28T03:31:06.9277214Z   BRANCH_PREFIX: claude/
+2026-08-28T03:31:06.9277469Z   BRANCH_NAME_TEMPLATE: 
+2026-08-28T03:31:06.9279844Z   OVERRIDE_GITHUB_TOKEN: ***
+2026-08-28T03:31:06.9280120Z   ALLOWED_BOTS: 
+2026-08-28T03:31:06.9280372Z   ALLOWED_NON_WRITE_USERS: 
+2026-08-28T03:31:06.9280651Z   CLAUDE_CODE_SUBPROCESS_ENV_SCRUB: 
+2026-08-28T03:31:06.9280943Z   CLAUDE_CODE_SCRIPT_CAPS: 
+2026-08-28T03:31:06.9281205Z   INCLUDE_COMMENTS_BY_ACTOR: 
+2026-08-28T03:31:06.9281470Z   EXCLUDE_COMMENTS_BY_ACTOR: 
+2026-08-28T03:31:06.9281895Z   GITHUB_RUN_ID: 33139104063
+2026-08-28T03:31:06.9282150Z   USE_STICKY_COMMENT: false
+2026-08-28T03:31:06.9282406Z   CLASSIFY_INLINE_COMMENTS: true
+2026-08-28T03:31:06.9285063Z   DEFAULT_WORKFLOW_TOKEN: ***
+2026-08-28T03:31:06.9285339Z   USE_COMMIT_SIGNING: false
+2026-08-28T03:31:06.9285599Z   SSH_SIGNING_KEY: 
+2026-08-28T03:31:06.9285831Z   BOT_ID: 41898282
+2026-08-28T03:31:06.9286067Z   BOT_NAME: claude[bot]
+2026-08-28T03:31:06.9286324Z   TRACK_PROGRESS: false
+2026-08-28T03:31:06.9286570Z   INCLUDE_FIX_LINKS: true
+2026-08-28T03:31:06.9286845Z   ADDITIONAL_PERMISSIONS: 
+2026-08-28T03:31:06.9287164Z   CLAUDE_ARGS: --allowedTools "Read,Write,Grep,Glob,Bash"
+2026-08-28T03:31:06.9295743Z   ALL_INPUTS: {
+  "github_token": "***",
+  "anthropic_api_key": "***",
+  "claude_args": "--allowedTools \"Read,Write,Grep,Glob,Bash\"",
+  "prompt": "你是 task-reviewer。读取 /tmp/pr.diff 与 .reviewer/rules/registry.json：\n1. 用 .reviewer/scripts/_lib.py scenarios-for 对 diff 触及的每个文件做场景路由\n2. 对每个命中场景，读 .reviewer/rules/scenarios/<key>/SKILL.md 清单逐项评审（需要深入项时读 references/detailed-checks.md）\n3. 纪律：只报有 file:line 证据的具体缺陷；置信度 ≥80 才报；风格问题不报\n3.5 跨函数判空链回溯（cwe-476 类候选必做）：上报「解引用未判空」前，用 codegraph CLI（codegraph callers <fn> / callees <fn>）沿调用链回溯 ≤10 跳：上游找到判空（同一指针）→ 不报（FP 证伪，可在 reasoning 记录证伪链）；链在函数指针/虚函数处中断 → 保留但 reasoning 必须标注「链中断于 X，静态不可判定」；未做链回溯的跨函数判空 finding 不报\n4. 将结果写为 .review/review-artifact.json（用 Write 工具；先 mkdir -p .review），schema：\n   {diff_hash(对 /tmp/pr.diff 的 sha256), verdict(CLEAN|ISSUES_FOUND),\n    reviewed_at(ISO8601), reviewer:\"ci-task-reviewer\", spec_ref:\"none\",\n    findings:[{file,line,severity(critical|important|minor),category,\n               scenario(必须是 registry 中存在的场景键),summary,detail,\n               confidence,resolved:false,\n               flow:[{file,line,message}](证据链有序步骤，必填),\n               reasoning(一句话判断理由)}]}",
+  "trigger_phrase": "@claude",
+  "assignee_trigger": "",
+  "label_trigger": "claude",
+  "base_branch": "",
+  "branch_prefix": "claude/",
+  "branch_name_template": "",
+  "allowed_bots": "",
+  "allowed_non_write_users": "",
+  "include_comments_by_actor": "",
+  "exclude_comments_by_actor": "",
+  "settings": "",
+  "claude_code_oauth_token": "",
+  "anthropic_federation_rule_id": "",
+  "anthropic_organization_id": "",
+  "anthropic_service_account_id": "",
+  "anthropic_workspace_id": "",
+  "anthropic_oidc_audience": "",
+  "use_bedrock": "false",
+  "use_vertex": "false",
+  "use_foundry": "false",
+  "additional_permissions": "",
+  "use_sticky_comment": "false",
+  "classify_inline_comments": "true",
+  "use_commit_signing": "false",
+  "ssh_signing_key": "",
+  "bot_id": "41898282",
+  "bot_name": "claude[bot]",
+  "track_progress": "false",
+  "include_fix_links": "true",
+  "path_to_claude_code_executable": "",
+  "path_to_bun_executable": "",
+  "display_report": "false",
+  "show_full_output": "false",
+  "plugins": "",
+  "plugin_marketplaces": ""
+}
+2026-08-28T03:31:06.9303674Z   INPUT_PROMPT_FILE: /home/runner/work/_temp/claude-prompts/claude-prompt.txt
+2026-08-28T03:31:06.9305334Z   INPUT_SETTINGS: 
+2026-08-28T03:31:06.9305823Z   INPUT_EXPERIMENTAL_SLASH_COMMANDS_DIR: /home/runner/work/_actions/anthropics/claude-code-action/v1/slash-commands
+2026-08-28T03:31:06.9306376Z   INPUT_PATH_TO_CLAUDE_CODE_EXECUTABLE: 
+2026-08-28T03:31:06.9306807Z   INPUT_PATH_TO_BUN_EXECUTABLE: 
+2026-08-28T03:31:06.9307116Z   INPUT_SHOW_FULL_OUTPUT: false
+2026-08-28T03:31:06.9307390Z   DISPLAY_REPORT: false
+2026-08-28T03:31:06.9307633Z   INPUT_PLUGINS: 
+2026-08-28T03:31:06.9307884Z   INPUT_PLUGIN_MARKETPLACES: 
+2026-08-28T03:31:06.9308163Z   PATH_TO_CLAUDE_CODE_EXECUTABLE: 
+2026-08-28T03:31:06.9308436Z   NODE_VERSION: 
+2026-08-28T03:31:06.9308743Z   ANTHROPIC_API_KEY: ***
+2026-08-28T03:31:06.9308995Z   CLAUDE_CODE_OAUTH_TOKEN: 
+2026-08-28T03:31:06.9309265Z   ANTHROPIC_FEDERATION_RULE_ID: 
+2026-08-28T03:31:06.9309551Z   ANTHROPIC_ORGANIZATION_ID: 
+2026-08-28T03:31:06.9309825Z   ANTHROPIC_SERVICE_ACCOUNT_ID: 
+2026-08-28T03:31:06.9310099Z   ANTHROPIC_WORKSPACE_ID: 
+2026-08-28T03:31:06.9310361Z   ANTHROPIC_OIDC_AUDIENCE: 
+2026-08-28T03:31:06.9310628Z   ANTHROPIC_CUSTOM_HEADERS: 
+2026-08-28T03:31:06.9310904Z   CLAUDE_CODE_USE_BEDROCK: 
+2026-08-28T03:31:06.9311163Z   CLAUDE_CODE_USE_VERTEX: 
+2026-08-28T03:31:06.9311416Z   CLAUDE_CODE_USE_FOUNDRY: 
+2026-08-28T03:31:06.9311663Z   AWS_REGION: 
+2026-08-28T03:31:06.9311893Z   AWS_ACCESS_KEY_ID: 
+2026-08-28T03:31:06.9312141Z   AWS_SECRET_ACCESS_KEY: 
+2026-08-28T03:31:06.9312388Z   AWS_SESSION_TOKEN: 
+2026-08-28T03:31:06.9312628Z   AWS_BEARER_TOKEN_BEDROCK: 
+2026-08-28T03:31:06.9312902Z   ANTHROPIC_BEDROCK_BASE_URL: 
+2026-08-28T03:31:06.9313178Z   ANTHROPIC_VERTEX_PROJECT_ID: 
+2026-08-28T03:31:06.9313441Z   CLOUD_ML_REGION: 
+2026-08-28T03:31:06.9313688Z   GOOGLE_APPLICATION_CREDENTIALS: 
+2026-08-28T03:31:06.9313976Z   ANTHROPIC_VERTEX_BASE_URL: 
+2026-08-28T03:31:06.9314239Z   VERTEX_REGION_CLAUDE_3_5_HAIKU: 
+2026-08-28T03:31:06.9314632Z   VERTEX_REGION_CLAUDE_3_5_SONNET: 
+2026-08-28T03:31:06.9314921Z   VERTEX_REGION_CLAUDE_3_7_SONNET: 
+2026-08-28T03:31:06.9315201Z   ANTHROPIC_FOUNDRY_RESOURCE: 
+2026-08-28T03:31:06.9315476Z   ANTHROPIC_FOUNDRY_BASE_URL: 
+2026-08-28T03:31:06.9315743Z   ANTHROPIC_DEFAULT_SONNET_MODEL: 
+2026-08-28T03:31:06.9316022Z   ANTHROPIC_DEFAULT_HAIKU_MODEL: 
+2026-08-28T03:31:06.9316315Z   ANTHROPIC_DEFAULT_OPUS_MODEL: 
+2026-08-28T03:31:06.9316580Z   MCP_TIMEOUT: 
+2026-08-28T03:31:06.9316811Z   MCP_TOOL_TIMEOUT: 
+2026-08-28T03:31:06.9317057Z   MAX_MCP_OUTPUT_TOKENS: 
+2026-08-28T03:31:06.9317313Z   CLAUDE_CODE_ENABLE_TELEMETRY: 
+2026-08-28T03:31:06.9317580Z   OTEL_METRICS_EXPORTER: 
+2026-08-28T03:31:06.9317825Z   OTEL_LOGS_EXPORTER: 
+2026-08-28T03:31:06.9318086Z   OTEL_EXPORTER_OTLP_PROTOCOL: 
+2026-08-28T03:31:06.9318357Z   OTEL_EXPORTER_OTLP_ENDPOINT: 
+2026-08-28T03:31:06.9318621Z   OTEL_EXPORTER_OTLP_HEADERS: 
+2026-08-28T03:31:06.9318886Z   OTEL_METRIC_EXPORT_INTERVAL: 
+2026-08-28T03:31:06.9319154Z   OTEL_LOGS_EXPORT_INTERVAL: 
+2026-08-28T03:31:06.9319418Z   OTEL_RESOURCE_ATTRIBUTES: 
+2026-08-28T03:31:06.9319682Z ##[endgroup]
+2026-08-28T03:31:07.2880655Z Auto-detected mode: agent for event: pull_request
+2026-08-28T03:31:07.2881842Z Using provided GITHUB_TOKEN for authentication
+2026-08-28T03:31:07.2897795Z Checking permissions for actor: Atituiset
+2026-08-28T03:31:07.4953954Z Permission level retrieved: admin
+2026-08-28T03:31:07.4955373Z Actor has write access: admin
+2026-08-28T03:31:07.4955864Z Mode: agent
+2026-08-28T03:31:07.4956901Z Context prompt: 你是 task-reviewer。读取 /tmp/pr.diff 与 .reviewer/rules/registry.json：
+2026-08-28T03:31:07.4957985Z 1. 用 .reviewer/scripts/_lib.py scenarios-for 对 diff 触及的每个文件做场景路由
+2026-08-28T03:31:07.4959101Z 2. 对每个命中场景，读 .reviewer/rules/scenarios/<key>/SKILL.md 清单逐项评审（需要深入项时读 references/detailed-checks.md）
+2026-08-28T03:31:07.4960089Z 3. 纪律：只报有 file:line 证据的具体缺陷；置信度 ≥80 才报；风格问题不报
+2026-08-28T03:31:07.4961829Z 3.5 跨函数判空链回溯（cwe-476 类候选必做）：上报「解引用未判空」前，用 codegraph CLI（codegraph callers <fn> / callees <fn>）沿调用链回溯 ≤10 跳：上游找到判空（同一指针）→ 不报（FP 证伪，可在 reasoning 记录证伪链）；链在函数指针/虚函数处中断 → 保留但 reasoning 必须标注「链中断于 X，静态不可判定」；未做链回溯的跨函数判空 finding 不报
+2026-08-28T03:31:07.4963698Z 4. 将结果写为 .review/review-artifact.json（用 Write 工具；先 mkdir -p .review），schema：
+2026-08-28T03:31:07.4965047Z    {diff_hash(对 /tmp/pr.diff 的 sha256), verdict(CLEAN|ISSUES_FOUND),
+2026-08-28T03:31:07.4966026Z     reviewed_at(ISO8601), reviewer:"ci-task-reviewer", spec_ref:"none",
+2026-08-28T03:31:07.4967048Z     findings:[{file,line,severity(critical|important|minor),category,
+2026-08-28T03:31:07.4967703Z                scenario(必须是 registry 中存在的场景键),summary,detail,
+2026-08-28T03:31:07.4968069Z                confidence,resolved:false,
+2026-08-28T03:31:07.4968485Z                flow:[{file,line,message}](证据链有序步骤，必填),
+2026-08-28T03:31:07.4968857Z                reasoning(一句话判断理由)}]}
+2026-08-28T03:31:07.4969141Z Trigger result: true
+2026-08-28T03:31:07.4969441Z Preparing with mode: agent for event: pull_request
+2026-08-28T03:31:07.6065599Z Actor type: User
+2026-08-28T03:31:07.6066104Z Verified human actor: Atituiset
+2026-08-28T03:31:07.6067852Z Configuring git authentication for non-signing mode
+2026-08-28T03:31:07.6068582Z Configuring git user...
+2026-08-28T03:31:07.6069091Z Setting git user as claude[bot]...
+2026-08-28T03:31:07.8610997Z ✓ Set git user as claude[bot]
+2026-08-28T03:31:07.8611605Z Removing existing git authentication headers...
+2026-08-28T03:31:07.8650776Z ✓ Removed existing authentication headers
+2026-08-28T03:31:07.8651329Z Updating remote URL with authentication...
+2026-08-28T03:31:07.9056920Z ✓ Updated remote URL with authentication token
+2026-08-28T03:31:07.9057865Z Git authentication configured successfully
+2026-08-28T03:31:07.9083175Z Installing Claude Code v2.1.250...
+2026-08-28T03:31:07.9083665Z Installation attempt 1...
+2026-08-28T03:31:09.4975314Z Setting up Claude Code...
+2026-08-28T03:31:09.8050224Z 
+2026-08-28T03:31:09.8175431Z Checking installation status...
+2026-08-28T03:31:11.9996879Z Installing Claude Code native build 2.1.250...
+2026-08-28T03:31:13.2715539Z Setting up launcher and shell integration...
+2026-08-28T03:31:13.2716461Z ✔ Claude Code successfully installed!
+2026-08-28T03:31:13.2717092Z 
+2026-08-28T03:31:13.2717327Z   Version: 2.1.250
+2026-08-28T03:31:13.2717599Z 
+2026-08-28T03:31:13.2717841Z   Location: ~/.local/bin/claude
+2026-08-28T03:31:13.2718148Z 
+2026-08-28T03:31:13.2718280Z 
+2026-08-28T03:31:15.2726538Z   Next: Run claude --help to get started
+2026-08-28T03:31:15.3883790Z 
+2026-08-28T03:31:15.3884967Z ✅ Installation complete!
+2026-08-28T03:31:15.3885285Z 
+2026-08-28T03:31:15.3898472Z Claude Code installed successfully
+2026-08-28T03:31:15.3910146Z Restoring .claude, .mcp.json, .claude.json, .gitmodules, .ripgreprc, CLAUDE.md, CLAUDE.local.md, .husky from origin/master (PR head is untrusted)
+2026-08-28T03:31:15.5498687Z From https://github.com/Atituiset/AetherStack
+2026-08-28T03:31:15.5499336Z  * branch            master     -> FETCH_HEAD
+2026-08-28T03:31:15.5793110Z Setting up Claude settings at: /home/runner/.claude/settings.json
+2026-08-28T03:31:15.5793768Z Creating .claude directory...
+2026-08-28T03:31:15.5819036Z No existing settings file found, creating new one
+2026-08-28T03:31:15.5819703Z Updated settings with enableAllProjectMcpServers: true
+2026-08-28T03:31:15.5820563Z Settings saved successfully
+2026-08-28T03:31:15.5823903Z No marketplaces specified, skipping marketplace setup
+2026-08-28T03:31:15.5824973Z No plugins specified, skipping plugins installation
+2026-08-28T03:31:15.5844067Z Running Claude Code via SDK (full output hidden for security)...
+2026-08-28T03:31:15.5845039Z Rerun in debug mode or enable `show_full_output: true` in your workflow file for full output.
+2026-08-28T03:31:15.5846006Z Running Claude with prompt from file: /home/runner/work/_temp/claude-prompts/claude-prompt.txt
+2026-08-28T03:31:15.5846720Z SDK options: {
+2026-08-28T03:31:15.5847073Z   "model": "deepseek-v4-flash",
+2026-08-28T03:31:15.5847476Z   "allowedTools": [
+2026-08-28T03:31:15.5847799Z     "Read",
+2026-08-28T03:31:15.5848083Z     "Write",
+2026-08-28T03:31:15.5848300Z     "Grep",
+2026-08-28T03:31:15.5848504Z     "Glob",
+2026-08-28T03:31:15.5848711Z     "Bash"
+2026-08-28T03:31:15.5849154Z   ],
+2026-08-28T03:31:15.5849373Z   "systemPrompt": {
+2026-08-28T03:31:15.5849620Z     "type": "preset",
+2026-08-28T03:31:15.5849876Z     "preset": "claude_code"
+2026-08-28T03:31:15.5850128Z   },
+2026-08-28T03:31:15.5850440Z   "pathToClaudeCodeExecutable": "/home/runner/.local/bin/claude",
+2026-08-28T03:31:15.5850841Z   "settingSources": [
+2026-08-28T03:31:15.5851097Z     "user",
+2026-08-28T03:31:15.5851316Z     "project",
+2026-08-28T03:31:15.5851539Z     "local"
+2026-08-28T03:31:15.5851745Z   ]
+2026-08-28T03:31:15.5851957Z }
+2026-08-28T03:31:16.1099659Z {
+2026-08-28T03:31:16.1100014Z   "type": "system",
+2026-08-28T03:31:16.1100319Z   "subtype": "init",
+2026-08-28T03:31:16.1100608Z   "message": "Claude Code initialized",
+2026-08-28T03:31:16.1100940Z   "model": "deepseek-v4-flash"
+2026-08-28T03:31:16.1101213Z }
+2026-08-28T03:34:33.1676080Z {
+2026-08-28T03:34:33.1678380Z   "type": "result",
+2026-08-28T03:34:33.1679126Z   "subtype": "success",
+2026-08-28T03:34:33.1679546Z   "is_error": false,
+2026-08-28T03:34:33.1679879Z   "duration_ms": 197111,
+2026-08-28T03:34:33.1680149Z   "num_turns": 37,
+2026-08-28T03:34:33.1680472Z   "total_cost_usd": 1.4156359999999997,
+2026-08-28T03:34:33.1680788Z   "permission_denials_count": 0,
+2026-08-28T03:34:33.1681082Z   "modelUsage": {
+2026-08-28T03:34:33.1681337Z     "deepseek-v4-flash": {
+2026-08-28T03:34:33.1681607Z       "contextWindow": 200000,
+2026-08-28T03:34:33.1681883Z       "maxOutputTokens": 32000
+2026-08-28T03:34:33.1682135Z     }
+2026-08-28T03:34:33.1682344Z   }
+2026-08-28T03:34:33.1682556Z }
+2026-08-28T03:34:33.2698070Z Log saved to /home/runner/work/_temp/claude-execution-output.json
+2026-08-28T03:34:33.2700891Z Set session_id: 83c0d466-6d29-4ca3-ab65-fc4da5928f2f
+2026-08-28T03:34:33.2820028Z ##[end-action id=review.run;outcome=success;conclusion=success;duration_ms=206368]
+2026-08-28T03:34:33.2904760Z ##[start-action display=Re-prepend system bin dirs to PATH;id=review.__run_6]
+2026-08-28T03:34:33.2948087Z ##[end-action id=review.__run_6;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-08-28T03:34:33.3037596Z ##[start-action display=Cleanup SSH signing key;id=review.__run_7]
+2026-08-28T03:34:33.3075803Z ##[end-action id=review.__run_7;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-08-28T03:34:33.3151240Z ##[start-action display=Post buffered inline comments;id=review.__run_8]
+2026-08-28T03:34:33.3276396Z ##[group]Run BUN_BIN="${GITHUB_ACTION_PATH}/bin/bun"
+2026-08-28T03:34:33.3276825Z [36;1mBUN_BIN="${GITHUB_ACTION_PATH}/bin/bun"[0m
+2026-08-28T03:34:33.3277165Z [36;1m[ -x "$BUN_BIN" ] || BUN_BIN="bun"[0m
+2026-08-28T03:34:33.3277588Z [36;1m# No --tsconfig-override: see the "Run Claude Code Action" step above.[0m
+2026-08-28T03:34:33.3278016Z [36;1m"$BUN_BIN" --no-env-file \[0m
+2026-08-28T03:34:33.3278357Z [36;1m  --config="${GITHUB_ACTION_PATH}/bunfig.toml" \[0m
+2026-08-28T03:34:33.3278854Z [36;1m  run ${GITHUB_ACTION_PATH}/src/entrypoints/post-buffered-inline-comments.ts[0m
+2026-08-28T03:34:33.3319742Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-08-28T03:34:33.3320111Z env:
+2026-08-28T03:34:33.3320462Z   ANTHROPIC_BASE_URL: https://api.deepseek.com/anthropic
+2026-08-28T03:34:33.3320982Z   ANTHROPIC_AUTH_TOKEN: ***
+2026-08-28T03:34:33.3321282Z   ANTHROPIC_MODEL: deepseek-v4-flash
+2026-08-28T03:34:33.3323874Z   GITHUB_TOKEN: ***
+2026-08-28T03:34:33.3324132Z   REPO_OWNER: Atituiset
+2026-08-28T03:34:33.3324386Z   REPO_NAME: AetherStack
+2026-08-28T03:34:33.3324771Z   PR_NUMBER: 3
+2026-08-28T03:34:33.3325081Z   ANTHROPIC_API_KEY: ***
+2026-08-28T03:34:33.3325334Z ##[endgroup]
+2026-08-28T03:34:33.3754771Z No buffered inline comments
+2026-08-28T03:34:33.3787262Z ##[end-action id=review.__run_8;outcome=success;conclusion=success;duration_ms=63]
+2026-08-28T03:34:33.3859634Z ##[start-action display=Revoke app token;id=review.__run_9]
+2026-08-28T03:34:33.3925936Z ##[end-action id=review.__run_9;outcome=skipped;conclusion=skipped;duration_ms=0]

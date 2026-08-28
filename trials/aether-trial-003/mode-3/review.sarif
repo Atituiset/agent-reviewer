@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "agent-reviewer",
+          "version": "0.1.0",
+          "informationUri": "https://github.com/Atituiset/agent-reviewer",
+          "rules": [
+            {
+              "id": "cwe-787",
+              "name": "cwe-787-out-of-bounds-write",
+              "shortDescription": {
+                "text": "写越界：向缓冲区写入超出其分配大小的数据（CWE-CWE-787）。"
+              },
+              "properties": {
+                "cwe": "787",
+                "severity_default": "high",
+                "origin": "mitre-top25"
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "cwe-787",
+          "level": "error",
+          "message": {
+            "text": "strcpy 将无界长度来源复制进 64 字节堆缓冲区，超长 tag 导致堆越界写\n\nalloc_or_die(64) 精确分配 64 字节（aka.cpp:175-181，malloc(n) 无额外余量）。fill 内 std::strcpy(p, tag) 对来源 tag 无长度上界，且 build_banner 未对入参 tag 做任何长度/边界校验（aka.cpp:187-189）。当 strlen(tag) >= 64 时写入越过 malloc 分配的 64 字节缓冲区，属 CWE-787 堆缓冲区溢出。当前仓内 build_banner 无调用方，但它是命名空间内导出符号，一旦被传入超长 C 字符串即可触发（异步注：该缺陷独立于试验件针对的 cwe-476 判空契约链）。\n\n**判断理由**：alloc_or_die(64) 精确分配 64 字节而 strcpy 对来源 tag 无界、build_banner 无长度校验，strlen(tag)>=64 必然堆越界写；此缺陷独立于试验件针对的 cwe-476 判空链（后者已通过 codegraph 回溯到 alloc_or_die 的 abort 守卫证伪，不报）。\n\n**证据链**：stack/nas/src/aka.cpp:176 alloc_or_die(n) 仅按 n 精确分配：malloc(n)，返回缓冲区大小恰为 64 字节（build_banner 传 64） → stack/nas/src/aka.cpp:188 build_banner 以 alloc_or_die(64) 得到 p，目标缓冲区固定 64 字节，无扩容或长度预留 → stack/nas/src/aka.cpp:187 build_banner(const char *tag) 将调用方入参 tag 原样透传给 fill，未做任何长度校验 → stack/nas/src/aka.cpp:184 fill 内 std::strcpy(p, tag) 对 tag 无长度上界：strlen(tag)+1 > 64 时越过分配边界写入（CWE-787）",
+            "markdown": "strcpy 将无界长度来源复制进 64 字节堆缓冲区，超长 tag 导致堆越界写\n\nalloc_or_die(64) 精确分配 64 字节（aka.cpp:175-181，malloc(n) 无额外余量）。fill 内 std::strcpy(p, tag) 对来源 tag 无长度上界，且 build_banner 未对入参 tag 做任何长度/边界校验（aka.cpp:187-189）。当 strlen(tag) >= 64 时写入越过 malloc 分配的 64 字节缓冲区，属 CWE-787 堆缓冲区溢出。当前仓内 build_banner 无调用方，但它是命名空间内导出符号，一旦被传入超长 C 字符串即可触发（异步注：该缺陷独立于试验件针对的 cwe-476 判空契约链）。\n\n**判断理由**：alloc_or_die(64) 精确分配 64 字节而 strcpy 对来源 tag 无界、build_banner 无长度校验，strlen(tag)>=64 必然堆越界写；此缺陷独立于试验件针对的 cwe-476 判空链（后者已通过 codegraph 回溯到 alloc_or_die 的 abort 守卫证伪，不报）。\n\n**证据链**：stack/nas/src/aka.cpp:176 alloc_or_die(n) 仅按 n 精确分配：malloc(n)，返回缓冲区大小恰为 64 字节（build_banner 传 64） → stack/nas/src/aka.cpp:188 build_banner 以 alloc_or_die(64) 得到 p，目标缓冲区固定 64 字节，无扩容或长度预留 → stack/nas/src/aka.cpp:187 build_banner(const char *tag) 将调用方入参 tag 原样透传给 fill，未做任何长度校验 → stack/nas/src/aka.cpp:184 fill 内 std::strcpy(p, tag) 对 tag 无长度上界：strlen(tag)+1 > 64 时越过分配边界写入（CWE-787）"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "stack/nas/src/aka.cpp"
+                },
+                "region": {
+                  "startLine": 184
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "diffHash": "b359956a52961424d5a42b4ef22a9ec5f203cafbc151446eb43e3754c81f0dcb",
+            "findingIndex": "cwe-787/stack/nas/src/aka.cpp:184"
+          },
+          "properties": {
+            "confidence": 95,
+            "severity": "important",
+            "category": "cwe-787",
+            "checklist_item": null,
+            "refs": [],
+            "ruling": null,
+            "resolved": false,
+            "reasoning": "alloc_or_die(64) 精确分配 64 字节而 strcpy 对来源 tag 无界、build_banner 无长度校验，strlen(tag)>=64 必然堆越界写；此缺陷独立于试验件针对的 cwe-476 判空链（后者已通过 codegraph 回溯到 alloc_or_die 的 abort 守卫证伪，不报）。"
+          },
+          "codeFlows": [
+            {
+              "threadFlows": [
+                {
+                  "locations": [
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/aka.cpp"
+                          },
+                          "region": {
+                            "startLine": 176
+                          }
+                        },
+                        "message": {
+                          "text": "alloc_or_die(n) 仅按 n 精确分配：malloc(n)，返回缓冲区大小恰为 64 字节（build_banner 传 64）"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/aka.cpp"
+                          },
+                          "region": {
+                            "startLine": 188
+                          }
+                        },
+                        "message": {
+                          "text": "build_banner 以 alloc_or_die(64) 得到 p，目标缓冲区固定 64 字节，无扩容或长度预留"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/aka.cpp"
+                          },
+                          "region": {
+                            "startLine": 187
+                          }
+                        },
+                        "message": {
+                          "text": "build_banner(const char *tag) 将调用方入参 tag 原样透传给 fill，未做任何长度校验"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/aka.cpp"
+                          },
+                          "region": {
+                            "startLine": 184
+                          }
+                        },
+                        "message": {
+                          "text": "fill 内 std::strcpy(p, tag) 对 tag 无长度上界：strlen(tag)+1 > 64 时越过分配边界写入（CWE-787）"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "hostedViewerUri": "https://github.com/Atituiset/AetherStack/actions/runs/33139107235"
+        }
+      ],
+      "properties": {
+        "verdict": "ISSUES_FOUND",
+        "diff_hash": "b359956a52961424d5a42b4ef22a9ec5f203cafbc151446eb43e3754c81f0dcb",
+        "reviewed_at": "2026-08-28T03:33:04Z",
+        "scenarios_scanned": []
+      }
+    }
+  ]
+}

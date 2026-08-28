@@ -1,0 +1,80 @@
+﻿2026-08-28T03:13:56.1772905Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-08-28T03:13:56.1774655Z ##[group]Run actions/checkout@v4
+2026-08-28T03:13:56.1774913Z with:
+2026-08-28T03:13:56.1775129Z   repository: Atituiset/navmap
+2026-08-28T03:13:56.1775386Z   path: .navmap-tool
+2026-08-28T03:13:56.1778084Z   token: ***
+2026-08-28T03:13:56.1778301Z   ssh-strict: true
+2026-08-28T03:13:56.1778509Z   ssh-user: git
+2026-08-28T03:13:56.1779136Z   persist-credentials: true
+2026-08-28T03:13:56.1779393Z   clean: true
+2026-08-28T03:13:56.1779613Z   sparse-checkout-cone-mode: true
+2026-08-28T03:13:56.1779878Z   fetch-depth: 1
+2026-08-28T03:13:56.1780095Z   fetch-tags: false
+2026-08-28T03:13:56.1780309Z   show-progress: true
+2026-08-28T03:13:56.1780533Z   lfs: false
+2026-08-28T03:13:56.1780773Z   submodules: false
+2026-08-28T03:13:56.1781000Z   set-safe-directory: true
+2026-08-28T03:13:56.1781263Z   allow-unsafe-pr-checkout: false
+2026-08-28T03:13:56.1781523Z env:
+2026-08-28T03:13:56.1781707Z   SUBSYSTEM: stack
+2026-08-28T03:13:56.1781910Z ##[endgroup]
+2026-08-28T03:13:56.2622580Z Syncing repository: Atituiset/navmap
+2026-08-28T03:13:56.2623565Z ##[group]Getting Git version info
+2026-08-28T03:13:56.2624319Z Working directory is '/home/runner/work/AetherStack/AetherStack/.navmap-tool'
+2026-08-28T03:13:56.2661452Z [command]/usr/bin/git version
+2026-08-28T03:13:56.2704678Z git version 2.55.0
+2026-08-28T03:13:56.2728362Z ##[endgroup]
+2026-08-28T03:13:56.2743720Z Temporarily overriding HOME='/home/runner/work/_temp/b197f7df-56a3-49b5-93ff-6fb6afb5f39e' before making global git config changes
+2026-08-28T03:13:56.2745507Z Adding repository directory to the temporary git global config as a safe directory
+2026-08-28T03:13:56.2749905Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/AetherStack/AetherStack/.navmap-tool
+2026-08-28T03:13:56.2783668Z ##[group]Initializing the repository
+2026-08-28T03:13:56.2789268Z [command]/usr/bin/git init /home/runner/work/AetherStack/AetherStack/.navmap-tool
+2026-08-28T03:13:56.2827744Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-08-28T03:13:56.2829146Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-08-28T03:13:56.2830555Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-08-28T03:13:56.2831519Z hint: call:
+2026-08-28T03:13:56.2832045Z hint:
+2026-08-28T03:13:56.2832659Z hint: 	git config --global init.defaultBranch <name>
+2026-08-28T03:13:56.2833394Z hint:
+2026-08-28T03:13:56.2834095Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-08-28T03:13:56.2836532Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-08-28T03:13:56.2837442Z hint:
+2026-08-28T03:13:56.2837955Z hint: 	git branch -m <name>
+2026-08-28T03:13:56.2838871Z hint:
+2026-08-28T03:13:56.2839729Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-08-28T03:13:56.2851154Z Initialized empty Git repository in /home/runner/work/AetherStack/AetherStack/.navmap-tool/.git/
+2026-08-28T03:13:56.2853892Z [command]/usr/bin/git remote add origin https://github.com/Atituiset/navmap
+2026-08-28T03:13:56.2887855Z ##[endgroup]
+2026-08-28T03:13:56.2889140Z ##[group]Disabling automatic garbage collection
+2026-08-28T03:13:56.2891599Z [command]/usr/bin/git config --local gc.auto 0
+2026-08-28T03:13:56.2922626Z ##[endgroup]
+2026-08-28T03:13:56.2923237Z ##[group]Setting up auth
+2026-08-28T03:13:56.2929418Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-08-28T03:13:56.2960923Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-08-28T03:13:56.3200289Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-08-28T03:13:56.3235922Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-08-28T03:13:56.3496141Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-08-28T03:13:56.3537296Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-08-28T03:13:56.3782802Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-08-28T03:13:56.3821706Z ##[endgroup]
+2026-08-28T03:13:56.3822411Z ##[group]Determining the default branch
+2026-08-28T03:13:56.3825961Z Retrieving the default branch name
+2026-08-28T03:13:56.6521237Z Default branch 'main'
+2026-08-28T03:13:56.6522355Z ##[endgroup]
+2026-08-28T03:13:56.6523114Z ##[group]Fetching the repository
+2026-08-28T03:13:56.6532007Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/main:refs/remotes/origin/main
+2026-08-28T03:13:58.1305877Z From https://github.com/Atituiset/navmap
+2026-08-28T03:13:58.1306400Z  * [new branch]      main       -> origin/main
+2026-08-28T03:13:58.1311343Z ##[endgroup]
+2026-08-28T03:13:58.1312157Z ##[group]Determining the checkout info
+2026-08-28T03:13:58.1319463Z ##[endgroup]
+2026-08-28T03:13:58.1321220Z [command]/usr/bin/git sparse-checkout disable
+2026-08-28T03:13:58.1367634Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-08-28T03:13:58.1433018Z ##[group]Checking out the ref
+2026-08-28T03:13:58.1437808Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-08-28T03:13:58.3777470Z Switched to a new branch 'main'
+2026-08-28T03:13:58.3780201Z branch 'main' set up to track 'origin/main'.
+2026-08-28T03:13:58.3786388Z ##[endgroup]
+2026-08-28T03:13:58.3831439Z [command]/usr/bin/git log -1 --format=%H
+2026-08-28T03:13:58.3861768Z 302d70504bf3d1f09d0b6c45d0e60dbc7aecc5a1

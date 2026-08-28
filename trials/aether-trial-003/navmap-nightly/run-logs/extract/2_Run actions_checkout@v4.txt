@@ -1,0 +1,91 @@
+﻿2026-08-28T03:13:53.7332170Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-08-28T03:13:53.7341408Z ##[group]Run actions/checkout@v4
+2026-08-28T03:13:53.7342188Z with:
+2026-08-28T03:13:53.7342625Z   fetch-depth: 0
+2026-08-28T03:13:53.7343107Z   repository: Atituiset/AetherStack
+2026-08-28T03:13:53.7347101Z   token: ***
+2026-08-28T03:13:53.7347539Z   ssh-strict: true
+2026-08-28T03:13:53.7347975Z   ssh-user: git
+2026-08-28T03:13:53.7348424Z   persist-credentials: true
+2026-08-28T03:13:53.7349145Z   clean: true
+2026-08-28T03:13:53.7349612Z   sparse-checkout-cone-mode: true
+2026-08-28T03:13:53.7350150Z   fetch-tags: false
+2026-08-28T03:13:53.7350593Z   show-progress: true
+2026-08-28T03:13:53.7351046Z   lfs: false
+2026-08-28T03:13:53.7351464Z   submodules: false
+2026-08-28T03:13:53.7351966Z   set-safe-directory: true
+2026-08-28T03:13:53.7352467Z   allow-unsafe-pr-checkout: false
+2026-08-28T03:13:53.7353245Z env:
+2026-08-28T03:13:53.7353680Z   SUBSYSTEM: stack
+2026-08-28T03:13:53.7354120Z ##[endgroup]
+2026-08-28T03:13:53.8347029Z Syncing repository: Atituiset/AetherStack
+2026-08-28T03:13:53.8349968Z ##[group]Getting Git version info
+2026-08-28T03:13:53.8351158Z Working directory is '/home/runner/work/AetherStack/AetherStack'
+2026-08-28T03:13:53.8352881Z [command]/usr/bin/git version
+2026-08-28T03:13:53.8413751Z git version 2.55.0
+2026-08-28T03:13:53.8476024Z ##[endgroup]
+2026-08-28T03:13:53.8483404Z Temporarily overriding HOME='/home/runner/work/_temp/3fd21d3d-715c-40af-bd38-5a35a7d35fe8' before making global git config changes
+2026-08-28T03:13:53.8485846Z Adding repository directory to the temporary git global config as a safe directory
+2026-08-28T03:13:53.8489117Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/AetherStack/AetherStack
+2026-08-28T03:13:53.8537818Z Deleting the contents of '/home/runner/work/AetherStack/AetherStack'
+2026-08-28T03:13:53.8542859Z ##[group]Initializing the repository
+2026-08-28T03:13:53.8546914Z [command]/usr/bin/git init /home/runner/work/AetherStack/AetherStack
+2026-08-28T03:13:53.8643057Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-08-28T03:13:53.8644730Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-08-28T03:13:53.8647563Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-08-28T03:13:53.8649014Z hint: call:
+2026-08-28T03:13:53.8649669Z hint:
+2026-08-28T03:13:53.8650531Z hint: 	git config --global init.defaultBranch <name>
+2026-08-28T03:13:53.8651511Z hint:
+2026-08-28T03:13:53.8652462Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-08-28T03:13:53.8654012Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-08-28T03:13:53.8655210Z hint:
+2026-08-28T03:13:53.8655890Z hint: 	git branch -m <name>
+2026-08-28T03:13:53.8656699Z hint:
+2026-08-28T03:13:53.8657784Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-08-28T03:13:53.8659749Z Initialized empty Git repository in /home/runner/work/AetherStack/AetherStack/.git/
+2026-08-28T03:13:53.8662486Z [command]/usr/bin/git remote add origin https://github.com/Atituiset/AetherStack
+2026-08-28T03:13:53.8701970Z ##[endgroup]
+2026-08-28T03:13:53.8703222Z ##[group]Disabling automatic garbage collection
+2026-08-28T03:13:53.8706334Z [command]/usr/bin/git config --local gc.auto 0
+2026-08-28T03:13:53.8738923Z ##[endgroup]
+2026-08-28T03:13:53.8740977Z ##[group]Setting up auth
+2026-08-28T03:13:53.8746872Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-08-28T03:13:53.8782763Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-08-28T03:13:53.9141718Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-08-28T03:13:53.9185055Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-08-28T03:13:53.9436278Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-08-28T03:13:53.9473867Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-08-28T03:13:53.9697178Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-08-28T03:13:53.9736878Z ##[endgroup]
+2026-08-28T03:13:53.9737758Z ##[group]Fetching the repository
+2026-08-28T03:13:53.9747545Z [command]/usr/bin/git -c protocol.version=2 fetch --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/*
+2026-08-28T03:13:54.3463349Z From https://github.com/Atituiset/AetherStack
+2026-08-28T03:13:54.3464513Z  * [new branch]      master             -> origin/master
+2026-08-28T03:13:54.3465451Z  * [new branch]      trial/ai-review-ci -> origin/trial/ai-review-ci
+2026-08-28T03:13:54.3466409Z  * [new branch]      trial/review-gate  -> origin/trial/review-gate
+2026-08-28T03:13:54.3467266Z  * [new tag]         M0                 -> M0
+2026-08-28T03:13:54.3467981Z  * [new tag]         M1                 -> M1
+2026-08-28T03:13:54.3469040Z  * [new tag]         M1.1               -> M1.1
+2026-08-28T03:13:54.3470248Z  * [new tag]         M1.3               -> M1.3
+2026-08-28T03:13:54.3471052Z  * [new tag]         M2                 -> M2
+2026-08-28T03:13:54.3471733Z  * [new tag]         M3                 -> M3
+2026-08-28T03:13:54.3472404Z  * [new tag]         M4                 -> M4
+2026-08-28T03:13:54.3473077Z  * [new tag]         M5                 -> M5
+2026-08-28T03:13:54.3473779Z  * [new tag]         M6                 -> M6
+2026-08-28T03:13:54.3477551Z [command]/usr/bin/git branch --list --remote origin/master
+2026-08-28T03:13:54.3506118Z   origin/master
+2026-08-28T03:13:54.3515626Z [command]/usr/bin/git rev-parse refs/remotes/origin/master
+2026-08-28T03:13:54.3542672Z 05284edc5fda1a781b44a804879d92422044785a
+2026-08-28T03:13:54.3553463Z ##[endgroup]
+2026-08-28T03:13:54.3554267Z ##[group]Determining the checkout info
+2026-08-28T03:13:54.3555149Z ##[endgroup]
+2026-08-28T03:13:54.3565381Z [command]/usr/bin/git sparse-checkout disable
+2026-08-28T03:13:54.3622042Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-08-28T03:13:54.3652908Z ##[group]Checking out the ref
+2026-08-28T03:13:54.3657083Z [command]/usr/bin/git checkout --progress --force -B master refs/remotes/origin/master
+2026-08-28T03:13:54.3892130Z Reset branch 'master'
+2026-08-28T03:13:54.3899505Z branch 'master' set up to track 'origin/master'.
+2026-08-28T03:13:54.3905565Z ##[endgroup]
+2026-08-28T03:13:54.3945719Z [command]/usr/bin/git log -1 --format=%H
+2026-08-28T03:13:54.3972483Z 05284edc5fda1a781b44a804879d92422044785a

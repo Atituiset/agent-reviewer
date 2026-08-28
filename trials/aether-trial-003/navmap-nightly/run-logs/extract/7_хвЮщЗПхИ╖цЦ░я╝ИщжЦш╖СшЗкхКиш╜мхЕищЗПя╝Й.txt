@@ -1,0 +1,25 @@
+﻿2026-08-28T03:14:05.0475387Z ##[group]Run BASELINE=$(git rev-parse HEAD)
+2026-08-28T03:14:05.0475795Z [36;1mBASELINE=$(git rev-parse HEAD)[0m
+2026-08-28T03:14:05.0476178Z [36;1mif [ -f ".navmap/out/navmap-dispatch-$SUBSYSTEM.json" ]; then[0m
+2026-08-28T03:14:05.0476608Z [36;1m  .navmap-tool/.venv/bin/navmap refresh \[0m
+2026-08-28T03:14:05.0477058Z [36;1m    --src "$GITHUB_WORKSPACE" --compdb build/compile_commands.json \[0m
+2026-08-28T03:14:05.0477512Z [36;1m    --subsystem "$SUBSYSTEM" --out .navmap/out/[0m
+2026-08-28T03:14:05.0477827Z [36;1melse[0m
+2026-08-28T03:14:05.0478065Z [36;1m  .navmap-tool/.venv/bin/navmap extract \[0m
+2026-08-28T03:14:05.0478474Z [36;1m    --src "$GITHUB_WORKSPACE" --compdb build/compile_commands.json \[0m
+2026-08-28T03:14:05.0479229Z [36;1m    --baseline "$BASELINE" --subsystem "$SUBSYSTEM" --out .navmap/out/[0m
+2026-08-28T03:14:05.0479622Z [36;1mfi[0m
+2026-08-28T03:14:05.0516427Z shell: /usr/bin/bash -e {0}
+2026-08-28T03:14:05.0516682Z env:
+2026-08-28T03:14:05.0516876Z   SUBSYSTEM: stack
+2026-08-28T03:14:05.0517206Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-08-28T03:14:05.0517666Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-08-28T03:14:05.0518125Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-08-28T03:14:05.0518515Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-08-28T03:14:05.0519197Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-08-28T03:14:05.0519595Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-08-28T03:14:05.0519928Z ##[endgroup]
+2026-08-28T03:14:05.4170619Z [navmap] libclang: /home/runner/work/AetherStack/AetherStack/.navmap-tool/vendor/libclang-20.1.0/lib/libclang.so.13 (clang version 20.1.0 (https://github.com/conda-forge/clangdev-feedstock 35ff9ce25ee0b4c3202cdcc909519dc132673169))
+2026-08-28T03:14:05.5408526Z [navmap] 粗筛候选文件: 8
+2026-08-28T03:14:06.3282026Z [navmap] 表: 0，表项: 0，状态机表: 0，解析失败: 8
+2026-08-28T03:14:06.3283312Z [navmap] 产物: .navmap/out/navmap-dispatch-stack.json / .navmap/out/navmap-dispatch-stack.md / .navmap/out/navmap-statemachine-stack.json

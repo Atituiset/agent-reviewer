@@ -1,0 +1,9 @@
+﻿2026-08-28T03:34:34.2619605Z ##[group]Run ls -la "$GITHUB_WORKSPACE/.review/review-artifact.json" || { echo "工件缺失（评审未产出）——fail-open 跳过"; exit 0; }
+2026-08-28T03:34:34.2620433Z [36;1mls -la "$GITHUB_WORKSPACE/.review/review-artifact.json" || { echo "工件缺失（评审未产出）——fail-open 跳过"; exit 0; }[0m
+2026-08-28T03:34:34.2621153Z [36;1mexport SARIF_VIEWER_URI="https://github.com/Atituiset/AetherStack/actions/runs/33139104063"[0m
+2026-08-28T03:34:34.2621919Z [36;1mcd .reviewer && bash scripts/artifact-to-sarif.sh "$GITHUB_WORKSPACE/.review/review-artifact.json" /tmp/review.sarif[0m
+2026-08-28T03:34:34.2622662Z [36;1mcp /tmp/review.sarif "$GITHUB_WORKSPACE/.review.sarif" || cp /tmp/review.sarif ./review.sarif[0m
+2026-08-28T03:34:34.2663793Z shell: /usr/bin/bash -e {0}
+2026-08-28T03:34:34.2664087Z ##[endgroup]
+2026-08-28T03:34:34.2743363Z -rw-r--r-- 1 runner runner 4997 Aug 28 03:34 /home/runner/work/AetherStack/AetherStack/.review/review-artifact.json
+2026-08-28T03:34:34.3055145Z wrote /tmp/review.sarif: 2 results, 2 rules

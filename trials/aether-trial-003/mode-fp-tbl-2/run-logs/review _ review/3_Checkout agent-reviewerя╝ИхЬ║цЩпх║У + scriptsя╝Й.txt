@@ -1,0 +1,77 @@
+﻿2026-08-28T03:52:37.4421853Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-08-28T03:52:37.4426892Z ##[group]Run actions/checkout@v4
+2026-08-28T03:52:37.4427817Z with:
+2026-08-28T03:52:37.4428606Z   repository: Atituiset/agent-reviewer
+2026-08-28T03:52:37.4429559Z   ref: mvp
+2026-08-28T03:52:37.4430279Z   path: .reviewer
+2026-08-28T03:52:37.4438549Z   token: ***
+2026-08-28T03:52:37.4439321Z   ssh-strict: true
+2026-08-28T03:52:37.4440105Z   ssh-user: git
+2026-08-28T03:52:37.4440907Z   persist-credentials: true
+2026-08-28T03:52:37.4441761Z   clean: true
+2026-08-28T03:52:37.4442565Z   sparse-checkout-cone-mode: true
+2026-08-28T03:52:37.4443494Z   fetch-depth: 1
+2026-08-28T03:52:37.4444391Z   fetch-tags: false
+2026-08-28T03:52:37.4445185Z   show-progress: true
+2026-08-28T03:52:37.4446030Z   lfs: false
+2026-08-28T03:52:37.4446764Z   submodules: false
+2026-08-28T03:52:37.4447579Z   set-safe-directory: true
+2026-08-28T03:52:37.4448503Z   allow-unsafe-pr-checkout: false
+2026-08-28T03:52:37.4449442Z ##[endgroup]
+2026-08-28T03:52:37.5308297Z Syncing repository: Atituiset/agent-reviewer
+2026-08-28T03:52:37.5314178Z ##[group]Getting Git version info
+2026-08-28T03:52:37.5316660Z Working directory is '/home/runner/work/AetherStack/AetherStack/.reviewer'
+2026-08-28T03:52:37.5387103Z [command]/usr/bin/git version
+2026-08-28T03:52:37.5432898Z git version 2.55.0
+2026-08-28T03:52:37.5486485Z ##[endgroup]
+2026-08-28T03:52:37.5501437Z Temporarily overriding HOME='/home/runner/work/_temp/0e1319a1-1d78-4014-a101-40b7f7f5c815' before making global git config changes
+2026-08-28T03:52:37.5506173Z Adding repository directory to the temporary git global config as a safe directory
+2026-08-28T03:52:37.5510108Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/AetherStack/AetherStack/.reviewer
+2026-08-28T03:52:37.5543084Z ##[group]Initializing the repository
+2026-08-28T03:52:37.5550479Z [command]/usr/bin/git init /home/runner/work/AetherStack/AetherStack/.reviewer
+2026-08-28T03:52:37.5592500Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-08-28T03:52:37.5595963Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-08-28T03:52:37.5598738Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-08-28T03:52:37.5600269Z hint: call:
+2026-08-28T03:52:37.5601106Z hint:
+2026-08-28T03:52:37.5602197Z hint: 	git config --global init.defaultBranch <name>
+2026-08-28T03:52:37.5604723Z hint:
+2026-08-28T03:52:37.5606778Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-08-28T03:52:37.5609264Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-08-28T03:52:37.5611370Z hint:
+2026-08-28T03:52:37.5612121Z hint: 	git branch -m <name>
+2026-08-28T03:52:37.5612987Z hint:
+2026-08-28T03:52:37.5614675Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-08-28T03:52:37.5616837Z Initialized empty Git repository in /home/runner/work/AetherStack/AetherStack/.reviewer/.git/
+2026-08-28T03:52:37.5621128Z [command]/usr/bin/git remote add origin https://github.com/Atituiset/agent-reviewer
+2026-08-28T03:52:37.5643404Z ##[endgroup]
+2026-08-28T03:52:37.5645991Z ##[group]Disabling automatic garbage collection
+2026-08-28T03:52:37.5648026Z [command]/usr/bin/git config --local gc.auto 0
+2026-08-28T03:52:37.5680397Z ##[endgroup]
+2026-08-28T03:52:37.5682703Z ##[group]Setting up auth
+2026-08-28T03:52:37.5686334Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-08-28T03:52:37.5721612Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-08-28T03:52:37.5981006Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-08-28T03:52:37.6026577Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-08-28T03:52:37.6288481Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-08-28T03:52:37.6329314Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-08-28T03:52:37.6579759Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-08-28T03:52:37.6630976Z ##[endgroup]
+2026-08-28T03:52:37.6632401Z ##[group]Fetching the repository
+2026-08-28T03:52:37.6647648Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/mvp*:refs/remotes/origin/mvp* +refs/tags/mvp*:refs/tags/mvp*
+2026-08-28T03:52:38.3496284Z From https://github.com/Atituiset/agent-reviewer
+2026-08-28T03:52:38.3497445Z  * [new branch]      mvp        -> origin/mvp
+2026-08-28T03:52:38.3501474Z ##[endgroup]
+2026-08-28T03:52:38.3502244Z ##[group]Determining the checkout info
+2026-08-28T03:52:38.3514716Z [command]/usr/bin/git branch --list --remote origin/mvp
+2026-08-28T03:52:38.3555350Z   origin/mvp
+2026-08-28T03:52:38.3564945Z ##[endgroup]
+2026-08-28T03:52:38.3567685Z [command]/usr/bin/git sparse-checkout disable
+2026-08-28T03:52:38.3617806Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-08-28T03:52:38.3656107Z ##[group]Checking out the ref
+2026-08-28T03:52:38.3661014Z [command]/usr/bin/git checkout --progress --force -B mvp refs/remotes/origin/mvp
+2026-08-28T03:52:38.3799638Z Switched to a new branch 'mvp'
+2026-08-28T03:52:38.3801256Z branch 'mvp' set up to track 'origin/mvp'.
+2026-08-28T03:52:38.3809579Z ##[endgroup]
+2026-08-28T03:52:38.3861128Z [command]/usr/bin/git log -1 --format=%H
+2026-08-28T03:52:38.3892542Z 931848512f565e4480ee9b4f3b5cd2d275132972

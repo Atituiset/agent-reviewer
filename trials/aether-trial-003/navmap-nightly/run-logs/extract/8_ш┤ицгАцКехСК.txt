@@ -1,0 +1,32 @@
+﻿2026-08-28T03:14:06.3502047Z ##[group]Run .navmap-tool/.venv/bin/navmap report --out .navmap/out/ || true
+2026-08-28T03:14:06.3502637Z [36;1m.navmap-tool/.venv/bin/navmap report --out .navmap/out/ || true[0m
+2026-08-28T03:14:06.3540852Z shell: /usr/bin/bash -e {0}
+2026-08-28T03:14:06.3541132Z env:
+2026-08-28T03:14:06.3541328Z   SUBSYSTEM: stack
+2026-08-28T03:14:06.3541630Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-08-28T03:14:06.3542087Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-08-28T03:14:06.3542528Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-08-28T03:14:06.3542922Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-08-28T03:14:06.3543316Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-08-28T03:14:06.3543711Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-08-28T03:14:06.3544044Z ##[endgroup]
+2026-08-28T03:14:06.4214483Z # navmap 质检报告
+2026-08-28T03:14:06.4214771Z 
+2026-08-28T03:14:06.4214956Z - ERROR 8 / WARN 0 / INFO 0
+2026-08-28T03:14:06.4215284Z 
+2026-08-28T03:14:06.4215449Z ## 统计
+2026-08-28T03:14:06.4215614Z 
+2026-08-28T03:14:06.4215855Z - [dispatch:stack] 表 0，表项 0，失败 8
+2026-08-28T03:14:06.4216355Z - [statemachine:stack] 表 0，表项 0，失败 0
+2026-08-28T03:14:06.4216671Z 
+2026-08-28T03:14:06.4216797Z ## ERROR
+2026-08-28T03:14:06.4216974Z 
+2026-08-28T03:14:06.4217992Z - [dispatch:stack] 解析失败: /home/runner/work/AetherStack/AetherStack/.navmap-tool/tests/fixtures/mini_ims/disp.c: compile_commands.json 中无此文件，也未找到包含它的 TU
+2026-08-28T03:14:06.4220344Z - [dispatch:stack] 解析失败: /home/runner/work/AetherStack/AetherStack/.navmap-tool/tests/fixtures/mini_ims/disp2.c: compile_commands.json 中无此文件，也未找到包含它的 TU
+2026-08-28T03:14:06.4222126Z - [dispatch:stack] 解析失败: /home/runner/work/AetherStack/AetherStack/.navmap-tool/tests/fixtures/mini_ims/include/handlers.h: compile_commands.json 中无此文件，也未找到包含它的 TU
+2026-08-28T03:14:06.4223778Z - [dispatch:stack] 解析失败: /home/runner/work/AetherStack/AetherStack/.navmap-tool/tests/fixtures/mini_ims/include/oam_table.h: compile_commands.json 中无此文件，也未找到包含它的 TU
+2026-08-28T03:14:06.4225391Z - [dispatch:stack] 解析失败: /home/runner/work/AetherStack/AetherStack/.navmap-tool/tests/fixtures/mini_ims/nested.c: compile_commands.json 中无此文件，也未找到包含它的 TU
+2026-08-28T03:14:06.4226920Z - [dispatch:stack] 解析失败: /home/runner/work/AetherStack/AetherStack/.navmap-tool/tests/fixtures/mini_ims/reg.c: compile_commands.json 中无此文件，也未找到包含它的 TU
+2026-08-28T03:14:06.4228417Z - [dispatch:stack] 解析失败: /home/runner/work/AetherStack/AetherStack/.navmap-tool/tests/fixtures/mini_ims/sm.c: compile_commands.json 中无此文件，也未找到包含它的 TU
+2026-08-28T03:14:06.4230099Z - [dispatch:stack] 解析失败: /home/runner/work/AetherStack/AetherStack/.navmap-tool/tests/fixtures/mini_ims/xmacro.c: compile_commands.json 中无此文件，也未找到包含它的 TU
+2026-08-28T03:14:06.4230872Z 

@@ -1,0 +1,16 @@
+﻿2026-08-28T03:13:58.5594491Z ##[group]Run python3 -m venv .navmap-tool/.venv
+2026-08-28T03:13:58.5594913Z [36;1mpython3 -m venv .navmap-tool/.venv[0m
+2026-08-28T03:13:58.5595320Z [36;1m.navmap-tool/.venv/bin/pip install -q -e '.navmap-tool[dev]'[0m
+2026-08-28T03:13:58.5643931Z shell: /usr/bin/bash -e {0}
+2026-08-28T03:13:58.5644208Z env:
+2026-08-28T03:13:58.5644403Z   SUBSYSTEM: stack
+2026-08-28T03:13:58.5644701Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-08-28T03:13:58.5645179Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-08-28T03:13:58.5645654Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-08-28T03:13:58.5646058Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-08-28T03:13:58.5646457Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-08-28T03:13:58.5646859Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-08-28T03:13:58.5647233Z ##[endgroup]
+2026-08-28T03:14:04.9694670Z 
+2026-08-28T03:14:04.9695400Z [notice] A new release of pip is available: 25.0.1 -> 26.2.1
+2026-08-28T03:14:04.9696105Z [notice] To update, run: python3 -m pip install --upgrade pip

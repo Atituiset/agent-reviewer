@@ -1,0 +1,289 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "agent-reviewer",
+          "version": "0.1.0",
+          "informationUri": "https://github.com/Atituiset/agent-reviewer",
+          "rules": [
+            {
+              "id": "cwe-476",
+              "name": "cwe-476-null-pointer-dereference",
+              "shortDescription": {
+                "text": "空指针解引用（CWE-CWE-476）。"
+              },
+              "properties": {
+                "cwe": "476",
+                "severity_default": "high",
+                "origin": "mitre-top25"
+              }
+            },
+            {
+              "id": "cwe-125",
+              "name": "cwe-125-out-of-bounds-read",
+              "shortDescription": {
+                "text": "读越界：读取超出缓冲区边界的数据（CWE-CWE-125）。"
+              },
+              "properties": {
+                "cwe": "125",
+                "severity_default": "high",
+                "origin": "mitre-top25"
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "cwe-476",
+          "level": "error",
+          "message": {
+            "text": "公开入口 fp_engine_run 未对 req 判空即经函数指针分发表分发，最终在 decode_header 解引用 req->buf[0]；判空仅存在于未公开的 handle_fp_request 单一路径，直接调用 fp_engine_run 可空指针崩溃。\n\nfp_engine_run 在 trial_fp.h:13 对外声明（nas 静态库公共接口），其函数体（trial_fp_engine.cpp:20-24）不对 req 判空，直接 FP_HANDLER_TBL[msg_id](req) 经函数指针表分发；表内 4 项全为 bearer_rx，转发链 bearer_rx→reassembly→decode_header 无任何判空，最终在 decode_header 处 req->buf[0] 解引用。唯一判空位于 aka.cpp:172-176 的 handle_fp_request（if (!req || !req->buf) return -1），但该函数未在任何头文件声明且仓内无调用者（codegraph callers handle_fp_request 为空），无法保护直调公开入口的外部/未来调用方。msg_id 维度有越界防护（>=4 返回 -2），但空指针维度无防护。\n\n**判断理由**：用 codegraph 回溯 decode_header←reassembly←bearer_rx←FP_HANDLER_TBL（函数指针表，链中断于此）←fp_engine_run（公开入口，无上游判空）：handle_fp_request 路径有判空但仅为单一路径且非公开契约；按 3.6 展开表 handler 集 {bearer_rx} 均无判空，无法 REFUTED，故 PLAUSIBLE 保留（链中断于 FP_HANDLER_TBL，静态不可判定）。\n\n**证据链**：stack/nas/include/nas/trial_fp.h:13 fp_engine_run 作为公开引擎入口对外声明，头文件未注明「req 必须非空」的契约 → stack/nas/src/trial_fp_engine.cpp:20 fp_engine_run 函数体对 req 不做判空 → stack/nas/src/trial_fp_engine.cpp:24 FP_HANDLER_TBL[msg_id](req) 经函数指针表分发——判空链中断点（函数指针表） → stack/nas/src/trial_fp_engine.cpp:16 分发表 FP_HANDLER_TBL 4 项全为 bearer_rx；按表展开 handler 集 {bearer_rx}，集合内 handler 均无判空（navmap 未提取此表，表内容取自源码 16-18 行） → stack/nas/src/trial_fp_engine.cpp:8 decode_header 解引用 req->buf[0]——req 或 req->buf 为空即空指针崩溃 → stack/nas/src/aka.cpp:172 唯一带判空的调用方 handle_fp_request（!req || !req->buf 后以 msg_id=2 调用），但未在头文件声明且仓内无调用者，无法覆盖直调 fp_engine_run 的路径",
+            "markdown": "公开入口 fp_engine_run 未对 req 判空即经函数指针分发表分发，最终在 decode_header 解引用 req->buf[0]；判空仅存在于未公开的 handle_fp_request 单一路径，直接调用 fp_engine_run 可空指针崩溃。\n\nfp_engine_run 在 trial_fp.h:13 对外声明（nas 静态库公共接口），其函数体（trial_fp_engine.cpp:20-24）不对 req 判空，直接 FP_HANDLER_TBL[msg_id](req) 经函数指针表分发；表内 4 项全为 bearer_rx，转发链 bearer_rx→reassembly→decode_header 无任何判空，最终在 decode_header 处 req->buf[0] 解引用。唯一判空位于 aka.cpp:172-176 的 handle_fp_request（if (!req || !req->buf) return -1），但该函数未在任何头文件声明且仓内无调用者（codegraph callers handle_fp_request 为空），无法保护直调公开入口的外部/未来调用方。msg_id 维度有越界防护（>=4 返回 -2），但空指针维度无防护。\n\n**判断理由**：用 codegraph 回溯 decode_header←reassembly←bearer_rx←FP_HANDLER_TBL（函数指针表，链中断于此）←fp_engine_run（公开入口，无上游判空）：handle_fp_request 路径有判空但仅为单一路径且非公开契约；按 3.6 展开表 handler 集 {bearer_rx} 均无判空，无法 REFUTED，故 PLAUSIBLE 保留（链中断于 FP_HANDLER_TBL，静态不可判定）。\n\n**证据链**：stack/nas/include/nas/trial_fp.h:13 fp_engine_run 作为公开引擎入口对外声明，头文件未注明「req 必须非空」的契约 → stack/nas/src/trial_fp_engine.cpp:20 fp_engine_run 函数体对 req 不做判空 → stack/nas/src/trial_fp_engine.cpp:24 FP_HANDLER_TBL[msg_id](req) 经函数指针表分发——判空链中断点（函数指针表） → stack/nas/src/trial_fp_engine.cpp:16 分发表 FP_HANDLER_TBL 4 项全为 bearer_rx；按表展开 handler 集 {bearer_rx}，集合内 handler 均无判空（navmap 未提取此表，表内容取自源码 16-18 行） → stack/nas/src/trial_fp_engine.cpp:8 decode_header 解引用 req->buf[0]——req 或 req->buf 为空即空指针崩溃 → stack/nas/src/aka.cpp:172 唯一带判空的调用方 handle_fp_request（!req || !req->buf 后以 msg_id=2 调用），但未在头文件声明且仓内无调用者，无法覆盖直调 fp_engine_run 的路径"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "stack/nas/src/trial_fp_engine.cpp"
+                },
+                "region": {
+                  "startLine": 8
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "diffHash": "1fe0211bfd050390c1e9f731a388d72f87f0c07b94f418561d2e6b02fd1f16d7",
+            "findingIndex": "cwe-476/stack/nas/src/trial_fp_engine.cpp:8"
+          },
+          "properties": {
+            "confidence": 85,
+            "severity": "important",
+            "category": "null-pointer-dereference",
+            "checklist_item": null,
+            "refs": [],
+            "ruling": null,
+            "resolved": false,
+            "reasoning": "用 codegraph 回溯 decode_header←reassembly←bearer_rx←FP_HANDLER_TBL（函数指针表，链中断于此）←fp_engine_run（公开入口，无上游判空）：handle_fp_request 路径有判空但仅为单一路径且非公开契约；按 3.6 展开表 handler 集 {bearer_rx} 均无判空，无法 REFUTED，故 PLAUSIBLE 保留（链中断于 FP_HANDLER_TBL，静态不可判定）。"
+          },
+          "codeFlows": [
+            {
+              "threadFlows": [
+                {
+                  "locations": [
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/include/nas/trial_fp.h"
+                          },
+                          "region": {
+                            "startLine": 13
+                          }
+                        },
+                        "message": {
+                          "text": "fp_engine_run 作为公开引擎入口对外声明，头文件未注明「req 必须非空」的契约"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/trial_fp_engine.cpp"
+                          },
+                          "region": {
+                            "startLine": 20
+                          }
+                        },
+                        "message": {
+                          "text": "fp_engine_run 函数体对 req 不做判空"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/trial_fp_engine.cpp"
+                          },
+                          "region": {
+                            "startLine": 24
+                          }
+                        },
+                        "message": {
+                          "text": "FP_HANDLER_TBL[msg_id](req) 经函数指针表分发——判空链中断点（函数指针表）"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/trial_fp_engine.cpp"
+                          },
+                          "region": {
+                            "startLine": 16
+                          }
+                        },
+                        "message": {
+                          "text": "分发表 FP_HANDLER_TBL 4 项全为 bearer_rx；按表展开 handler 集 {bearer_rx}，集合内 handler 均无判空（navmap 未提取此表，表内容取自源码 16-18 行）"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/trial_fp_engine.cpp"
+                          },
+                          "region": {
+                            "startLine": 8
+                          }
+                        },
+                        "message": {
+                          "text": "decode_header 解引用 req->buf[0]——req 或 req->buf 为空即空指针崩溃"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/aka.cpp"
+                          },
+                          "region": {
+                            "startLine": 172
+                          }
+                        },
+                        "message": {
+                          "text": "唯一带判空的调用方 handle_fp_request（!req || !req->buf 后以 msg_id=2 调用），但未在头文件声明且仓内无调用者，无法覆盖直调 fp_engine_run 的路径"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "hostedViewerUri": "https://github.com/Atituiset/AetherStack/actions/runs/33140164450"
+        },
+        {
+          "ruleId": "cwe-125",
+          "level": "error",
+          "message": {
+            "text": "decode_header 无条件读取 req->buf[0]，而 FpReq.len 在入口与整条调用链均未被校验，零长缓冲区（len==0）时触发越界读。\n\nFpReq 以 len 字段描述缓冲区长度（trial_fp.h:9），但入口判空仅检查 !req || !req->buf（aka.cpp:173），不校验 req->len >= 1；trial_fp_engine.cpp 全文件没有任何 len 引用（grep 确认）。调用方传入非空但零长的缓冲区（合法空报文）时，buf[0] 读取越过缓冲区边界。\n\n**判断理由**：FpReq 携带 len 却全程无一处校验即读取固定字节 buf[0]，命中 cwe-125「解析定长头时未校验剩余报文长度」检测信号；入口判空只覆盖空指针维度，不覆盖长度维度，零长缓冲区为合法输入故非纯推测。\n\n**证据链**：stack/nas/include/nas/trial_fp.h:9 FpReq.len 声明为缓冲区长度，但在整条链路从未被读取或校验 → stack/nas/src/aka.cpp:173 入口判空仅检查 !req || !req->buf，未校验 req->len >= 1 → stack/nas/src/trial_fp_engine.cpp:8 decode_header 无条件读取 req->buf[0]，len==0 的零长缓冲区即越界读 → stack/nas/src/trial_fp_engine.cpp:11 reassembly → decode_header 纯转发，无任何长度校验",
+            "markdown": "decode_header 无条件读取 req->buf[0]，而 FpReq.len 在入口与整条调用链均未被校验，零长缓冲区（len==0）时触发越界读。\n\nFpReq 以 len 字段描述缓冲区长度（trial_fp.h:9），但入口判空仅检查 !req || !req->buf（aka.cpp:173），不校验 req->len >= 1；trial_fp_engine.cpp 全文件没有任何 len 引用（grep 确认）。调用方传入非空但零长的缓冲区（合法空报文）时，buf[0] 读取越过缓冲区边界。\n\n**判断理由**：FpReq 携带 len 却全程无一处校验即读取固定字节 buf[0]，命中 cwe-125「解析定长头时未校验剩余报文长度」检测信号；入口判空只覆盖空指针维度，不覆盖长度维度，零长缓冲区为合法输入故非纯推测。\n\n**证据链**：stack/nas/include/nas/trial_fp.h:9 FpReq.len 声明为缓冲区长度，但在整条链路从未被读取或校验 → stack/nas/src/aka.cpp:173 入口判空仅检查 !req || !req->buf，未校验 req->len >= 1 → stack/nas/src/trial_fp_engine.cpp:8 decode_header 无条件读取 req->buf[0]，len==0 的零长缓冲区即越界读 → stack/nas/src/trial_fp_engine.cpp:11 reassembly → decode_header 纯转发，无任何长度校验"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "stack/nas/src/trial_fp_engine.cpp"
+                },
+                "region": {
+                  "startLine": 8
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "diffHash": "1fe0211bfd050390c1e9f731a388d72f87f0c07b94f418561d2e6b02fd1f16d7",
+            "findingIndex": "cwe-125/stack/nas/src/trial_fp_engine.cpp:8"
+          },
+          "properties": {
+            "confidence": 80,
+            "severity": "important",
+            "category": "out-of-bounds-read",
+            "checklist_item": null,
+            "refs": [],
+            "ruling": null,
+            "resolved": false,
+            "reasoning": "FpReq 携带 len 却全程无一处校验即读取固定字节 buf[0]，命中 cwe-125「解析定长头时未校验剩余报文长度」检测信号；入口判空只覆盖空指针维度，不覆盖长度维度，零长缓冲区为合法输入故非纯推测。"
+          },
+          "codeFlows": [
+            {
+              "threadFlows": [
+                {
+                  "locations": [
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/include/nas/trial_fp.h"
+                          },
+                          "region": {
+                            "startLine": 9
+                          }
+                        },
+                        "message": {
+                          "text": "FpReq.len 声明为缓冲区长度，但在整条链路从未被读取或校验"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/aka.cpp"
+                          },
+                          "region": {
+                            "startLine": 173
+                          }
+                        },
+                        "message": {
+                          "text": "入口判空仅检查 !req || !req->buf，未校验 req->len >= 1"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/trial_fp_engine.cpp"
+                          },
+                          "region": {
+                            "startLine": 8
+                          }
+                        },
+                        "message": {
+                          "text": "decode_header 无条件读取 req->buf[0]，len==0 的零长缓冲区即越界读"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/trial_fp_engine.cpp"
+                          },
+                          "region": {
+                            "startLine": 11
+                          }
+                        },
+                        "message": {
+                          "text": "reassembly → decode_header 纯转发，无任何长度校验"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "hostedViewerUri": "https://github.com/Atituiset/AetherStack/actions/runs/33140164450"
+        }
+      ],
+      "properties": {
+        "verdict": "ISSUES_FOUND",
+        "diff_hash": "1fe0211bfd050390c1e9f731a388d72f87f0c07b94f418561d2e6b02fd1f16d7",
+        "reviewed_at": "2026-08-28T03:55:30Z",
+        "scenarios_scanned": []
+      }
+    }
+  ]
+}

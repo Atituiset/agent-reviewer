@@ -1,0 +1,7 @@
+﻿2026-08-28T03:30:51.8624122Z ##[group]Run git diff "05284edc5fda1a781b44a804879d92422044785a"...HEAD > /tmp/pr.diff
+2026-08-28T03:30:51.8624685Z [36;1mgit diff "05284edc5fda1a781b44a804879d92422044785a"...HEAD > /tmp/pr.diff[0m
+2026-08-28T03:30:51.8625073Z [36;1mcd .reviewer && bash scripts/setup-env.sh || true[0m
+2026-08-28T03:30:51.8639817Z shell: /usr/bin/bash -e {0}
+2026-08-28T03:30:51.8640093Z ##[endgroup]
+2026-08-28T03:30:54.5706916Z [setup-env] 已创建 /home/runner/work/AetherStack/AetherStack/.reviewer/.venv
+2026-08-28T03:30:54.5867632Z [setup-env] stdlib ok: 3.12.3

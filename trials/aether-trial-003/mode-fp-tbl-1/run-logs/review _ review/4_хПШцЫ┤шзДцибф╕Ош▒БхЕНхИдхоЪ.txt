@@ -1,0 +1,13 @@
+﻿2026-08-28T03:52:31.8383305Z ##[group]Run BASE="1ef3134f152392d7d786fa76120648c2a8bedd5c"
+2026-08-28T03:52:31.8383897Z [36;1mBASE="1ef3134f152392d7d786fa76120648c2a8bedd5c"[0m
+2026-08-28T03:52:31.8384389Z [36;1mSTATS=$(git diff --numstat "$BASE"...HEAD | awk '{a+=$1; d+=$2} END {print a+d}')[0m
+2026-08-28T03:52:31.8385024Z [36;1mDOC_ONLY=$(git diff --name-only "$BASE"...HEAD | grep -vcE '\.(md|txt)$|^docs/' || true)[0m
+2026-08-28T03:52:31.8385674Z [36;1mif [ "${STATS:-0}" -lt 20 ]; then echo "skip=small" >> "$GITHUB_OUTPUT";[0m
+2026-08-28T03:52:31.8386595Z [36;1melif [ "$DOC_ONLY" = "0" ]; then echo "skip=docs" >> "$GITHUB_OUTPUT";[0m
+2026-08-28T03:52:31.8387095Z [36;1melse echo "skip=" >> "$GITHUB_OUTPUT"; fi[0m
+2026-08-28T03:52:31.8387482Z [36;1mMODE=$(cat .ai-review-mode 2>/dev/null || echo "2")[0m
+2026-08-28T03:52:31.8387932Z [36;1mecho "mode=$MODE" >> "$GITHUB_OUTPUT"[0m
+2026-08-28T03:52:31.8388385Z [36;1mecho "评审模式: $MODE (1=纯场景库 2=+codegraph 3=+navmap)"[0m
+2026-08-28T03:52:31.8414197Z shell: /usr/bin/bash -e {0}
+2026-08-28T03:52:31.8414735Z ##[endgroup]
+2026-08-28T03:52:31.9067570Z 评审模式: 1 (1=纯场景库 2=+codegraph 3=+navmap)

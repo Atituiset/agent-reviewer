@@ -1,0 +1,244 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "agent-reviewer",
+          "version": "0.1.0",
+          "informationUri": "https://github.com/Atituiset/agent-reviewer",
+          "rules": [
+            {
+              "id": "cwe-787",
+              "name": "cwe-787-out-of-bounds-write",
+              "shortDescription": {
+                "text": "写越界：向缓冲区写入超出其分配大小的数据（CWE-CWE-787）。"
+              },
+              "properties": {
+                "cwe": "787",
+                "severity_default": "high",
+                "origin": "mitre-top25"
+              }
+            },
+            {
+              "id": "default",
+              "name": "default",
+              "shortDescription": {
+                "text": "通用代码评审基线。所有 diff 默认加载，覆盖正确性、错误处理、可读性底线，不重复场景化清单（CWE 专项）的内容。"
+              },
+              "properties": {
+                "cwe": "null",
+                "severity_default": "medium",
+                "origin": "builtin"
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "cwe-787",
+          "level": "error",
+          "message": {
+            "text": "std::strcpy(p, tag) 将无长度约束的 tag 拷入固定 64 字节堆缓冲，strlen(tag)>=64 即堆越界写\n\np 由 build_banner 经 alloc_or_die(64) 获得，恰好 64 字节；tag 为无约束 const char*，strcpy 不检查源长度，strlen(tag) >= 64（含结尾 NUL）即越过 64 字节堆块写入。命中 cwe-787 清单第 2 条「strcpy 目标缓冲区大小与源长度未核对」，无法构造越界路径的『看着危险』不适用——越界路径具体可构造：调用方传长度≥64 的字符串。\n\n**判断理由**：非受限 strcpy 的目标是固定 64 字节堆块且源串长度完全不受约束，构造 strlen(tag)>=64 即触发越界写，属可复现的 cwe-787 缺陷而非风格问题。\n\n**证据链**：stack/nas/src/aka.cpp:184 std::strcpy(p, tag) 非受限拷贝，源 tag 长度无任何上界 → stack/nas/src/aka.cpp:188 char *p = alloc_or_die(64); 目标缓冲仅 64 字节 → stack/nas/src/aka.cpp:176 char *p = static_cast<char *>(std::malloc(n)); n=64 为实际分配大小 → stack/nas/src/aka.cpp:187 char *build_banner(const char *tag) 对外接收 tag，未校验其长度/终止",
+            "markdown": "std::strcpy(p, tag) 将无长度约束的 tag 拷入固定 64 字节堆缓冲，strlen(tag)>=64 即堆越界写\n\np 由 build_banner 经 alloc_or_die(64) 获得，恰好 64 字节；tag 为无约束 const char*，strcpy 不检查源长度，strlen(tag) >= 64（含结尾 NUL）即越过 64 字节堆块写入。命中 cwe-787 清单第 2 条「strcpy 目标缓冲区大小与源长度未核对」，无法构造越界路径的『看着危险』不适用——越界路径具体可构造：调用方传长度≥64 的字符串。\n\n**判断理由**：非受限 strcpy 的目标是固定 64 字节堆块且源串长度完全不受约束，构造 strlen(tag)>=64 即触发越界写，属可复现的 cwe-787 缺陷而非风格问题。\n\n**证据链**：stack/nas/src/aka.cpp:184 std::strcpy(p, tag) 非受限拷贝，源 tag 长度无任何上界 → stack/nas/src/aka.cpp:188 char *p = alloc_or_die(64); 目标缓冲仅 64 字节 → stack/nas/src/aka.cpp:176 char *p = static_cast<char *>(std::malloc(n)); n=64 为实际分配大小 → stack/nas/src/aka.cpp:187 char *build_banner(const char *tag) 对外接收 tag，未校验其长度/终止"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "stack/nas/src/aka.cpp"
+                },
+                "region": {
+                  "startLine": 184
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "diffHash": "b3335b20d3088d797fc7bb2535e29eb6a6b7ce3e803eb17c16f9270708507db3",
+            "findingIndex": "cwe-787/stack/nas/src/aka.cpp:184"
+          },
+          "properties": {
+            "confidence": 90,
+            "severity": "important",
+            "category": "out-of-bounds-write",
+            "checklist_item": null,
+            "refs": [],
+            "ruling": null,
+            "resolved": false,
+            "reasoning": "非受限 strcpy 的目标是固定 64 字节堆块且源串长度完全不受约束，构造 strlen(tag)>=64 即触发越界写，属可复现的 cwe-787 缺陷而非风格问题。"
+          },
+          "codeFlows": [
+            {
+              "threadFlows": [
+                {
+                  "locations": [
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/aka.cpp"
+                          },
+                          "region": {
+                            "startLine": 184
+                          }
+                        },
+                        "message": {
+                          "text": "std::strcpy(p, tag) 非受限拷贝，源 tag 长度无任何上界"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/aka.cpp"
+                          },
+                          "region": {
+                            "startLine": 188
+                          }
+                        },
+                        "message": {
+                          "text": "char *p = alloc_or_die(64); 目标缓冲仅 64 字节"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/aka.cpp"
+                          },
+                          "region": {
+                            "startLine": 176
+                          }
+                        },
+                        "message": {
+                          "text": "char *p = static_cast<char *>(std::malloc(n)); n=64 为实际分配大小"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/aka.cpp"
+                          },
+                          "region": {
+                            "startLine": 187
+                          }
+                        },
+                        "message": {
+                          "text": "char *build_banner(const char *tag) 对外接收 tag，未校验其长度/终止"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "hostedViewerUri": "https://github.com/Atituiset/AetherStack/actions/runs/33139101947"
+        },
+        {
+          "ruleId": "default",
+          "level": "note",
+          "message": {
+            "text": "nas::trial::build_banner 具外部链接但全树无原型声明与调用方——未集成死代码进入生产源文件\n\nbuild_banner 在 namespace nas::trial 中定义且非 static（外部链接），但无任何头文件声明原型，grep 全树仅命中本文件定义与注释、无调用点；alloc_or_die/fill 为 static。命中 default 清单「死代码被引入（写了但无任何路径可达）」。注释（line 166）标注『勿合并』试验件，若合入将遗留不可达导出符号。\n\n**判断理由**：导出符号无原型且全树零调用方即引入死代码，default 清单显式列为变更面信号；试验件标注「勿合并」仍写入生产文件属集成缺口。\n\n**证据链**：stack/nas/src/aka.cpp:187 char *build_banner(const char *tag) 在 nas::trial 中导出，无头文件声明 → stack/nas/src/aka.cpp:193 命名空间结束；全树无 build_banner/nas::trial 调用方（grep 仅命中本文件定义与注释） → stack/nas/src/aka.cpp:166 注释明确「勿合并」试验件，却落在生产源文件尾部",
+            "markdown": "nas::trial::build_banner 具外部链接但全树无原型声明与调用方——未集成死代码进入生产源文件\n\nbuild_banner 在 namespace nas::trial 中定义且非 static（外部链接），但无任何头文件声明原型，grep 全树仅命中本文件定义与注释、无调用点；alloc_or_die/fill 为 static。命中 default 清单「死代码被引入（写了但无任何路径可达）」。注释（line 166）标注『勿合并』试验件，若合入将遗留不可达导出符号。\n\n**判断理由**：导出符号无原型且全树零调用方即引入死代码，default 清单显式列为变更面信号；试验件标注「勿合并」仍写入生产文件属集成缺口。\n\n**证据链**：stack/nas/src/aka.cpp:187 char *build_banner(const char *tag) 在 nas::trial 中导出，无头文件声明 → stack/nas/src/aka.cpp:193 命名空间结束；全树无 build_banner/nas::trial 调用方（grep 仅命中本文件定义与注释） → stack/nas/src/aka.cpp:166 注释明确「勿合并」试验件，却落在生产源文件尾部"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "stack/nas/src/aka.cpp"
+                },
+                "region": {
+                  "startLine": 187
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "diffHash": "b3335b20d3088d797fc7bb2535e29eb6a6b7ce3e803eb17c16f9270708507db3",
+            "findingIndex": "default/stack/nas/src/aka.cpp:187"
+          },
+          "properties": {
+            "confidence": 90,
+            "severity": "minor",
+            "category": "dead-code",
+            "checklist_item": null,
+            "refs": [],
+            "ruling": null,
+            "resolved": false,
+            "reasoning": "导出符号无原型且全树零调用方即引入死代码，default 清单显式列为变更面信号；试验件标注「勿合并」仍写入生产文件属集成缺口。"
+          },
+          "codeFlows": [
+            {
+              "threadFlows": [
+                {
+                  "locations": [
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/aka.cpp"
+                          },
+                          "region": {
+                            "startLine": 187
+                          }
+                        },
+                        "message": {
+                          "text": "char *build_banner(const char *tag) 在 nas::trial 中导出，无头文件声明"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/aka.cpp"
+                          },
+                          "region": {
+                            "startLine": 193
+                          }
+                        },
+                        "message": {
+                          "text": "命名空间结束；全树无 build_banner/nas::trial 调用方（grep 仅命中本文件定义与注释）"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/aka.cpp"
+                          },
+                          "region": {
+                            "startLine": 166
+                          }
+                        },
+                        "message": {
+                          "text": "注释明确「勿合并」试验件，却落在生产源文件尾部"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "hostedViewerUri": "https://github.com/Atituiset/AetherStack/actions/runs/33139101947"
+        }
+      ],
+      "properties": {
+        "verdict": "ISSUES_FOUND",
+        "diff_hash": "b3335b20d3088d797fc7bb2535e29eb6a6b7ce3e803eb17c16f9270708507db3",
+        "reviewed_at": "2026-08-28T03:32:27Z",
+        "scenarios_scanned": []
+      }
+    }
+  ]
+}

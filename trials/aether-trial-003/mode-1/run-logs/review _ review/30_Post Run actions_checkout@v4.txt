@@ -1,0 +1,13 @@
+﻿2026-08-28T03:33:07.7313319Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-08-28T03:33:07.7314316Z Post job cleanup.
+2026-08-28T03:33:07.7970650Z [command]/usr/bin/git version
+2026-08-28T03:33:07.8016688Z git version 2.55.0
+2026-08-28T03:33:07.8037726Z Temporarily overriding HOME='/home/runner/work/_temp/343b7c09-8c57-40b9-a9d6-07c60e2f88d6' before making global git config changes
+2026-08-28T03:33:07.8039052Z Adding repository directory to the temporary git global config as a safe directory
+2026-08-28T03:33:07.8042327Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/AetherStack/AetherStack
+2026-08-28T03:33:07.8071319Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-08-28T03:33:07.8096691Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-08-28T03:33:07.8264987Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-08-28T03:33:07.8288025Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-08-28T03:33:07.8454381Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-08-28T03:33:07.8479715Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url

@@ -1,0 +1,272 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "agent-reviewer",
+          "version": "0.1.0",
+          "informationUri": "https://github.com/Atituiset/agent-reviewer",
+          "rules": [
+            {
+              "id": "cwe-787",
+              "name": "cwe-787-out-of-bounds-write",
+              "shortDescription": {
+                "text": "写越界：向缓冲区写入超出其分配大小的数据（CWE-CWE-787）。"
+              },
+              "properties": {
+                "cwe": "787",
+                "severity_default": "high",
+                "origin": "mitre-top25"
+              }
+            },
+            {
+              "id": "default",
+              "name": "default",
+              "shortDescription": {
+                "text": "通用代码评审基线。所有 diff 默认加载，覆盖正确性、错误处理、可读性底线，不重复场景化清单（CWE 专项）的内容。"
+              },
+              "properties": {
+                "cwe": "null",
+                "severity_default": "medium",
+                "origin": "builtin"
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "cwe-787",
+          "level": "error",
+          "message": {
+            "text": "无界 strcpy 写入 64 字节堆缓冲：build_banner 的 tag 入参长度无任何约束，≥64 字节即堆越界写\n\ncwe-787 检测信号 #1（memcpy/strcpy 族目标缓冲区大小与源长度未核对）。导出函数 build_banner(const char* tag) 的 tag 为外部无界入参；L188 alloc_or_die(64) 分配固定 64 字节目标；strcpy 写入 strlen(tag)+1 字节，tag 长度 ≥64 时溢出堆缓冲。修复：strncpy(p, tag, 63)/p[63]='\\0' 或按 strlen 分配。\n\n**判断理由**：教科书式 strcpy 定长缓冲越界，tag 为外部无界入参；uboot-trial-002 同型无界 strcpy（cli_build_banner，同样全树零调用）按 cwe-787 95% 上报，此处堆缓冲（malloc 64）与栈缓冲同属 cwe-787，当前零调用方只影响可达性、不改变 API 缺陷性质。\n\n**证据链**：stack/nas/src/aka.cpp:187 build_banner(const char *tag) 具外部链接导出，tag 为无界 const char*，无长度约定 → stack/nas/src/aka.cpp:188 char *p = alloc_or_die(64) —— 目标缓冲固定 64 字节 → stack/nas/src/aka.cpp:189 fill(p, tag) —— 将无界 tag 传至拷贝点 → stack/nas/src/aka.cpp:184 std::strcpy(p, tag) —— 未核对目标容量(64)与源长度即拷贝，strlen(tag)>=64 时写越界",
+            "markdown": "无界 strcpy 写入 64 字节堆缓冲：build_banner 的 tag 入参长度无任何约束，≥64 字节即堆越界写\n\ncwe-787 检测信号 #1（memcpy/strcpy 族目标缓冲区大小与源长度未核对）。导出函数 build_banner(const char* tag) 的 tag 为外部无界入参；L188 alloc_or_die(64) 分配固定 64 字节目标；strcpy 写入 strlen(tag)+1 字节，tag 长度 ≥64 时溢出堆缓冲。修复：strncpy(p, tag, 63)/p[63]='\\0' 或按 strlen 分配。\n\n**判断理由**：教科书式 strcpy 定长缓冲越界，tag 为外部无界入参；uboot-trial-002 同型无界 strcpy（cli_build_banner，同样全树零调用）按 cwe-787 95% 上报，此处堆缓冲（malloc 64）与栈缓冲同属 cwe-787，当前零调用方只影响可达性、不改变 API 缺陷性质。\n\n**证据链**：stack/nas/src/aka.cpp:187 build_banner(const char *tag) 具外部链接导出，tag 为无界 const char*，无长度约定 → stack/nas/src/aka.cpp:188 char *p = alloc_or_die(64) —— 目标缓冲固定 64 字节 → stack/nas/src/aka.cpp:189 fill(p, tag) —— 将无界 tag 传至拷贝点 → stack/nas/src/aka.cpp:184 std::strcpy(p, tag) —— 未核对目标容量(64)与源长度即拷贝，strlen(tag)>=64 时写越界"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "stack/nas/src/aka.cpp"
+                },
+                "region": {
+                  "startLine": 184
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "diffHash": "4f8ed5f24f4c32cb49d3662ebecbbbd4eb696c1c41f7c4147b10365d8b397c82",
+            "findingIndex": "cwe-787/stack/nas/src/aka.cpp:184"
+          },
+          "properties": {
+            "confidence": 88,
+            "severity": "important",
+            "category": "security",
+            "checklist_item": null,
+            "refs": [],
+            "ruling": null,
+            "resolved": false,
+            "reasoning": "教科书式 strcpy 定长缓冲越界，tag 为外部无界入参；uboot-trial-002 同型无界 strcpy（cli_build_banner，同样全树零调用）按 cwe-787 95% 上报，此处堆缓冲（malloc 64）与栈缓冲同属 cwe-787，当前零调用方只影响可达性、不改变 API 缺陷性质。"
+          },
+          "codeFlows": [
+            {
+              "threadFlows": [
+                {
+                  "locations": [
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/aka.cpp"
+                          },
+                          "region": {
+                            "startLine": 187
+                          }
+                        },
+                        "message": {
+                          "text": "build_banner(const char *tag) 具外部链接导出，tag 为无界 const char*，无长度约定"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/aka.cpp"
+                          },
+                          "region": {
+                            "startLine": 188
+                          }
+                        },
+                        "message": {
+                          "text": "char *p = alloc_or_die(64) —— 目标缓冲固定 64 字节"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/aka.cpp"
+                          },
+                          "region": {
+                            "startLine": 189
+                          }
+                        },
+                        "message": {
+                          "text": "fill(p, tag) —— 将无界 tag 传至拷贝点"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/aka.cpp"
+                          },
+                          "region": {
+                            "startLine": 184
+                          }
+                        },
+                        "message": {
+                          "text": "std::strcpy(p, tag) —— 未核对目标容量(64)与源长度即拷贝，strlen(tag)>=64 时写越界"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "hostedViewerUri": "https://github.com/Atituiset/AetherStack/actions/runs/33139104063"
+        },
+        {
+          "ruleId": "default",
+          "level": "note",
+          "message": {
+            "text": "TRIAL SEED 试验脚手架落入产品源文件：导出函数 build_banner 无头文件原型且全树零调用（死代码）\n\nL166 注释自述「TRIAL SEED：跨函数判空契约试验件……勿合并」；codegraph callers build_banner 返回零调用方；全仓头文件无 build_banner 声明。命中 default/checklist.md「无调试残留（临时代码）」及「变更面：是否有死代码被引入」。\n\n**判断理由**：试验脚手架驻留产品源文件且导出零调用，与 aether-trial-001 同型 EXTRA_IMPL、uboot-trial-002 同型 MISSING_IMPL 判定一致；试验件标注勿合并，随分支回滚自然消解。\n\n**证据链**：stack/nas/src/aka.cpp:166 TRIAL SEED 注释自述试验件、勿合并，落入产品源文件末尾 → stack/nas/src/aka.cpp:187 char *build_banner(const char *tag) 具外部链接导出（非 static） → stack/nas/src/aka.cpp:170 #include <cstdlib>/<cstring> 置于文件末尾 namespace 之后，属文件级脚手架残留 → stack/nas/src/aka.cpp:191 codegraph callers build_banner → 零调用方；grep *.h build_banner → 无声明 → 导出即死代码",
+            "markdown": "TRIAL SEED 试验脚手架落入产品源文件：导出函数 build_banner 无头文件原型且全树零调用（死代码）\n\nL166 注释自述「TRIAL SEED：跨函数判空契约试验件……勿合并」；codegraph callers build_banner 返回零调用方；全仓头文件无 build_banner 声明。命中 default/checklist.md「无调试残留（临时代码）」及「变更面：是否有死代码被引入」。\n\n**判断理由**：试验脚手架驻留产品源文件且导出零调用，与 aether-trial-001 同型 EXTRA_IMPL、uboot-trial-002 同型 MISSING_IMPL 判定一致；试验件标注勿合并，随分支回滚自然消解。\n\n**证据链**：stack/nas/src/aka.cpp:166 TRIAL SEED 注释自述试验件、勿合并，落入产品源文件末尾 → stack/nas/src/aka.cpp:187 char *build_banner(const char *tag) 具外部链接导出（非 static） → stack/nas/src/aka.cpp:170 #include <cstdlib>/<cstring> 置于文件末尾 namespace 之后，属文件级脚手架残留 → stack/nas/src/aka.cpp:191 codegraph callers build_banner → 零调用方；grep *.h build_banner → 无声明 → 导出即死代码"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "stack/nas/src/aka.cpp"
+                },
+                "region": {
+                  "startLine": 166
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "diffHash": "4f8ed5f24f4c32cb49d3662ebecbbbd4eb696c1c41f7c4147b10365d8b397c82",
+            "findingIndex": "default/stack/nas/src/aka.cpp:166"
+          },
+          "properties": {
+            "confidence": 85,
+            "severity": "minor",
+            "category": "conformance",
+            "checklist_item": null,
+            "refs": [],
+            "ruling": null,
+            "resolved": false,
+            "reasoning": "试验脚手架驻留产品源文件且导出零调用，与 aether-trial-001 同型 EXTRA_IMPL、uboot-trial-002 同型 MISSING_IMPL 判定一致；试验件标注勿合并，随分支回滚自然消解。"
+          },
+          "codeFlows": [
+            {
+              "threadFlows": [
+                {
+                  "locations": [
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/aka.cpp"
+                          },
+                          "region": {
+                            "startLine": 166
+                          }
+                        },
+                        "message": {
+                          "text": "TRIAL SEED 注释自述试验件、勿合并，落入产品源文件末尾"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/aka.cpp"
+                          },
+                          "region": {
+                            "startLine": 187
+                          }
+                        },
+                        "message": {
+                          "text": "char *build_banner(const char *tag) 具外部链接导出（非 static）"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/aka.cpp"
+                          },
+                          "region": {
+                            "startLine": 170
+                          }
+                        },
+                        "message": {
+                          "text": "#include <cstdlib>/<cstring> 置于文件末尾 namespace 之后，属文件级脚手架残留"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/aka.cpp"
+                          },
+                          "region": {
+                            "startLine": 191
+                          }
+                        },
+                        "message": {
+                          "text": "codegraph callers build_banner → 零调用方；grep *.h build_banner → 无声明 → 导出即死代码"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "hostedViewerUri": "https://github.com/Atituiset/AetherStack/actions/runs/33139104063"
+        }
+      ],
+      "properties": {
+        "verdict": "ISSUES_FOUND",
+        "diff_hash": "4f8ed5f24f4c32cb49d3662ebecbbbd4eb696c1c41f7c4147b10365d8b397c82",
+        "reviewed_at": "2026-08-28T03:34:04Z",
+        "scenarios_scanned": [
+          "cwe-125",
+          "cwe-190",
+          "cwe-20",
+          "cwe-22",
+          "cwe-362",
+          "cwe-401",
+          "cwe-416",
+          "cwe-476",
+          "cwe-78",
+          "cwe-787",
+          "cwe-798",
+          "default"
+        ]
+      }
+    }
+  ]
+}
