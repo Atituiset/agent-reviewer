@@ -171,16 +171,36 @@
 3. cwe-476 场景评审时，命中模块的 exemption_pattern 注入 prompt：「本仓判空契约如下，符合契约的解引用不报」——从根上压低该类 FP 的产生率，而非事后过滤
 4. 飞轮指标：cwe-476 的 per-scenario FP 率应随 exemption_pattern 积累单调下降——这是「飞轮在核心仓有效」的直接证据
 
-### 7.5 与 CodeFuse-Query 的分工
+### 7.5 两层索引架构：codegraph（通用调用图）+ navmap（语义导航图）
 
-| | codegraph | CodeFuse-Query |
-|---|---|---|
-| 技术 | tree-sitter 近似调用图 | Datalog/COREF 精确关系 |
-| C++ 支持 | 全语言但欠近似 | beta，需 compile_commands.json，重 |
-| 千万行级成本 | 低（本地 SQLite，分钟级） | 高（抽取器 + 图计算） |
-| 定位 | **验证段的判空链回溯**（打底） | 变更影响分析等精确需求（可选增强） |
+7.3 的判空链回溯有一个致命断点：链在**函数指针/分发表**处中断时，codegraph 给不出下游 handler 集合。navmap（libclang 导航图提取器）恰好补这个缺口——它提取的四类图正是 codegraph 欠近似最严重的模式：
 
-结论：codegraph 打底（轻、全、近似但够用），CodeFuse 类工具只在需要精确变更影响分析时引入。
+| 层 | 工具 | 回答的问题 | 成本形态 |
+|---|---|---|---|
+| **L1 通用调用图** | codegraph（tree-sitter + SQLite） | 「谁调用谁」——判空链回溯的主干 | 无构建依赖，秒级增量，19k 文件实测 504MB |
+| **L2 语义导航图** | navmap（libclang + compdb） | 「这个消息路由到哪个 handler」「这个全局量谁读写」「状态机怎么转」——**断链处的续链** | 漏斗设计（粗筛→几百候选→libclang 只解析候选），nightly 增量 <30min |
+
+四类导航图与缺口的映射：
+
+- **消息分发表 / 注册式分发点** → 补函数指针表断链：判空链断在 `tbl[i](...)` 时，用分发表把「不确定的单个目标」展开为「handler 集合」做保守近似（集合内任一 handler 未判空即不能 REFUTED）
+- **全局变量读写清单（含布局）** → 补全局变量作指针来源的断链：「谁会给这个全局指针赋值、是否有一处判空后赋值」
+- **状态机表** → 状态机相关变更的评审上下文（判空常与状态迁移耦合）
+- 虚函数 override 集合 → codegraph 的继承边已覆盖，不需要 L2
+
+**续链纪律**：L2 的 handler 集合是保守近似——集合内**全部** handler 都有判空才能 REFUTED；任一 handler 缺失判空或集合不完整（registration 在运行时动态发生）只能维持 PLAUSIBLE。与 7.3「查不到 ≠ 没有」同一条原则。
+
+### 7.5.1 navmap 实测（AetherStack，2026-08-28）
+
+- 机制全通：compdb 生成（CMake `CMAKE_EXPORT_COMPILE_COMMANDS`）→ 粗筛 13 候选 → libclang 20.1.0 解析 → JSON+md 双产物
+- 两个发现：① 粗筛把 `build-asan/_deps/googletest` 第三方文件扫进候选（需配 exclude，真实仓同理要排除 vendor/第三方）；② AetherStack 无 C 式分发表（全是 `std::map` 注册式）→ 提取 0 表——**navmap 的主场是 C 式分发表密集的仓**（如目标核心仓），C++ std::map 注册式场景靠 codegraph 已够
+- 成本前提：navmap 需要 compdb——嵌入式交叉编译仓搞 compdb 是已知痛点，但生产环境已有 clangd 20.1.0 意味着编译数据库已存在，此约束在目标仓不成立
+- CodeFuse-Query 定位不变：只在需要精确变更影响分析时引入（C++ beta 且重），不进主链路
+
+### 7.5.2 与飞轮的衔接
+
+- navmap 产物（四类图）作为评审上下文注入：review-package 时按变更文件所属子系统带上相关表（替代/补充目前的 spec 段落通道）
+- navmap 的配置（`register_apis` 名单、`globalvar.variables` 名单）走 quarantine 治理：`suggest-apis`/`suggest-vars` 产出候选 → 人审 → 入库——规则配置与记忆资产同一治理回路
+- 判空契约（exemption_pattern）与分发表联动：契约声明「表 X 注册的 handler 统一在分发入口判空」时，verifier 可用 navmap 表验证该声明的覆盖率——**契约可验证，而不是只可宣称**
 
 ### 7.6 对阶段计划的修订
 
