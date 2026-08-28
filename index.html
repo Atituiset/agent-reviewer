@@ -345,6 +345,48 @@
   .swim-notes{margin-top:18px;display:grid;gap:8px;font-size:13px;color:var(--dim);}
   .swim-notes p b{color:var(--txt);}
 
+  /* ---------- 代码行高亮 & step 联动 ---------- */
+  .lc.hl-y{background:rgba(240,181,69,.1);box-shadow:inset 3px 0 0 var(--gold);}
+  .lc.hl-g{background:rgba(240,181,69,.07);box-shadow:inset 3px 0 0 rgba(240,181,69,.55);}
+  .lc.hl-r{background:rgba(242,109,109,.1);box-shadow:inset 3px 0 0 var(--red);color:#f3d3d3;}
+  .lc.focus{outline:1.5px solid var(--accent);outline-offset:-1.5px;background:rgba(57,208,196,.18);color:#eafffb;}
+  .lc-legend{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin-top:8px;}
+  .lc-legend .sq{display:inline-block;width:9px;height:9px;border-radius:2px;margin:0 6px 0 14px;vertical-align:baseline;}
+  .lc-legend .sq:first-child{margin-left:0;}
+  .sq.y{background:var(--gold);}
+  .sq.r{background:var(--red);}
+  .sq.g{background:rgba(240,181,69,.6);}
+  .sq.f{background:var(--accent);}
+  .pstep.link{cursor:pointer;transition:border-color .2s,box-shadow .2s;}
+  .pstep.link:hover{border-color:rgba(57,208,196,.5);}
+  .pstep.link.active{border-color:var(--accent);box-shadow:0 0 0 1px rgba(57,208,196,.3);}
+
+  /* ---------- 调用链路图 ---------- */
+  .chain{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:16px;}
+  .chn{font-family:var(--mono);font-size:12px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 11px;}
+  .chn i{font-style:normal;color:var(--dim);font-size:11px;margin-left:6px;}
+  .chn.ok{border-color:rgba(78,203,113,.5);}
+  .chn.ok i{color:var(--green);}
+  .chn.gold{border-color:rgba(240,181,69,.5);}
+  .chn.red{border-color:rgba(242,109,109,.55);}
+  .chn.red i{color:var(--red);}
+  .car{color:var(--accent2);font-family:var(--mono);}
+  .mini-stack.cols{grid-template-columns:repeat(auto-fit,minmax(250px,1fr));margin-top:16px;}
+
+  /* ---------- 多代码面板 & 时序表 ---------- */
+  .panels3{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-top:18px;align-items:start;}
+  .table-scroll{overflow-x:auto;margin-top:18px;}
+  .wtable{width:100%;min-width:780px;border-collapse:collapse;font-size:12.5px;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;}
+  .wtable th{
+    font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;color:var(--accent2);text-align:left;
+    padding:9px 14px;border-bottom:1px solid var(--line);background:rgba(90,162,255,.05);
+  }
+  .wtable td{padding:9px 14px;border-bottom:1px dashed rgba(38,47,66,.7);vertical-align:top;line-height:1.6;}
+  .wtable tr:last-child td{border-bottom:none;}
+  .wtable td.t{font-family:var(--mono);color:var(--accent);white-space:nowrap;}
+  .wtable code{font-family:var(--mono);font-size:11.5px;background:rgba(90,162,255,.12);color:#a9c8ff;border-radius:4px;padding:0 5px;}
+  .wtable b{color:var(--gold);}
+
   @media (max-width:820px){
     #detail .d-cols{grid-template-columns:1fr;}
     .split,.case{grid-template-columns:1fr;}
@@ -664,72 +706,117 @@
   <div class="wrap">
     <span class="sec-tag">ALERTS</span>
     <h2>PR 告警实况：代码 + 证据链</h2>
-    <p class="sec-sub">左边是被评审的真实代码，右边是 GitHub code scanning 告警的还原样式（annotation + Show paths）。</p>
+    <p class="sec-sub">每个案例给出完整代码面板——不用翻源码仓就能看懂缺陷。点击 / 悬停 Show paths 步骤，高亮代码面板中的对应行。</p>
 
-    <div class="case-cap">案例 1 · 真实缺陷 — bs_node.cpp:1082 cwe-125 off-by-one</div>
+    <div class="case-cap">案例 1 · 真实缺陷 — bs_node.cpp:1082 cwe-125 off-by-one（完整 case 块）</div>
     <div class="case">
-      <div class="lcode">
-        <div class="lc"><span class="ln-no">1072</span>case cn::MsgType::XN_HO_PREPARE: {</div>
-        <div class="lc"><span class="ln-no">1073</span>    <span class="cm">// {tmsi:4}{from:2}{to:2}{sec:1}{key:32}{imsi_len:1}{imsi}</span></div>
-        <div class="lc"><span class="ln-no">1074</span>    if (msg.value.size() &lt; 41) break;</div>
-        <div class="lc gap"><span class="ln-no">…</span></div>
-        <div class="lc hl"><span class="ln-no">1082</span>    const size_t ilen = msg.value[41];   <span class="cm">// ← 恰好 41 字节时越界读</span></div>
-        <div class="lc"><span class="ln-no">1083</span>    if (msg.value.size() &gt;= 42 + ilen) {</div>
+      <div>
+        <div class="pane-title">bs_node.cpp · XN_HO_PREPARE 分支（行 1072–1085）</div>
+        <div class="lcode">
+          <div class="lc" id="c1-1072"><span class="ln-no">1072</span>case cn::MsgType::XN_HO_PREPARE: {</div>
+          <div class="lc" id="c1-1073"><span class="ln-no">1073</span>    <span class="cm">// {tmsi:4}{from:2}{to:2}{sec:1}{key:32}{imsi_len:1}{imsi}</span></div>
+          <div class="lc hl-y" id="c1-1074"><span class="ln-no">1074</span>    if (msg.value.size() &lt; 41) break;</div>
+          <div class="lc" id="c1-1075"><span class="ln-no">1075</span>    HoContext ctx;</div>
+          <div class="lc" id="c1-1076"><span class="ln-no">1076</span>    ctx.tmsi = cn::get32(msg.value, 0);</div>
+          <div class="lc" id="c1-1077"><span class="ln-no">1077</span>    ctx.from_cell = cn::get16(msg.value, 4);</div>
+          <div class="lc" id="c1-1078"><span class="ln-no">1078</span>    const uint16_t to = cn::get16(msg.value, 6);</div>
+          <div class="lc" id="c1-1079"><span class="ln-no">1079</span>    if (to != config_.cell_id) break; <span class="cm">// not for this cell</span></div>
+          <div class="lc" id="c1-1080"><span class="ln-no">1080</span>    ctx.sec_on = msg.value[8] != 0;</div>
+          <div class="lc" id="c1-1081"><span class="ln-no">1081</span>    std::copy_n(msg.value.begin() + 9, 32, ctx.up_key.begin());</div>
+          <div class="lc hl-r" id="c1-1082"><span class="ln-no">1082</span>    const size_t ilen = msg.value[41];</div>
+          <div class="lc" id="c1-1083"><span class="ln-no">1083</span>    if (msg.value.size() &gt;= 42 + ilen) {</div>
+          <div class="lc" id="c1-1084"><span class="ln-no">1084</span>        ctx.imsi.assign(msg.value.begin() + 42,</div>
+          <div class="lc" id="c1-1085"><span class="ln-no">1085</span>                        msg.value.begin() + 42 + ilen);</div>
+        </div>
+        <div class="lc-legend"><span class="sq y"></span>:1074 守卫缺口<span class="sq r"></span>:1082 越界点<span class="sq f"></span>step 联动高亮</div>
       </div>
       <div class="annot">
         <div class="a-head"><span class="a-ico">⚠</span>越界读（CWE-125）· important</div>
         <div class="a-body">报文格式 <code>{tmsi:4}{from:2}{to:2}{sec:1}{key:32}{imsi_len:1}</code> 至少 42 字节，守卫为 <code>if (msg.value.size() &lt; 41) break;</code>，恰好 41 字节时 <code>msg.value[41]</code> 越界读（imsi_len）。修复：守卫改为 <code>&lt; 42</code>。</div>
         <div class="a-paths">
-          <div class="ap-t">Show paths</div>
-          <div class="pstep">
-            <div class="ps-head"><span class="ps-n">1</span><code>bs_node.cpp:1074</code>守卫放行 41 字节报文（格式最小长度实为 42）</div>
-            <pre class="ps-code"><span class="cm">// {tmsi:4}{from:2}{to:2}{sec:1}{key:32}{imsi_len:1}{imsi}</span>
-if (msg.value.size() &lt; 41) break;</pre>
+          <div class="ap-t">Show paths · 点击高亮左侧代码行</div>
+          <div class="pstep link" data-line-target="c1-1074" tabindex="0">
+            <div class="ps-head"><span class="ps-n">1</span><code>bs_node.cpp:1074</code>守卫少算 1 字节：报文格式最小长度实为 42，守卫放行 41 字节报文</div>
           </div>
-          <div class="pstep">
-            <div class="ps-head"><span class="ps-n">2</span><code>bs_node.cpp:1082</code>msg.value[41] 越界读 imsi_len（有效下标仅 0..40）</div>
-            <pre class="ps-code">const size_t ilen = msg.value[41];
-if (msg.value.size() &gt;= 42 + ilen) {</pre>
+          <div class="pstep link" data-line-target="c1-1082" tabindex="0">
+            <div class="ps-head"><span class="ps-n">2</span><code>bs_node.cpp:1082</code>恰好 41 字节时 msg.value[41] 越界读 imsi_len（有效下标仅 0..40）</div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="case-cap">案例 2 · 三模式对照 — 表驱动试验件（同一代码，三种结论）</div>
+    <div class="case-cap">案例 2 · 三模式对照 — 表驱动试验件（两个文件完整代码）</div>
     <div class="case">
-      <pre class="codeblock"><span class="cm">// 引擎文件：本文件内没有任何判空</span>
-static int decode_header(const FpReq *req) { return req-&gt;buf[0]; }
-static int reassembly(const FpReq *req) { return decode_header(req); }
-static int bearer_rx(const FpReq *req) { return reassembly(req); }
-static const fp_handler_t FP_HANDLER_TBL[4] = { bearer_rx, ... };
-int fp_engine_run(uint32_t msg_id, const FpReq *req) {
-    return FP_HANDLER_TBL[msg_id](req);
-}
-<span class="cm">// 入口文件（aka.cpp）：统一判空</span>
+      <div>
+        <div class="pane-title">面板 A · 引擎文件 trial_fp_engine.cpp（本文件内没有任何判空）</div>
+        <div class="lcode">
+          <div class="lc" id="c2a-1"><span class="ln-no">1</span><span class="cm">// ---- TRIAL SEED: 表驱动分发 + 深处解引用（mode-fp-tbl 对比），勿合并 ----</span></div>
+          <div class="lc" id="c2a-2"><span class="ln-no">2</span><span class="cm">// 本文件内**没有任何判空**：契约约定在调用方入口判空。</span></div>
+          <div class="lc" id="c2a-3"><span class="ln-no">3</span>#include "nas/trial_fp.h"</div>
+          <div class="lc" id="c2a-4"><span class="ln-no">4</span> </div>
+          <div class="lc" id="c2a-5"><span class="ln-no">5</span>namespace nas::trial {</div>
+          <div class="lc" id="c2a-6"><span class="ln-no">6</span> </div>
+          <div class="lc" id="c2a-7"><span class="ln-no">7</span><span class="cm">// 第 5 层（最深处）：解引用 req-&gt;buf——依赖入口契约</span></div>
+          <div class="lc hl-r" id="c2a-8"><span class="ln-no">8</span>static int decode_header(const FpReq *req) { return req-&gt;buf[0]; }</div>
+          <div class="lc" id="c2a-9"><span class="ln-no">9</span> </div>
+          <div class="lc" id="c2a-10"><span class="ln-no">10</span><span class="cm">// 第 2~4 层：纯转发</span></div>
+          <div class="lc" id="c2a-11"><span class="ln-no">11</span>static int reassembly(const FpReq *req) { return decode_header(req); }</div>
+          <div class="lc" id="c2a-12"><span class="ln-no">12</span>static int bearer_rx(const FpReq *req) { return reassembly(req); }</div>
+          <div class="lc" id="c2a-13"><span class="ln-no">13</span> </div>
+          <div class="lc" id="c2a-14"><span class="ln-no">14</span><span class="cm">// 分发表：msg_id → handler（navmap 应提取此表）</span></div>
+          <div class="lc" id="c2a-15"><span class="ln-no">15</span>using fp_handler_t = int (*)(const FpReq *);</div>
+          <div class="lc hl-g" id="c2a-16"><span class="ln-no">16</span>static const fp_handler_t FP_HANDLER_TBL[4] = {</div>
+          <div class="lc hl-g" id="c2a-17"><span class="ln-no">17</span>    bearer_rx, bearer_rx, bearer_rx, bearer_rx,</div>
+          <div class="lc hl-g" id="c2a-18"><span class="ln-no">18</span>};</div>
+          <div class="lc" id="c2a-19"><span class="ln-no">19</span> </div>
+          <div class="lc" id="c2a-20"><span class="ln-no">20</span>int fp_engine_run(uint32_t msg_id, const FpReq *req) {</div>
+          <div class="lc" id="c2a-21"><span class="ln-no">21</span>    if (msg_id &gt;= 4) {</div>
+          <div class="lc" id="c2a-22"><span class="ln-no">22</span>        return -2;</div>
+          <div class="lc" id="c2a-23"><span class="ln-no">23</span>    }</div>
+          <div class="lc hl-g" id="c2a-24"><span class="ln-no">24</span>    return FP_HANDLER_TBL[msg_id](req);</div>
+          <div class="lc" id="c2a-25"><span class="ln-no">25</span>}</div>
+          <div class="lc" id="c2a-26"><span class="ln-no">26</span>} <span class="cm">// namespace nas::trial</span></div>
+        </div>
+        <div class="lc-legend"><span class="sq r"></span>:8 深处解引用<span class="sq g"></span>:16-18 分发表 / :24 表分发调用</div>
+      </div>
+      <div>
+        <div class="pane-title">面板 B · 入口 aka.cpp（契约锚点）</div>
+        <pre class="codeblock"><span class="cm">// 入口（第 1 层）：统一判空——契约锚点</span>
 int handle_fp_request(const FpReq *req) {
-    if (!req || !req-&gt;buf) return -1;
-    return fp_engine_run(2, req);
+    if (!req || !req-&gt;buf) {
+        return -1;
+    }
+    return fp_engine_run(2, req); <span class="cm">// 经函数指针表 → decode_header（契约保证非空）</span>
 }</pre>
-      <div class="mini-stack">
-        <div class="mini-annot">
-          <div class="ma-tag">模式 1 · 纯场景库</div>
-          <p>「空指针解引用（CWE-476）@trial_fp_engine.cpp:24」——无法跟踪表分发</p>
-          <span class="verdict fp">FP 复现成功</span>
-        </div>
-        <div class="mini-annot">
-          <div class="ma-tag">模式 2 · + codegraph</div>
-          <p>链回溯沿分发表找到入口判空，候选被抑制</p>
-          <span class="verdict sup">未报</span>
-        </div>
-        <div class="mini-annot">
-          <div class="ma-tag">模式 3 · + navmap</div>
-          <p>「判空仅存在于 handle_fp_request 单一路径，fp_engine_run 是公开入口，直接调用即绕过判空」</p>
-          <span class="verdict deep">比 FP 更深的真实发现</span>
+        <div class="chain">
+          <span class="chn ok">handle_fp_request<i>判空 ✓</i></span><span class="car">→</span>
+          <span class="chn">fp_engine_run</span><span class="car">→</span>
+          <span class="chn gold">FP_HANDLER_TBL[2]</span><span class="car">→</span>
+          <span class="chn">bearer_rx</span><span class="car">→</span>
+          <span class="chn">reassembly</span><span class="car">→</span>
+          <span class="chn red">decode_header<i>解引用 req-&gt;buf[0]</i></span>
         </div>
       </div>
     </div>
+    <div class="mini-stack cols">
+      <div class="mini-annot">
+        <div class="ma-tag">模式 1 · 纯场景库</div>
+        <p>「空指针解引用（CWE-476）@trial_fp_engine.cpp:24」——无法跟踪表分发</p>
+        <span class="verdict fp">FP 复现成功</span>
+      </div>
+      <div class="mini-annot">
+        <div class="ma-tag">模式 2 · + codegraph</div>
+        <p>链回溯沿分发表找到入口判空，候选被抑制</p>
+        <span class="verdict sup">未报</span>
+      </div>
+      <div class="mini-annot">
+        <div class="ma-tag">模式 3 · + navmap</div>
+        <p>「判空仅存在于 handle_fp_request 单一路径，fp_engine_run 是公开入口，直接调用即绕过判空」</p>
+        <span class="verdict deep">比 FP 更深的真实发现</span>
+      </div>
+    </div>
 
-    <div class="case-cap">案例 3 · 真实缺陷 — rlc_um.cpp:134 cwe-190（16 位 SN 回绕选错恢复点）</div>
+    <div class="case-cap">案例 3 · 真实缺陷 — rlc_um.cpp:134 cwe-190（三个完整函数 + 回绕时序推演）</div>
     <div class="case">
       <div class="annot">
         <div class="a-head"><span class="a-ico">⚠</span>cwe-190 · important · <span style="font-family:var(--mono);font-size:12px;">stack/rlc/src/rlc_um.cpp:134</span></div>
@@ -739,36 +826,97 @@ int handle_fp_request(const FpReq *req) {
         </div>
       </div>
       <div class="annot">
-        <div class="a-head paths-head"><span class="a-ico" style="color:var(--accent2);">⇄</span>Show paths · 证据链（4 步）</div>
+        <div class="a-head paths-head"><span class="a-ico" style="color:var(--accent2);">⇄</span>Flow steps · 点击 / 悬停高亮下方代码行</div>
         <div class="a-paths">
-          <div class="pstep">
-            <div class="ps-head"><span class="ps-n">1</span><code>stack/rlc/include/rlc/rlc_um.h:79</code>ahead() 按 int16_t 模运算判定：vr_next_=65530 时 sn=65531(d=1) 与 sn=2(d=8) 均判为窗内合法乱序包</div>
-            <pre class="ps-code">int ahead(uint16_t sn) const {
-    const int d = static_cast&lt;int16_t&gt;(sn - vr_next_);
-    return (d &gt;= 0 &amp;&amp; d &lt; static_cast&lt;int&gt;(cfg_.window)) ? d : -1;
-}</pre>
+          <div class="pstep link" data-line-target="c3a-79,c3a-80,c3a-81" tabindex="0">
+            <div class="ps-head"><span class="ps-n">1</span><code>rlc_um.h:79</code>ahead() 按 int16_t 模运算判定：65531(d=1) 与 2(d=8) 均判为窗内合法</div>
           </div>
-          <div class="pstep">
-            <div class="ps-head"><span class="ps-n">2</span><code>stack/rlc/src/rlc_um.cpp:78</code>两包入 buffer_（std::map 数值序：2 排在 65531 前）并启动 t_reorder</div>
-            <pre class="ps-code"><span class="cm">// Genuine out-of-order reception: hold and start (or keep) t_reorder.</span>
-buffer_[sn] = {fi, {pdu.begin() + 3, pdu.end()}};
-timer_running_ = true;
-timer_deadline_ = now_ms + cfg_.t_reorder_ms;</pre>
+          <div class="pstep link" data-line-target="c3b-78" tabindex="0">
+            <div class="ps-head"><span class="ps-n">2</span><code>rlc_um.cpp:78</code>两包入 buffer_（std::map 数值序：2 排在 65531 前）并启动 t_reorder</div>
           </div>
-          <div class="pstep">
-            <div class="ps-head"><span class="ps-n">3</span><code>stack/rlc/src/rlc_um.cpp:134</code>超时恢复 resume=buffer_.begin()-&gt;first 取数值最小键 2，而非模序列上更靠前的 65531</div>
-            <pre class="ps-code">if (buffer_.empty()) return;
-const uint16_t resume = buffer_.begin()-&gt;first;   <span class="cm">// ← 数值序 ≠ 模序列序</span>
-const uint32_t skipped = static_cast&lt;uint16_t&gt;(resume - vr_next_);</pre>
+          <div class="pstep link" data-line-target="c3c-133,c3c-134" tabindex="0">
+            <div class="ps-head"><span class="ps-n">3</span><code>rlc_um.cpp:134</code>超时恢复 resume=begin()-&gt;first 取数值最小键 2，而非模序列上更靠前的 65531</div>
           </div>
-          <div class="pstep">
-            <div class="ps-head"><span class="ps-n">4</span><code>stack/rlc/src/rlc_um.cpp:141</code>skipped=(uint16_t)(2-65530)=8 计入丢包，vr_next_=2，sn=2 先于 65531 交付——顺序反转</div>
-            <pre class="ps-code">dropped_ += skipped;
-vr_next_ = resume;
-deliver_ready();</pre>
+          <div class="pstep link" data-line-target="c3c-136,c3c-137,c3c-142" tabindex="0">
+            <div class="ps-head"><span class="ps-n">4</span><code>rlc_um.cpp:141</code>skipped=8 计入丢包，vr_next_=2，sn=2 先于 65531 交付——顺序反转</div>
           </div>
         </div>
       </div>
+    </div>
+    <div class="panels3">
+      <div>
+        <div class="pane-title">面板 A · ahead() 准入判定 · rlc_um.h:77-82</div>
+        <div class="lcode">
+          <div class="lc" id="c3a-77"><span class="ln-no">77</span><span class="cm">// Sequence helper: is `sn` inside (or ahead of) the window starting at</span></div>
+          <div class="lc" id="c3a-78"><span class="ln-no">78</span><span class="cm">// vr_next_? Returns the forward distance, -1 when behind/outside.</span></div>
+          <div class="lc" id="c3a-79"><span class="ln-no">79</span>int ahead(uint16_t sn) const {</div>
+          <div class="lc hl-y" id="c3a-80"><span class="ln-no">80</span>    const int d = static_cast&lt;int16_t&gt;(sn - vr_next_);</div>
+          <div class="lc" id="c3a-81"><span class="ln-no">81</span>    return (d &gt;= 0 &amp;&amp; d &lt; static_cast&lt;int&gt;(cfg_.window)) ? d : -1;</div>
+          <div class="lc" id="c3a-82"><span class="ln-no">82</span>}</div>
+        </div>
+      </div>
+      <div>
+        <div class="pane-title">面板 B · rx() 乱序缓存 · rlc_um.cpp:76-83</div>
+        <div class="lcode">
+          <div class="lc" id="c3b-76"><span class="ln-no">76</span>}</div>
+          <div class="lc" id="c3b-77"><span class="ln-no">77</span><span class="cm">// Genuine out-of-order reception: hold and start (or keep) t_reorder.</span></div>
+          <div class="lc" id="c3b-78"><span class="ln-no">78</span>buffer_[sn] = {fi, {pdu.begin() + 3, pdu.end()}};</div>
+          <div class="lc" id="c3b-79"><span class="ln-no">79</span>if (!timer_running_) {</div>
+          <div class="lc" id="c3b-80"><span class="ln-no">80</span>    timer_running_ = true;</div>
+          <div class="lc" id="c3b-81"><span class="ln-no">81</span>    timer_deadline_ = now_ms + cfg_.t_reorder_ms;</div>
+          <div class="lc" id="c3b-82"><span class="ln-no">82</span>}</div>
+          <div class="lc" id="c3b-83"><span class="ln-no">83</span>}</div>
+        </div>
+      </div>
+      <div>
+        <div class="pane-title">面板 C · on_reorder_timeout() 超时恢复 · rlc_um.cpp:129-147</div>
+        <div class="lcode">
+          <div class="lc" id="c3c-129"><span class="ln-no">129</span>void UmRx::on_reorder_timeout(uint32_t now_ms) {</div>
+          <div class="lc" id="c3c-130"><span class="ln-no">130</span>    <span class="cm">// The hole is declared lost: skip every SN below the lowest buffered</span></div>
+          <div class="lc" id="c3c-131"><span class="ln-no">131</span>    <span class="cm">// one and resume delivery. A partial SDU spanning a lost segment dies.</span></div>
+          <div class="lc" id="c3c-132"><span class="ln-no">132</span>    if (buffer_.empty()) return;</div>
+          <div class="lc hl-r" id="c3c-133"><span class="ln-no">133</span>    const uint16_t resume = buffer_.begin()-&gt;first;</div>
+          <div class="lc hl-r" id="c3c-134"><span class="ln-no">134</span>    const uint32_t skipped = static_cast&lt;uint16_t&gt;(resume - vr_next_);</div>
+          <div class="lc" id="c3c-135"><span class="ln-no">135</span>    if (skipped &gt; 0) {</div>
+          <div class="lc" id="c3c-136"><span class="ln-no">136</span>        dropped_ += skipped;</div>
+          <div class="lc" id="c3c-137"><span class="ln-no">137</span>        vr_next_ = resume;</div>
+          <div class="lc" id="c3c-138"><span class="ln-no">138</span>        collecting_ = false;</div>
+          <div class="lc" id="c3c-139"><span class="ln-no">139</span>        partial_.clear();</div>
+          <div class="lc" id="c3c-140"><span class="ln-no">140</span>        LOG_WARN(ev::RLC_UM_GAP_SKIP, {{"skipped", std::to_string(skipped)}});</div>
+          <div class="lc" id="c3c-141"><span class="ln-no">141</span>    }</div>
+          <div class="lc" id="c3c-142"><span class="ln-no">142</span>    deliver_ready();</div>
+          <div class="lc" id="c3c-143"><span class="ln-no">143</span>    if (!buffer_.empty()) {</div>
+          <div class="lc" id="c3c-144"><span class="ln-no">144</span>        timer_running_ = true;</div>
+          <div class="lc" id="c3c-145"><span class="ln-no">145</span>        timer_deadline_ = now_ms + cfg_.t_reorder_ms;</div>
+          <div class="lc" id="c3c-146"><span class="ln-no">146</span>    }</div>
+          <div class="lc" id="c3c-147"><span class="ln-no">147</span>}</div>
+        </div>
+      </div>
+    </div>
+    <div class="table-scroll">
+      <table class="wtable">
+        <tr><th>时刻</th><th>事件</th><th>状态</th></tr>
+        <tr>
+          <td class="t">t1</td>
+          <td><code>vr_next_=65530</code>，sn=65531 到达</td>
+          <td>ahead: <code>int16_t(65531-65530)=1</code> → 合法入缓存</td>
+        </tr>
+        <tr>
+          <td class="t">t2</td>
+          <td>sn=2 到达</td>
+          <td>ahead: <code>int16_t(2-65530)=8</code>（回绕）→ 也合法入缓存；std::map 数值序：<b>2 排在 65531 前</b></td>
+        </tr>
+        <tr>
+          <td class="t">t3</td>
+          <td>t_reorder 超时</td>
+          <td><code>resume = begin()-&gt;first = 2</code>（数值最小），而非模序列上更靠前的 <b>65531</b></td>
+        </tr>
+        <tr>
+          <td class="t">t4</td>
+          <td>超时恢复</td>
+          <td><code>skipped=(uint16_t)(2-65530)=8</code> 计入丢包；<code>vr_next_=2</code> → <b>sn=2 先于 65531 交付，顺序反转</b>；第二次超时 skipped 虚增 ~65528</td>
+        </tr>
+      </table>
     </div>
   </div>
 </section>
@@ -1216,6 +1364,40 @@ deliver_ready();</pre>
     }, { threshold: 0.25 });
     terms.forEach(function(t){ tio.observe(t); });
   }
+
+  /* ================= flow step ↔ 代码行联动 ================= */
+  var pinnedLines = [];
+  function clearPins(){
+    pinnedLines.forEach(function(l){ l.classList.remove("focus"); });
+    pinnedLines = [];
+    document.querySelectorAll(".pstep.active").forEach(function(x){ x.classList.remove("active"); });
+  }
+  document.querySelectorAll("[data-line-target]").forEach(function(el){
+    var lines = el.getAttribute("data-line-target").split(",")
+      .map(function(id){ return document.getElementById(id.trim()); })
+      .filter(function(l){ return !!l; });
+    if(!lines.length) return;
+    el.addEventListener("mouseenter", function(){
+      lines.forEach(function(l){ l.classList.add("focus"); });
+      lines[0].scrollIntoView({block:"nearest"});
+    });
+    el.addEventListener("mouseleave", function(){
+      if(pinnedLines.indexOf(lines[0]) === -1){
+        lines.forEach(function(l){ l.classList.remove("focus"); });
+      }
+    });
+    function pin(){
+      clearPins();
+      el.classList.add("active");
+      lines.forEach(function(l){ l.classList.add("focus"); });
+      pinnedLines = lines.slice();
+      lines[0].scrollIntoView({block:"nearest"});
+    }
+    el.addEventListener("click", pin);
+    el.addEventListener("keydown", function(ev){
+      if(ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); pin(); }
+    });
+  });
 
   /* ================= S4 count-up ================= */
   var counters = document.querySelectorAll(".cnt");
