@@ -800,13 +800,13 @@
         <div class="vconcl"><div class="cb g">上游判空可查证 → 证伪不报（实测调用 29 次）</div></div>
       </div>
       <div class="vane lane3">
-        <div class="vane-tag">模式 3 · + navmap</div>
-        <div class="vane-cap">分发表展开为 handler 集合（保守近似）</div>
-        <div class="vnode">handle_fp_request<span class="vb gold">判空 ✓（仅覆盖此路径）</span></div>
+        <div class="vane-tag">模式 3 · codegraph + navmap</div>
+        <div class="vane-cap">链回溯（codegraph）+ 分发表展开为 handler 集合（navmap，保守近似）</div>
+        <div class="vnode">handle_fp_request<span class="vb gold">回溯至入口：判空 ✓（仅覆盖此路径）</span></div>
         <div class="vconn"></div>
         <div class="vnode">fp_engine_run<span class="warn-x">⚠ fp_engine_run 是公开入口：直接调用即绕过判空</span></div>
         <div class="vconn"></div>
-        <div class="vnode tbl">FP_HANDLER_TBL[2]<span class="vb gold">分发表展开 ↓</span><span class="branch"><span class="brow"><span class="bchip">bearer_rx</span><span class="bchip">bearer_rx</span><span class="bchip">bearer_rx</span><span class="bchip">bearer_rx</span></span></span></div>
+        <div class="vnode tbl">FP_HANDLER_TBL[2]<span class="vb gold">codegraph 断链点 → navmap 分发表展开 ↓</span><span class="branch"><span class="brow"><span class="bchip">bearer_rx</span><span class="bchip">bearer_rx</span><span class="bchip">bearer_rx</span><span class="bchip">bearer_rx</span></span></span></div>
         <div class="vconn"></div>
         <div class="vnode">bearer_rx</div>
         <div class="vconn"></div>
@@ -819,7 +819,7 @@
 
     <div class="table-scroll">
       <table class="wtable core-table">
-        <tr><th></th><th>模式 1 · 无索引</th><th>模式 2 · +codegraph</th><th>模式 3 · +navmap</th></tr>
+        <tr><th></th><th>模式 1 · 无索引</th><th>模式 2 · +codegraph</th><th>模式 3 · codegraph+navmap</th></tr>
         <tr>
           <td class="t">输入</td>
           <td>场景清单 alone</td>
@@ -1025,7 +1025,7 @@ int handle_fp_request(const FpReq *req) {
         <span class="verdict sup">未报</span>
       </div>
       <div class="mini-annot">
-        <div class="ma-tag">模式 3 · + navmap</div>
+        <div class="ma-tag">模式 3 · codegraph+navmap</div>
         <p>「判空仅存在于 handle_fp_request 单一路径，fp_engine_run 是公开入口，直接调用即绕过判空」</p>
         <span class="verdict deep">比 FP 更深的真实发现</span>
       </div>
