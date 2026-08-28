@@ -1,0 +1,211 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "agent-reviewer",
+          "version": "0.1.0",
+          "informationUri": "https://github.com/Atituiset/agent-reviewer",
+          "rules": [
+            {
+              "id": "cwe-125",
+              "name": "cwe-125-out-of-bounds-read",
+              "shortDescription": {
+                "text": "读越界：读取超出缓冲区边界的数据（CWE-CWE-125）。"
+              },
+              "properties": {
+                "cwe": "125",
+                "severity_default": "high",
+                "origin": "mitre-top25"
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "cwe-125",
+          "level": "error",
+          "message": {
+            "text": "decode_header 解引用 req->buf[0] 前未校验 req->len>=1：FpReq.len 在整条调用链上无人校验，len==0 时 buf[0] 为越界读\n\nFpReq 携带 len 字段（trial_fp.h:9），但入口 handle_fp_request 只判空（!req || !req->buf，aka.cpp:173），未校验 len；fp_engine_run 仅校验 msg_id 范围（trial_fp_engine.cpp:21）后经 FP_HANDLER_TBL 分发；decode_header 无条件读取 buf[0]。len==0 的空报文（buf 非空指针）可穿过全部判空并触发 1 字节越界读。\n\n**判断理由**：FpReq.len 自入口至最深 handler 从未被校验，buf[0] 读取缺少 len>=1 约束，构成 cwe-125 越界读；空指针候选（cwe-476，decode_header 处）经 codegraph 链回溯：fp_engine_run 唯一调用方 handle_fp_request 对同一指针 req/req->buf 判空，navmap 分发表 4 项全部解析为 bearer_rx，判空覆盖完整路径，故证伪不报。\n\n**证据链**：stack/nas/src/aka.cpp:173 入口 handle_fp_request 仅判空 !req || !req->buf，未校验 req->len（len==0 的空报文可穿过入口） → stack/nas/src/aka.cpp:176 FpReq* 原样传入 fp_engine_run(2, req) → stack/nas/src/trial_fp_engine.cpp:21 fp_engine_run 仅校验 msg_id>=4 返回 -2，未校验 req->len → stack/nas/src/trial_fp_engine.cpp:24 经 FP_HANDLER_TBL[msg_id](req) 函数指针分发（navmap 表 4 项 handler 全为 bearer_rx，位置 trial_fp_engine.cpp:12） → stack/nas/src/trial_fp_engine.cpp:12 bearer_rx(req) 原样转发至 reassembly → stack/nas/src/trial_fp_engine.cpp:11 reassembly(req) 原样转发至 decode_header → stack/nas/src/trial_fp_engine.cpp:8 decode_header 解引用 req->buf[0]：len==0 时读取越界（缺陷点）",
+            "markdown": "decode_header 解引用 req->buf[0] 前未校验 req->len>=1：FpReq.len 在整条调用链上无人校验，len==0 时 buf[0] 为越界读\n\nFpReq 携带 len 字段（trial_fp.h:9），但入口 handle_fp_request 只判空（!req || !req->buf，aka.cpp:173），未校验 len；fp_engine_run 仅校验 msg_id 范围（trial_fp_engine.cpp:21）后经 FP_HANDLER_TBL 分发；decode_header 无条件读取 buf[0]。len==0 的空报文（buf 非空指针）可穿过全部判空并触发 1 字节越界读。\n\n**判断理由**：FpReq.len 自入口至最深 handler 从未被校验，buf[0] 读取缺少 len>=1 约束，构成 cwe-125 越界读；空指针候选（cwe-476，decode_header 处）经 codegraph 链回溯：fp_engine_run 唯一调用方 handle_fp_request 对同一指针 req/req->buf 判空，navmap 分发表 4 项全部解析为 bearer_rx，判空覆盖完整路径，故证伪不报。\n\n**证据链**：stack/nas/src/aka.cpp:173 入口 handle_fp_request 仅判空 !req || !req->buf，未校验 req->len（len==0 的空报文可穿过入口） → stack/nas/src/aka.cpp:176 FpReq* 原样传入 fp_engine_run(2, req) → stack/nas/src/trial_fp_engine.cpp:21 fp_engine_run 仅校验 msg_id>=4 返回 -2，未校验 req->len → stack/nas/src/trial_fp_engine.cpp:24 经 FP_HANDLER_TBL[msg_id](req) 函数指针分发（navmap 表 4 项 handler 全为 bearer_rx，位置 trial_fp_engine.cpp:12） → stack/nas/src/trial_fp_engine.cpp:12 bearer_rx(req) 原样转发至 reassembly → stack/nas/src/trial_fp_engine.cpp:11 reassembly(req) 原样转发至 decode_header → stack/nas/src/trial_fp_engine.cpp:8 decode_header 解引用 req->buf[0]：len==0 时读取越界（缺陷点）"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "stack/nas/src/trial_fp_engine.cpp"
+                },
+                "region": {
+                  "startLine": 8,
+                  "snippet": {
+                    "text": "static int decode_header(const FpReq *req) { return req->buf[0]; }"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "diffHash": "1fe0211bfd050390c1e9f731a388d72f87f0c07b94f418561d2e6b02fd1f16d7",
+            "findingIndex": "cwe-125/stack/nas/src/trial_fp_engine.cpp:8"
+          },
+          "properties": {
+            "confidence": 85,
+            "severity": "important",
+            "category": "out-of-bounds-read",
+            "checklist_item": null,
+            "refs": [],
+            "ruling": null,
+            "resolved": false,
+            "reasoning": "FpReq.len 自入口至最深 handler 从未被校验，buf[0] 读取缺少 len>=1 约束，构成 cwe-125 越界读；空指针候选（cwe-476，decode_header 处）经 codegraph 链回溯：fp_engine_run 唯一调用方 handle_fp_request 对同一指针 req/req->buf 判空，navmap 分发表 4 项全部解析为 bearer_rx，判空覆盖完整路径，故证伪不报。"
+          },
+          "codeFlows": [
+            {
+              "threadFlows": [
+                {
+                  "locations": [
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/aka.cpp"
+                          },
+                          "region": {
+                            "startLine": 173,
+                            "snippet": {
+                              "text": "if (!req || !req->buf) {"
+                            }
+                          }
+                        },
+                        "message": {
+                          "text": "入口 handle_fp_request 仅判空 !req || !req->buf，未校验 req->len（len==0 的空报文可穿过入口）"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/aka.cpp"
+                          },
+                          "region": {
+                            "startLine": 176,
+                            "snippet": {
+                              "text": "return fp_engine_run(2, req); // 经函数指针表 → decode_header（契约保证非空）"
+                            }
+                          }
+                        },
+                        "message": {
+                          "text": "FpReq* 原样传入 fp_engine_run(2, req)"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/trial_fp_engine.cpp"
+                          },
+                          "region": {
+                            "startLine": 21,
+                            "snippet": {
+                              "text": "if (msg_id >= 4) {"
+                            }
+                          }
+                        },
+                        "message": {
+                          "text": "fp_engine_run 仅校验 msg_id>=4 返回 -2，未校验 req->len"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/trial_fp_engine.cpp"
+                          },
+                          "region": {
+                            "startLine": 24,
+                            "snippet": {
+                              "text": "return FP_HANDLER_TBL[msg_id](req);"
+                            }
+                          }
+                        },
+                        "message": {
+                          "text": "经 FP_HANDLER_TBL[msg_id](req) 函数指针分发（navmap 表 4 项 handler 全为 bearer_rx，位置 trial_fp_engine.cpp:12）"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/trial_fp_engine.cpp"
+                          },
+                          "region": {
+                            "startLine": 12,
+                            "snippet": {
+                              "text": "static int bearer_rx(const FpReq *req) { return reassembly(req); }"
+                            }
+                          }
+                        },
+                        "message": {
+                          "text": "bearer_rx(req) 原样转发至 reassembly"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/trial_fp_engine.cpp"
+                          },
+                          "region": {
+                            "startLine": 11,
+                            "snippet": {
+                              "text": "static int reassembly(const FpReq *req) { return decode_header(req); }"
+                            }
+                          }
+                        },
+                        "message": {
+                          "text": "reassembly(req) 原样转发至 decode_header"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "stack/nas/src/trial_fp_engine.cpp"
+                          },
+                          "region": {
+                            "startLine": 8,
+                            "snippet": {
+                              "text": "static int decode_header(const FpReq *req) { return req->buf[0]; }"
+                            }
+                          }
+                        },
+                        "message": {
+                          "text": "decode_header 解引用 req->buf[0]：len==0 时读取越界（缺陷点）"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "hostedViewerUri": "https://github.com/Atituiset/AetherStack/actions/runs/33166873153"
+        }
+      ],
+      "properties": {
+        "verdict": "ISSUES_FOUND",
+        "diff_hash": "1fe0211bfd050390c1e9f731a388d72f87f0c07b94f418561d2e6b02fd1f16d7",
+        "reviewed_at": "2026-08-28T11:24:03Z",
+        "scenarios_scanned": []
+      }
+    }
+  ]
+}

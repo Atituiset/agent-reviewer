@@ -1,0 +1,77 @@
+﻿2026-08-28T11:24:54.9848614Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-08-28T11:24:54.9849782Z ##[group]Run actions/checkout@v4
+2026-08-28T11:24:54.9850040Z with:
+2026-08-28T11:24:54.9850267Z   repository: Atituiset/agent-reviewer
+2026-08-28T11:24:54.9850522Z   ref: mvp
+2026-08-28T11:24:54.9850709Z   path: .reviewer
+2026-08-28T11:24:54.9853480Z   token: ***
+2026-08-28T11:24:54.9853847Z   ssh-strict: true
+2026-08-28T11:24:54.9854055Z   ssh-user: git
+2026-08-28T11:24:54.9854266Z   persist-credentials: true
+2026-08-28T11:24:54.9854500Z   clean: true
+2026-08-28T11:24:54.9854719Z   sparse-checkout-cone-mode: true
+2026-08-28T11:24:54.9855004Z   fetch-depth: 1
+2026-08-28T11:24:54.9855216Z   fetch-tags: false
+2026-08-28T11:24:54.9855427Z   show-progress: true
+2026-08-28T11:24:54.9855677Z   lfs: false
+2026-08-28T11:24:54.9855868Z   submodules: false
+2026-08-28T11:24:54.9856079Z   set-safe-directory: true
+2026-08-28T11:24:54.9856330Z   allow-unsafe-pr-checkout: false
+2026-08-28T11:24:54.9856585Z ##[endgroup]
+2026-08-28T11:24:55.0695280Z Syncing repository: Atituiset/agent-reviewer
+2026-08-28T11:24:55.0699473Z ##[group]Getting Git version info
+2026-08-28T11:24:55.0700044Z Working directory is '/home/runner/work/AetherStack/AetherStack/.reviewer'
+2026-08-28T11:24:55.0746532Z [command]/usr/bin/git version
+2026-08-28T11:24:55.0796010Z git version 2.55.0
+2026-08-28T11:24:55.0819756Z ##[endgroup]
+2026-08-28T11:24:55.0835765Z Temporarily overriding HOME='/home/runner/work/_temp/e1c2557f-a229-4ffa-a945-ff344a265288' before making global git config changes
+2026-08-28T11:24:55.0837107Z Adding repository directory to the temporary git global config as a safe directory
+2026-08-28T11:24:55.0842403Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/AetherStack/AetherStack/.reviewer
+2026-08-28T11:24:55.0884875Z [command]/usr/bin/git config --local --get remote.origin.url
+2026-08-28T11:24:55.0907054Z https://github.com/Atituiset/agent-reviewer
+2026-08-28T11:24:55.0919500Z ##[group]Removing previously created refs, to avoid conflicts
+2026-08-28T11:24:55.0924392Z [command]/usr/bin/git rev-parse --symbolic-full-name --verify --quiet HEAD
+2026-08-28T11:24:55.0945669Z refs/heads/mvp
+2026-08-28T11:24:55.0961445Z [command]/usr/bin/git checkout --detach
+2026-08-28T11:24:55.1001519Z HEAD is now at 733d13d fix: SARIF region.startLine 下限钳制为 1（模型 flow 给 line:0 时 upload-sarif 校验不再失败）
+2026-08-28T11:24:55.1002695Z M	scripts/__pycache__/_lib.cpython-312.pyc
+2026-08-28T11:24:55.1042952Z [command]/usr/bin/git branch --delete --force mvp
+2026-08-28T11:24:55.1066093Z Deleted branch mvp (was 733d13d).
+2026-08-28T11:24:55.1099339Z ##[endgroup]
+2026-08-28T11:24:55.1105590Z [command]/usr/bin/git submodule status
+2026-08-28T11:24:55.1309850Z ##[group]Cleaning the repository
+2026-08-28T11:24:55.1310249Z [command]/usr/bin/git clean -ffdx
+2026-08-28T11:24:55.1504894Z Removing .venv/
+2026-08-28T11:24:55.1518940Z [command]/usr/bin/git reset --hard HEAD
+2026-08-28T11:24:55.1565516Z HEAD is now at 733d13d fix: SARIF region.startLine 下限钳制为 1（模型 flow 给 line:0 时 upload-sarif 校验不再失败）
+2026-08-28T11:24:55.1568457Z ##[endgroup]
+2026-08-28T11:24:55.1570411Z ##[group]Disabling automatic garbage collection
+2026-08-28T11:24:55.1576215Z [command]/usr/bin/git config --local gc.auto 0
+2026-08-28T11:24:55.1604106Z ##[endgroup]
+2026-08-28T11:24:55.1604846Z ##[group]Setting up auth
+2026-08-28T11:24:55.1611812Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-08-28T11:24:55.1641787Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-08-28T11:24:55.1865274Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-08-28T11:24:55.1885125Z http.https://github.com/.extraheader
+2026-08-28T11:24:55.1894378Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-08-28T11:24:55.1926455Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-08-28T11:24:55.2139061Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-08-28T11:24:55.2178211Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-08-28T11:24:55.2379455Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-08-28T11:24:55.2421205Z ##[endgroup]
+2026-08-28T11:24:55.2421975Z ##[group]Fetching the repository
+2026-08-28T11:24:55.2433708Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/mvp*:refs/remotes/origin/mvp* +refs/tags/mvp*:refs/tags/mvp*
+2026-08-28T11:24:55.7996474Z ##[endgroup]
+2026-08-28T11:24:55.7997149Z ##[group]Determining the checkout info
+2026-08-28T11:24:55.8004624Z [command]/usr/bin/git branch --list --remote origin/mvp
+2026-08-28T11:24:55.8029781Z   origin/mvp
+2026-08-28T11:24:55.8035056Z ##[endgroup]
+2026-08-28T11:24:55.8040621Z [command]/usr/bin/git sparse-checkout disable
+2026-08-28T11:24:55.8085041Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-08-28T11:24:55.8113921Z ##[group]Checking out the ref
+2026-08-28T11:24:55.8119442Z [command]/usr/bin/git checkout --progress --force -B mvp refs/remotes/origin/mvp
+2026-08-28T11:24:55.8165317Z Switched to a new branch 'mvp'
+2026-08-28T11:24:55.8166331Z branch 'mvp' set up to track 'origin/mvp'.
+2026-08-28T11:24:55.8171083Z ##[endgroup]
+2026-08-28T11:24:55.8206032Z [command]/usr/bin/git log -1 --format=%H
+2026-08-28T11:24:55.8232841Z 733d13d1b3b9a16abc4706fe214c16239f1fd016

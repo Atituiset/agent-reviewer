@@ -1,0 +1,77 @@
+﻿2026-08-28T11:22:20.2815452Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-08-28T11:22:20.2816681Z ##[group]Run actions/checkout@v4
+2026-08-28T11:22:20.2816926Z with:
+2026-08-28T11:22:20.2817122Z   ref: navmap-outputs
+2026-08-28T11:22:20.2817335Z   path: .navmap-out
+2026-08-28T11:22:20.2817555Z   repository: Atituiset/AetherStack
+2026-08-28T11:22:20.2820264Z   token: ***
+2026-08-28T11:22:20.2820466Z   ssh-strict: true
+2026-08-28T11:22:20.2820690Z   ssh-user: git
+2026-08-28T11:22:20.2820902Z   persist-credentials: true
+2026-08-28T11:22:20.2821131Z   clean: true
+2026-08-28T11:22:20.2821355Z   sparse-checkout-cone-mode: true
+2026-08-28T11:22:20.2821607Z   fetch-depth: 1
+2026-08-28T11:22:20.2821816Z   fetch-tags: false
+2026-08-28T11:22:20.2822020Z   show-progress: true
+2026-08-28T11:22:20.2822265Z   lfs: false
+2026-08-28T11:22:20.2822455Z   submodules: false
+2026-08-28T11:22:20.2822664Z   set-safe-directory: true
+2026-08-28T11:22:20.2822912Z   allow-unsafe-pr-checkout: false
+2026-08-28T11:22:20.2823169Z ##[endgroup]
+2026-08-28T11:22:20.3744309Z Syncing repository: Atituiset/AetherStack
+2026-08-28T11:22:20.3774709Z ##[group]Getting Git version info
+2026-08-28T11:22:20.3781951Z Working directory is '/home/runner/work/AetherStack/AetherStack/.navmap-out'
+2026-08-28T11:22:20.3814638Z [command]/usr/bin/git version
+2026-08-28T11:22:20.3815340Z git version 2.55.0
+2026-08-28T11:22:20.3817539Z ##[endgroup]
+2026-08-28T11:22:20.3819567Z Temporarily overriding HOME='/home/runner/work/_temp/7a1f785f-7a6b-4962-b103-bad963793465' before making global git config changes
+2026-08-28T11:22:20.3820894Z Adding repository directory to the temporary git global config as a safe directory
+2026-08-28T11:22:20.3822158Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/AetherStack/AetherStack/.navmap-out
+2026-08-28T11:22:20.3824442Z ##[group]Initializing the repository
+2026-08-28T11:22:20.3825255Z [command]/usr/bin/git init /home/runner/work/AetherStack/AetherStack/.navmap-out
+2026-08-28T11:22:20.3886761Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-08-28T11:22:20.3887885Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-08-28T11:22:20.3890380Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-08-28T11:22:20.3891264Z hint: call:
+2026-08-28T11:22:20.3891747Z hint:
+2026-08-28T11:22:20.3892314Z hint: 	git config --global init.defaultBranch <name>
+2026-08-28T11:22:20.3893032Z hint:
+2026-08-28T11:22:20.3893813Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-08-28T11:22:20.3894774Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-08-28T11:22:20.3895536Z hint:
+2026-08-28T11:22:20.3896078Z hint: 	git branch -m <name>
+2026-08-28T11:22:20.3896657Z hint:
+2026-08-28T11:22:20.3897395Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-08-28T11:22:20.3898568Z Initialized empty Git repository in /home/runner/work/AetherStack/AetherStack/.navmap-out/.git/
+2026-08-28T11:22:20.3901949Z [command]/usr/bin/git remote add origin https://github.com/Atituiset/AetherStack
+2026-08-28T11:22:20.3928972Z ##[endgroup]
+2026-08-28T11:22:20.3929847Z ##[group]Disabling automatic garbage collection
+2026-08-28T11:22:20.3934993Z [command]/usr/bin/git config --local gc.auto 0
+2026-08-28T11:22:20.3974715Z ##[endgroup]
+2026-08-28T11:22:20.3975217Z ##[group]Setting up auth
+2026-08-28T11:22:20.3975939Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-08-28T11:22:20.4011814Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-08-28T11:22:20.4286032Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-08-28T11:22:20.4338514Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-08-28T11:22:20.4628335Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-08-28T11:22:20.4658876Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-08-28T11:22:20.5034562Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-08-28T11:22:20.5065848Z ##[endgroup]
+2026-08-28T11:22:20.5066588Z ##[group]Fetching the repository
+2026-08-28T11:22:20.5068075Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/navmap-outputs*:refs/remotes/origin/navmap-outputs* +refs/tags/navmap-outputs*:refs/tags/navmap-outputs*
+2026-08-28T11:22:21.7107731Z From https://github.com/Atituiset/AetherStack
+2026-08-28T11:22:21.7108659Z  * [new branch]      navmap-outputs -> origin/navmap-outputs
+2026-08-28T11:22:21.7112956Z ##[endgroup]
+2026-08-28T11:22:21.7113769Z ##[group]Determining the checkout info
+2026-08-28T11:22:21.7122348Z [command]/usr/bin/git branch --list --remote origin/navmap-outputs
+2026-08-28T11:22:21.7164277Z   origin/navmap-outputs
+2026-08-28T11:22:21.7170267Z ##[endgroup]
+2026-08-28T11:22:21.7176358Z [command]/usr/bin/git sparse-checkout disable
+2026-08-28T11:22:21.7206475Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-08-28T11:22:21.7229751Z ##[group]Checking out the ref
+2026-08-28T11:22:21.7234691Z [command]/usr/bin/git checkout --progress --force -B navmap-outputs refs/remotes/origin/navmap-outputs
+2026-08-28T11:22:21.7393045Z Switched to a new branch 'navmap-outputs'
+2026-08-28T11:22:21.7394154Z branch 'navmap-outputs' set up to track 'origin/navmap-outputs'.
+2026-08-28T11:22:21.7398574Z ##[endgroup]
+2026-08-28T11:22:21.7462853Z [command]/usr/bin/git log -1 --format=%H
+2026-08-28T11:22:21.7484399Z 9c646b3adf96e67e848bef561edb67ae6c58d144

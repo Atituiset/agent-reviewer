@@ -1,0 +1,53 @@
+{
+  "baseline_commit": "e558221bd0a881405bb9cd2941b7b76cac079311",
+  "generated_at": "2026-08-28T11:13:59+00:00",
+  "subsystem": "stack",
+  "kind": "dispatch",
+  "tables": [
+    {
+      "name": "FP_HANDLER_TBL",
+      "file": "stack/nas/src/trial_fp_engine.cpp",
+      "line": 16,
+      "source_hash": "sha256:facf646045181383f1cb9edf64ef8275c75e16d88388dde2a432827a35e4c32b",
+      "entries": [
+        {
+          "msg_id": "0",
+          "msg_id_value": "0",
+          "handler": "bearer_rx",
+          "handler_loc": "stack/nas/src/trial_fp_engine.cpp:12",
+          "handler_usr": "c:trial_fp_engine.cpp@N@nas@N@trial@F@bearer_rx#*1$@N@nas@N@trial@S@FpReq#",
+          "cond": null,
+          "source": "ast"
+        },
+        {
+          "msg_id": "1",
+          "msg_id_value": "1",
+          "handler": "bearer_rx",
+          "handler_loc": "stack/nas/src/trial_fp_engine.cpp:12",
+          "handler_usr": "c:trial_fp_engine.cpp@N@nas@N@trial@F@bearer_rx#*1$@N@nas@N@trial@S@FpReq#",
+          "cond": null,
+          "source": "ast"
+        },
+        {
+          "msg_id": "2",
+          "msg_id_value": "2",
+          "handler": "bearer_rx",
+          "handler_loc": "stack/nas/src/trial_fp_engine.cpp:12",
+          "handler_usr": "c:trial_fp_engine.cpp@N@nas@N@trial@F@bearer_rx#*1$@N@nas@N@trial@S@FpReq#",
+          "cond": null,
+          "source": "ast"
+        },
+        {
+          "msg_id": "3",
+          "msg_id_value": "3",
+          "handler": "bearer_rx",
+          "handler_loc": "stack/nas/src/trial_fp_engine.cpp:12",
+          "handler_usr": "c:trial_fp_engine.cpp@N@nas@N@trial@F@bearer_rx#*1$@N@nas@N@trial@S@FpReq#",
+          "cond": null,
+          "source": "ast"
+        }
+      ]
+    }
+  ],
+  "parse_failures": []
+}

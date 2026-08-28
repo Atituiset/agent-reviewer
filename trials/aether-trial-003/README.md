@@ -67,3 +67,20 @@ navmap-nightly/
 2. **模式 2（codegraph）在表驱动场景能抑制 FP**，模式 3（+navmap）能给出超越 FP 判定的契约级分析——三层能力递进真实存在
 3. **规模是差异化的前提**：AetherStack 量级下基线模型大部分情况自足以至模式差异不显著；差异在「表分发 + 跨文件 + 长链」同时出现时才开始显现——这正是千万行级核心仓的常态，spike 结论支持在核心仓按模式 3 形态建设
 4. navmap 的两个缺陷（exclude 配置、裸函数指针数组 pattern）建议优先修复，否则在真实仓会被第三方目录与表形态多样性双重稀释
+
+---
+
+## 五、闭环续篇：navmap 修复后的模式 3 复审（2026-08-28，`mode-fp-tbl-3-fixed/`）
+
+上一轮结论「数据层面没用上 navmap」的根治记录：
+
+1. **navmap 三处修复**（Atituiset/navmap@`4198745`）：① 粗筛 `exclude_dirs` 配置化 + fnmatch 通配（fixtures/第三方/build-* 不再污染候选，候选 8 → 1）；② name_roots 补 `tbl`；③ 分发表支持**裸函数指针数组**（typedef/using，`msg_id` = 数组下标）。新增 `bare_fnptr` 夹具，测试 42/42
+2. **navmap-outputs 更新**（run 33166342331）：`FP_HANDLER_TBL @ trial_fp_engine.cpp:16`（4 项全为 bearer_rx）提取成功，解析失败 0
+3. **模式 3 复审**（run 33166873153）：finding 的 reasoning 首次**明确引用两层索引**——
+
+   > 空指针候选（cwe-476）经 **codegraph 链回溯**：fp_engine_run 唯一调用方 handle_fp_request 对同一指针判空；**navmap 分发表 4 项全部解析为 bearer_rx**，判空覆盖完整路径，**故证伪不报**
+
+   真实缺陷（cwe-125，len==0 越界读）保留上报。transcript 中 FP_HANDLER_TBL 提及 42 次、navmap-dispatch-stack 提及 8 次——**「表里有没有、评审引不引」两项验证全部通过**
+4. 过程中顺带修复：SARIF `region.startLine` 下限钳制（模型 flow 给 `line:0` 时 upload-sarif 校验失败）
+
+**最终结论**：两层索引从「骨架在位、弹药为空」变成「表里提取得出、评审引用得上」——模式 3 名副其实。
