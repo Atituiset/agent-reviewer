@@ -207,3 +207,13 @@
 - **阶段 1 新增 1.8**：codegraph 接入验证段（MCP 或 CLI 调用），判空链回溯协议进 verifier prompt；验收标准 = 构造「上游 5 跳已判空」试验件，verifier 必须输出 REFUTED 且带证伪链
 - **cwe-476 SKILL 修订**：检测信号补「跨函数判空契约」条目——先查 codegraph 调用链再下结论；输出要求补「未做链回溯的跨函数判空 finding 不报」
 - **阶段 2 新增**：exemption_pattern 记忆类型与判空契约提炼管线（ANDM §4 状态机复用，新 kind 值）
+
+### 7.5.3 三种 CI 形态的验证记录（2026-08-28）
+
+| 形态 | 内容 | CI 验证 |
+|---|---|---|
+| 模式 1：纯场景库评审 | 两测试仓 PR 评审（既有链路） | ✅ 双仓全绿（早前） |
+| 模式 2：+codegraph | workflow 加索引步骤（npm 安装 + `codegraph sync`）+ prompt 判空链回溯纪律 | ✅ AetherStack run `33138116175`：索引步骤成功，**reviewer 实际调用 codegraph 10 次**（callers×6/callees×4），SARIF 正常上传 |
+| 模式 3：+navmap | **独立 `navmap-nightly` workflow**（非 PR CI）：nightly 提取 → 产物提交 `navmap-outputs` 分支；PR 评审只读产物，时延零增加 | ✅ AetherStack run `33138281072`（24s）：5 个产物文件提交至 navmap-outputs 分支 |
+
+关键拓扑决策：**navmap 不进 PR CI**——libclang 提取是分钟级～十几分钟级（千万行级仓 nightly <30min 的设计目标），放 PR 链路会拖垮评审时延；产物按仓预计算、分支存储、PR 消费，与 §7.5 的两层架构一致。
