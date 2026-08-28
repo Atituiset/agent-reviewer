@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="AI 代码评审 MVP 试验全链路可视化：从代码修改、PR 触发、CI 门禁、调用图索引、场景评审到 SARIF 与 code scanning，数据全部来自真实试验归档。">
+<title>AI 代码评审 MVP：从代码修改到评审告警的全链路</title>
+<style>
+  :root{
+    --bg:#0b0e14;
+    --bg2:#10141d;
+    --card:#151a26;
+    --card2:#1a2130;
+    --line:#262f42;
+    --txt:#e6eaf2;
+    --dim:#8b94a7;
+    --accent:#39d0c4;
+    --accent2:#5aa2ff;
+    --gold:#f0b545;
+    --red:#f26d6d;
+    --green:#4ecb71;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1200px;margin:0 auto;padding:0 24px;}
+  section{padding:72px 0 48px;}
+  .sec-tag{
+    display:inline-block;font-size:12px;letter-spacing:.18em;color:var(--accent);
+    border:1px solid rgba(57,208,196,.35);border-radius:999px;padding:3px 14px;margin-bottom:14px;
+    font-family:var(--mono);
+  }
+  h2{font-size:28px;font-weight:700;margin-bottom:10px;}
+  .sec-sub{color:var(--dim);margin-bottom:32px;max-width:760px;}
+
+  /* ---------- S1 Hero ---------- */
+  #hero{padding-top:64px;}
+  #hero h1{
+    font-size:clamp(28px,4.2vw,46px);font-weight:800;line-height:1.25;
+    background:linear-gradient(100deg,#e6eaf2 20%,var(--accent) 55%,var(--accent2) 90%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    max-width:900px;
+  }
+  #hero .sub{color:var(--dim);margin-top:14px;font-size:16px;letter-spacing:.05em;}
+  #hero .sub b{color:var(--txt);font-weight:600;}
+
+  .pipeline-shell{
+    margin-top:44px;background:var(--bg2);border:1px solid var(--line);
+    border-radius:18px;padding:28px 24px 22px;position:relative;overflow:hidden;
+  }
+  .pipeline-shell::before{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(600px 240px at 20% 0%,rgba(57,208,196,.07),transparent 70%);
+  }
+  #pipeline-track{position:relative;display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;}
+  #pipeline-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:1;}
+  #pipe-path{fill:none;stroke:var(--line);stroke-width:2;stroke-dasharray:5 6;}
+  #pipe-path-glow{fill:none;stroke:rgba(57,208,196,.55);stroke-width:2.5;filter:drop-shadow(0 0 6px rgba(57,208,196,.8));}
+  #particle{fill:#eafffb;filter:drop-shadow(0 0 8px var(--accent)) drop-shadow(0 0 18px var(--accent));}
+  .stage{
+    position:relative;z-index:2;flex:1 1 100px;min-width:96px;max-width:160px;
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:12px 10px 10px;text-align:center;cursor:pointer;user-select:none;
+    transition:border-color .3s,box-shadow .3s,transform .3s,background .3s;
+  }
+  .stage:hover{transform:translateY(-3px);border-color:rgba(57,208,196,.5);}
+  .stage .idx{
+    font-family:var(--mono);font-size:11px;color:var(--dim);
+    display:inline-block;border:1px solid var(--line);border-radius:999px;padding:0 8px;margin-bottom:6px;
+    transition:all .3s;
+  }
+  .stage .name{font-size:13.5px;font-weight:600;line-height:1.35;}
+  .stage.lit{
+    background:var(--card2);border-color:var(--accent);
+    box-shadow:0 0 0 1px rgba(57,208,196,.35),0 6px 24px rgba(57,208,196,.14);
+  }
+  .stage.lit .idx{color:#06251f;background:var(--accent);border-color:var(--accent);}
+  .stage.current{border-color:var(--gold);box-shadow:0 0 0 1px rgba(240,181,69,.4),0 6px 24px rgba(240,181,69,.12);}
+
+  .controls{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0 0;position:relative;z-index:2;}
+  .btn{
+    font-family:inherit;font-size:13px;color:var(--txt);background:var(--card);
+    border:1px solid var(--line);border-radius:9px;padding:8px 16px;cursor:pointer;
+    transition:all .2s;
+  }
+  .btn:hover{border-color:var(--accent);color:var(--accent);}
+  .btn.primary{background:rgba(57,208,196,.12);border-color:rgba(57,208,196,.5);color:var(--accent);}
+  .btn:disabled{opacity:.4;cursor:default;}
+  .btn:disabled:hover{border-color:var(--line);color:var(--txt);}
+
+  #detail{
+    margin-top:22px;position:relative;z-index:2;
+    background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 24px;
+    min-height:170px;transition:border-color .3s;
+  }
+  #detail.on{border-color:rgba(57,208,196,.4);}
+  #detail .d-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px;}
+  #detail .d-name{font-size:19px;font-weight:700;}
+  #detail .d-step{font-family:var(--mono);font-size:12px;color:var(--accent);}
+  #detail .d-desc{color:var(--dim);margin-bottom:14px;}
+  #detail .d-cols{display:grid;grid-template-columns:1.4fr 1fr;gap:18px;}
+  #detail h4{font-size:12px;letter-spacing:.12em;color:var(--accent);margin-bottom:8px;font-weight:600;}
+  #detail ul{list-style:none;}
+  #detail li{font-size:13.5px;color:var(--txt);padding:4px 0 4px 18px;position:relative;}
+  #detail li::before{content:"▸";position:absolute;left:0;color:var(--accent2);}
+  #detail .artifact li::before{content:"◆";color:var(--gold);font-size:10px;top:8px;}
+  #detail code,#findings code,.stage-data code{font-family:var(--mono);font-size:12px;background:rgba(90,162,255,.12);color:#a9c8ff;border-radius:5px;padding:1px 6px;}
+  .placeholder{color:var(--dim);font-size:14px;padding:26px 0;text-align:center;}
+
+  /* ---------- S2 模式对比 ---------- */
+  .modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;}
+  .mode{
+    background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px;cursor:pointer;
+    transition:border-color .3s,transform .3s,box-shadow .3s;
+  }
+  .mode:hover{transform:translateY(-4px);border-color:rgba(90,162,255,.5);}
+  .mode.open{border-color:var(--accent);box-shadow:0 10px 34px rgba(57,208,196,.1);}
+  .mode .m-tag{font-family:var(--mono);font-size:12px;color:var(--accent2);letter-spacing:.1em;}
+  .mode h3{font-size:19px;margin:6px 0 10px;}
+  .mode .m-brief{color:var(--dim);font-size:14px;}
+  .mode .m-more{
+    max-height:0;overflow:hidden;transition:max-height .45s ease,margin .45s ease;margin-top:0;
+  }
+  .mode.open .m-more{max-height:340px;margin-top:14px;}
+  .mode .m-more .box{
+    background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:14px 16px;font-size:13.5px;
+  }
+  .mode .m-more .box p{margin-bottom:8px;}
+  .mode .m-more .box p:last-child{margin-bottom:0;}
+  .verdict{font-family:var(--mono);font-size:12px;border-radius:6px;padding:2px 9px;display:inline-block;margin-bottom:8px;}
+  .verdict.fp{background:rgba(242,109,109,.14);color:var(--red);border:1px solid rgba(242,109,109,.4);}
+  .verdict.sup{background:rgba(78,203,113,.14);color:var(--green);border:1px solid rgba(78,203,113,.4);}
+  .verdict.deep{background:rgba(240,181,69,.14);color:var(--gold);border:1px solid rgba(240,181,69,.4);}
+  .mode .hint{font-size:12px;color:var(--dim);margin-top:10px;font-family:var(--mono);}
+  .conclusion{
+    margin-top:26px;background:linear-gradient(120deg,rgba(57,208,196,.08),rgba(90,162,255,.06));
+    border:1px solid rgba(57,208,196,.3);border-radius:14px;padding:18px 22px;font-size:14.5px;
+  }
+  .conclusion b{color:var(--accent);}
+
+  /* ---------- S3 发现墙 ---------- */
+  .findings-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px;}
+  .finding{
+    background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;
+    transition:transform .3s,border-color .3s;
+  }
+  .finding:hover{transform:translateY(-3px);border-color:rgba(240,181,69,.45);}
+  .finding .f-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+  .sev{font-family:var(--mono);font-size:11px;border-radius:999px;padding:2px 11px;letter-spacing:.06em;}
+  .sev.important{background:rgba(240,181,69,.13);color:var(--gold);border:1px solid rgba(240,181,69,.45);}
+  .sev.notice{background:rgba(90,162,255,.13);color:var(--accent2);border:1px solid rgba(90,162,255,.45);}
+  .f-scn{font-family:var(--mono);font-size:12px;color:var(--accent);}
+  .f-loc{font-family:var(--mono);font-size:12.5px;color:#a9c8ff;margin-bottom:8px;word-break:break-all;}
+  .f-txt{font-size:13.5px;color:var(--txt);}
+  .f-src{font-size:11.5px;color:var(--dim);margin-top:10px;font-family:var(--mono);}
+
+  /* ---------- S4 数据面板 ---------- */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;}
+  .stat{
+    background:var(--card);border:1px solid var(--line);border-radius:14px;padding:24px 20px;text-align:center;
+    transition:border-color .3s,transform .3s;
+  }
+  .stat:hover{border-color:rgba(57,208,196,.45);transform:translateY(-3px);}
+  .stat .num{
+    font-family:var(--mono);font-size:38px;font-weight:700;color:var(--accent);
+    text-shadow:0 0 22px rgba(57,208,196,.35);line-height:1.1;
+  }
+  .stat .num small{font-size:20px;}
+  .stat .lbl{font-size:13.5px;font-weight:600;margin-top:8px;}
+  .stat .cap{font-size:12px;color:var(--dim);margin-top:4px;}
+
+  /* ---------- S5 时间线 ---------- */
+  .timeline-scroll{overflow-x:auto;padding-bottom:14px;scrollbar-width:thin;scrollbar-color:var(--line) transparent;}
+  .timeline{display:flex;gap:0;min-width:1100px;position:relative;padding-top:34px;}
+  .timeline::before{
+    content:"";position:absolute;top:12px;left:2%;right:2%;height:2px;
+    background:linear-gradient(90deg,var(--accent),var(--accent2),var(--gold));
+  }
+  .tl-item{flex:1;padding:0 14px;position:relative;}
+  .tl-item::before{
+    content:"";position:absolute;top:-28px;left:22px;width:12px;height:12px;border-radius:50%;
+    background:var(--bg);border:2px solid var(--accent);box-shadow:0 0 10px rgba(57,208,196,.6);
+  }
+  .tl-item .t-phase{font-family:var(--mono);font-size:11px;color:var(--accent2);letter-spacing:.1em;}
+  .tl-item h4{font-size:14.5px;margin:5px 0 6px;}
+  .tl-item p{font-size:12.5px;color:var(--dim);line-height:1.55;}
+  .tl-item.next::before{border-color:var(--gold);box-shadow:0 0 10px rgba(240,181,69,.6);}
+
+  footer{
+    border-top:1px solid var(--line);margin-top:40px;padding:28px 0 40px;text-align:center;
+    color:var(--dim);font-size:13px;
+  }
+  footer code{font-family:var(--mono);color:var(--accent2);}
+
+  @media (max-width:820px){
+    #detail .d-cols{grid-template-columns:1fr;}
+    section{padding:52px 0 36px;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto;}
+    *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ S1 Hero + 动画流水线 ============ -->
+<section id="hero">
+  <div class="wrap">
+    <h1>AI 代码评审 MVP：从代码修改到评审告警的全链路</h1>
+    <p class="sub"><b>场景库驱动</b> · <b>调用图增强</b> · <b>SARIF 标准化</b> · <b>反馈飞轮</b></p>
+
+    <div class="pipeline-shell">
+      <div id="pipeline-track">
+        <svg id="pipeline-svg" aria-hidden="true">
+          <path id="pipe-path" d=""></path>
+          <path id="pipe-path-glow" d=""></path>
+          <circle id="particle" r="6" cx="-20" cy="-20"></circle>
+        </svg>
+        <!-- stage cards 由 JS 生成 -->
+      </div>
+
+      <div class="controls">
+        <button class="btn primary" id="btn-play">▶ 自动播放</button>
+        <button class="btn" id="btn-pause" disabled>⏸ 暂停</button>
+        <button class="btn" id="btn-prev">← 上一步</button>
+        <button class="btn" id="btn-next">下一步 →</button>
+        <button class="btn" id="btn-reset">↺ 重置</button>
+      </div>
+
+      <div id="detail">
+        <div class="placeholder">点击任意阶段，或按「▶ 自动播放」观看 commit 粒子流经完整评审链路</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ S2 三模式对比 ============ -->
+<section id="modes-sec">
+  <div class="wrap">
+    <span class="sec-tag">ABLATION</span>
+    <h2>三模式对比：能力递进实证</h2>
+    <p class="sec-sub">同一个「表驱动试验件」，三种能力配置下结论完全不同。点击卡片展开详情。</p>
+    <div class="modes">
+      <div class="mode" tabindex="0">
+        <div class="m-tag">MODE 1</div>
+        <h3>纯场景库</h3>
+        <p class="m-brief">仅靠场景 SKILL 清单评审，无调用图支撑。</p>
+        <div class="m-more">
+          <div class="box">
+            <span class="verdict fp">FP 复现成功</span>
+            <p>表驱动试验件 → 报 <b>cwe-476</b>：无法跟踪<b>函数指针表分发</b>，深处解引用看似无判空保护。</p>
+            <p>这是刻意设计的对照：FP 的出现证明「判空链被表分发切断」这一真实局限存在。</p>
+          </div>
+        </div>
+        <div class="hint">click to expand ▸</div>
+      </div>
+      <div class="mode" tabindex="0">
+        <div class="m-tag">MODE 2</div>
+        <h3>+ codegraph 调用图</h3>
+        <p class="m-brief">场景库 + 调用图判空链回溯（≤10 跳）。</p>
+        <div class="m-more">
+          <div class="box">
+            <span class="verdict sup">FP 被抑制</span>
+            <p>同一试验件 → <b>抑制该 FP</b>：链回溯沿函数指针表找到入口判空，证伪成立。</p>
+            <p>单次评审实测 codegraph 调用 <b>29 次</b>——调用图被真实使用，而非摆设。</p>
+          </div>
+        </div>
+        <div class="hint">click to expand ▸</div>
+      </div>
+      <div class="mode" tabindex="0">
+        <div class="m-tag">MODE 3</div>
+        <h3>+ navmap</h3>
+        <p class="m-brief">再叠加仓级导航地图，理解入口与可达性。</p>
+        <div class="m-more">
+          <div class="box">
+            <span class="verdict deep">理由质变</span>
+            <p>同一试验件 → 报了，但理由质变：<b>「判空仅在入口单一路径，引擎公开入口可绕过」</b>。</p>
+            <p>不再是被抑制的 FP，而是比 FP 更深的<b>真实发现</b>——可达性维度的判断只有 navmap 能提供。</p>
+          </div>
+        </div>
+        <div class="hint">click to expand ▸</div>
+      </div>
+    </div>
+    <div class="conclusion">
+      <b>结论：</b>三层能力递进真实存在，但规模是差异化的前提——小仓基线模型自足；差异在「表分发 + 跨文件 + 长链」同时出现时才显现，而这正是千万行级仓的常态。
+    </div>
+  </div>
+</section>
+
+<!-- ============ S3 真实发现墙 ============ -->
+<section id="findings">
+  <div class="wrap">
+    <span class="sec-tag">FINDINGS</span>
+    <h2>真实发现墙</h2>
+    <p class="sec-sub">全部 finding 含 file:line 证据链，标注播种命中与真实增量。</p>
+    <div class="findings-grid">
+      <div class="finding">
+        <div class="f-top"><span class="sev important">important</span><span class="f-scn">cwe-787</span></div>
+        <div class="f-loc">common/cli.c:361</div>
+        <p class="f-txt">无界 <code>strcpy</code> 进 32 字节栈缓冲。</p>
+        <div class="f-src">播种缺陷 · 命中</div>
+      </div>
+      <div class="finding">
+        <div class="f-top"><span class="sev important">important</span><span class="f-scn">cwe-476</span></div>
+        <div class="f-loc">common/cli.c:362</div>
+        <p class="f-txt"><code>malloc</code> 未判空直传 <code>snprintf</code>。</p>
+        <div class="f-src">播种缺陷 · 命中</div>
+      </div>
+      <div class="finding">
+        <div class="f-top"><span class="sev important">important</span><span class="f-scn">cwe-190</span></div>
+        <div class="f-loc">stack/rlc/src/rlc_um.cpp:134</div>
+        <p class="f-txt">reorder 超时用 std::map 数值最小键，16 位 SN 回绕时选错恢复点：乱序交付 + 丢包计数虚增约 6.5 万。</p>
+        <div class="f-src">真实发现 · 非播种</div>
+      </div>
+      <div class="finding">
+        <div class="f-top"><span class="sev important">important</span><span class="f-scn">cwe-125</span></div>
+        <div class="f-loc">stack/core/src/bs_node.cpp:1082</div>
+        <p class="f-txt">XN_HO_PREPARE 长度守卫 off-by-one，41 字节时越界读。</p>
+        <div class="f-src">真实发现 · 非播种</div>
+      </div>
+      <div class="finding">
+        <div class="f-top"><span class="sev important">important</span><span class="f-scn">cwe-401</span></div>
+        <div class="f-loc">stack/core/src/bs_node.cpp:1274</div>
+        <p class="f-txt">切换失败路径状态泄漏 + 新 guard 使残留条目永久阻断 UE 后续切换。</p>
+        <div class="f-src">真实发现 · 非播种</div>
+      </div>
+      <div class="finding">
+        <div class="f-top"><span class="sev notice">notice</span><span class="f-scn">default</span></div>
+        <div class="f-loc">common/cli.c:365</div>
+        <p class="f-txt"><code>strlen(banner)&gt;64</code> 守卫恒为假：<code>snprintf</code> 已限制 ≤31 字节——模型推演了长度上限。</p>
+        <div class="f-src">真实增量 · 非播种</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ S4 数据面板 ============ -->
+<section id="stats-sec">
+  <div class="wrap">
+    <span class="sec-tag">METRICS</span>
+    <h2>数据面板</h2>
+    <p class="sec-sub">滚动到此处时数字从 0 计数至真实值。全部来自试验归档。</p>
+    <div class="stats">
+      <div class="stat"><div class="num"><span class="cnt" data-target="12">0</span><small>/12</small></div><div class="lbl">播种缺陷检出</div><div class="cap">跨双仓全部命中</div></div>
+      <div class="stat"><div class="num"><span class="cnt" data-target="6">0</span><small>+</small></div><div class="lbl">非播种真实增量发现</div><div class="cap">评审带来的额外价值</div></div>
+      <div class="stat"><div class="num"><span class="cnt" data-target="0">0</span></div><div class="lbl">误报</div><div class="cap">试验件错报为 0（FP 仅出现在刻意对照组）</div></div>
+      <div class="stat"><div class="num"><small>~$</small><span class="cnt" data-target="1">0</span></div><div class="lbl">单次评审成本</div><div class="cap">vs 托管服务 $15–25</div></div>
+      <div class="stat"><div class="num"><small>2.5–</small><span class="cnt" data-target="5">0</span></div><div class="lbl">评审时延（分钟）</div><div class="cap">端到端单次评审</div></div>
+      <div class="stat"><div class="num"><span class="cnt" data-target="22">0</span><small>/22</small></div><div class="lbl">selftest</div><div class="cap">工具链自检全绿</div></div>
+      <div class="stat"><div class="num"><span class="cnt" data-target="29">0</span></div><div class="lbl">codegraph 调用</div><div class="cap">模式 2 单次评审实测</div></div>
+      <div class="stat"><div class="num"><span class="cnt" data-target="14">0</span></div><div class="lbl">场景库 SKILL 场景</div><div class="cap">frontmatter 生成 registry</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ S5 实验时间线 ============ -->
+<section id="timeline-sec">
+  <div class="wrap">
+    <span class="sec-tag">TIMELINE</span>
+    <h2>实验时间线</h2>
+    <p class="sec-sub">从调研到三模式实证，再到下一步路线。</p>
+    <div class="timeline-scroll">
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="t-phase">调研</div>
+          <h4>SDD × 评审生态</h4>
+          <p>OpenSpec / Spec Kit / 官方体系 / Alibaba OCR 横向调研。</p>
+        </div>
+        <div class="tl-item">
+          <div class="t-phase">设计</div>
+          <h4>架构定型</h4>
+          <p>场景库 SKILL 化 + CI 门禁 + SARIF 投影 + 反馈飞轮。</p>
+        </div>
+        <div class="tl-item">
+          <div class="t-phase">uboot-trial-001</div>
+          <h4>机械链路端到端</h4>
+          <p>2/2 播种命中 + 1 条真实增量发现。</p>
+        </div>
+        <div class="tl-item">
+          <div class="t-phase">CI 集成</div>
+          <h4>6 轮排障后双仓全绿</h4>
+          <p>OIDC → App → workspace 重置 → Write 权限 → 分支引用 → SARIF schema。</p>
+        </div>
+        <div class="tl-item">
+          <div class="t-phase">aether-trial-002</div>
+          <h4>真实新代码首验</h4>
+          <p>4 条真实 finding + 3 文件零误报。</p>
+        </div>
+        <div class="tl-item">
+          <div class="t-phase">aether-trial-003</div>
+          <h4>三模式对比</h4>
+          <p>表驱动 FP 对照，三层能力递进实证。</p>
+        </div>
+        <div class="tl-item next">
+          <div class="t-phase">下一步</div>
+          <h4>路线图</h4>
+          <p>回放基线 / 三态验证 / 判空契约库 / 核心仓 spike。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">本页数据全部来自试验归档（<code>trials/</code>），可复核。</div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ================= 流水线数据 ================= */
+  var STAGES = [
+    {
+      name:"代码修改",
+      desc:"试验分支播种已知模式缺陷（勿合并）。",
+      data:[
+        "u-boot：common/cli.c 播种 cwe-787 无界 strcpy + cwe-476 malloc 未判空",
+        "AetherStack 试验件 B：入口判空 → 函数指针表分发 → 5 层转发 → 深处解引用"
+      ],
+      artifacts:["试验分支（标记勿合并）","播种缺陷 diff","表驱动试验件"]
+    },
+    {
+      name:"PR 触发",
+      desc:"pull_request: [opened, synchronize] 触发评审。",
+      data:[
+        "目标仓只有一个 10 行 caller workflow",
+        "评审逻辑集中在可复用 workflow（workflow_call）",
+        "secrets: inherit 注入 DeepSeek 端点配置"
+      ],
+      artifacts:["10 行 caller workflow","可复用评审 workflow","workflow run"]
+    },
+    {
+      name:"CI 门禁",
+      desc:"豁免判定 + fail-open + 工件与 diff 强绑定。",
+      data:[
+        "豁免：diff <20 行或纯文档跳过；评审失败不阻塞 PR（fail-open）",
+        "工件 hash 绑定 diff：评审后代码动一个字节即失效",
+        "真实轨迹：deny(E_NO_ARTIFACT) → deny(E_VERDICT) → allow(artifact-ok)"
+      ],
+      artifacts:["门禁判定结果","diff_hash 绑定记录"]
+    },
+    {
+      name:"codegraph 调用图索引",
+      desc:"tree-sitter 提取，SQLite 图库，100% 本地。",
+      data:[
+        "19,139 文件 → 265,327 节点 / 677,037 边 / 504MB",
+        "秒级增量更新（u-boot 实测）"
+      ],
+      artifacts:["SQLite 调用图库","增量索引"]
+    },
+    {
+      name:"场景路由",
+      desc:"确定性 glob 匹配，模型不参与场景选择。",
+      data:[
+        "52 个变更 C/C++ 文件全部命中 C 系场景集",
+        "场景集：cwe-125 / 190 / 20 / 362 / 401 / 416 / 476 / 78 / 787 / 798 + default",
+        "14 个 SKILL.md 场景由 frontmatter 生成 registry"
+      ],
+      artifacts:["registry.json","命中场景清单"]
+    },
+    {
+      name:"场景评审",
+      desc:"fresh-context reviewer subagent + 场景 SKILL 清单 + codegraph 判空链回溯。",
+      data:[
+        "判空链回溯 ≤10 跳：上游找到判空 → 证伪；断于函数指针 → PLAUSIBLE",
+        "纪律：无 file:line 证据不报、置信度 ≥80 才报、风格不报",
+        "真实数据：~$1/次（20 turns，0 permission denials），2.5–5 分钟"
+      ],
+      artifacts:["评审轨迹（可归档回放）","结构化 findings"]
+    },
+    {
+      name:"评审工件",
+      desc:"canonical JSON，与 diff 绑定、可复核。",
+      data:[
+        "字段：verdict、findings（file:line、severity、scenario、confidence、flow 证据链、reasoning）",
+        "diff_hash 与 diff 绑定"
+      ],
+      artifacts:["review.json（canonical）","diff_hash"]
+    },
+    {
+      name:"SARIF 投影",
+      desc:"canonical JSON → SARIF 2.1.0 标准格式。",
+      data:[
+        "ruleId = 场景键",
+        "flow → codeFlows",
+        "reasoning → message / properties",
+        "hostedViewerUri → 评审轨迹归档"
+      ],
+      artifacts:["results.sarif"]
+    },
+    {
+      name:"上传 code scanning",
+      desc:"SARIF 上传 GitHub code scanning，告警带完整证据链。",
+      data:[
+        "annotations 含判断理由 + 证据链全文（524 字符）",
+        "alert 详情 Show paths 逐步跳转",
+        "Actions 归档完整评审轨迹",
+        "真实：u-boot 5 条、AetherStack 3–4 条 annotations"
+      ],
+      artifacts:["code scanning alerts","PR annotations","轨迹归档"]
+    }
+  ];
+
+  var track = document.getElementById("pipeline-track");
+  var svg = document.getElementById("pipeline-svg");
+  var pathBase = document.getElementById("pipe-path");
+  var pathGlow = document.getElementById("pipe-path-glow");
+  var particle = document.getElementById("particle");
+  var detail = document.getElementById("detail");
+  var btnPlay = document.getElementById("btn-play");
+  var btnPause = document.getElementById("btn-pause");
+  var btnPrev = document.getElementById("btn-prev");
+  var btnNext = document.getElementById("btn-next");
+  var btnReset = document.getElementById("btn-reset");
+
+  /* 生成阶段卡片 */
+  var stageEls = [];
+  STAGES.forEach(function(s, i){
+    var el = document.createElement("div");
+    el.className = "stage";
+    el.setAttribute("role","button");
+    el.setAttribute("tabindex","0");
+    el.innerHTML = '<span class="idx">' + String(i+1).padStart(2,"0") + '</span><div class="name">' + s.name + '</div>';
+    el.addEventListener("click", function(){ selectStage(i, true); });
+    el.addEventListener("keydown", function(ev){
+      if(ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); selectStage(i, true); }
+    });
+    track.appendChild(el);
+    stageEls.push(el);
+  });
+
+  /* ================= 路径与粒子 ================= */
+  var segLens = [];   /* 每个阶段点处的累计路径长度 */
+  var totalLen = 0;
+  var curLen = 0;     /* 粒子当前路径位置 */
+  var selected = -1;
+  var playing = false;
+  var rafId = null;
+  var lastTs = 0;
+  var SPEED_PER_STAGE = 2400; /* ms */
+
+  function esc(t){
+    return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }
+
+  function layout(){
+    var tr = track.getBoundingClientRect();
+    var pts = stageEls.map(function(el){
+      var r = el.getBoundingClientRect();
+      return { x: r.left - tr.left + r.width/2, y: r.top - tr.top + r.height/2 };
+    });
+    if(!pts.length) return;
+    var d = "M " + pts[0].x + " " + pts[0].y;
+    for(var i=1;i<pts.length;i++){ d += " L " + pts[i].x + " " + pts[i].y; }
+    pathBase.setAttribute("d", d);
+    pathGlow.setAttribute("d", d);
+    totalLen = pathBase.getTotalLength();
+    segLens = [];
+    /* 用投影计算各点在路径上的长度 */
+    var samples = 600, best, bi, bd, dx, dy, p;
+    for(var k=0;k<pts.length;k++){
+      best = 0; bd = Infinity;
+      for(var s2=0;s2<=samples;s2++){
+        var L = totalLen * s2 / samples;
+        p = pathBase.getPointAtLength(L);
+        dx = p.x - pts[k].x; dy = p.y - pts[k].y;
+        var dd = dx*dx + dy*dy;
+        if(dd < bd){ bd = dd; best = L; }
+      }
+      segLens.push(best);
+    }
+    /* 保证单调递增 */
+    for(var m=1;m<segLens.length;m++){
+      if(segLens[m] < segLens[m-1]) segLens[m] = segLens[m-1];
+    }
+    render();
+  }
+
+  function render(){
+    if(totalLen <= 0) return;
+    var p = pathBase.getPointAtLength(Math.min(curLen, totalLen));
+    particle.setAttribute("cx", p.x);
+    particle.setAttribute("cy", p.y);
+    pathGlow.setAttribute("stroke-dasharray", curLen + " " + (totalLen + 10));
+    /* 点亮已到达的阶段 */
+    var reached = 0;
+    for(var i=0;i<segLens.length;i++){
+      if(curLen >= segLens[i] - 0.5) reached = i;
+    }
+    stageEls.forEach(function(el, i){
+      el.classList.toggle("lit", curLen >= segLens[i] - 0.5);
+      el.classList.toggle("current", i === selected);
+    });
+    return reached;
+  }
+
+  function showDetail(i){
+    selected = i;
+    var s = STAGES[i];
+    var html = '<div class="d-head"><span class="d-name">' + esc(s.name) + '</span>' +
+               '<span class="d-step">STAGE ' + (i+1) + ' / ' + STAGES.length + '</span></div>' +
+               '<p class="d-desc">' + esc(s.desc) + '</p>' +
+               '<div class="d-cols"><div><h4>真实数据点</h4><ul class="stage-data">';
+    s.data.forEach(function(d){ html += "<li>" + esc(d) + "</li>"; });
+    html += '</ul></div><div><h4>关键产出物</h4><ul class="artifact">';
+    s.artifacts.forEach(function(a){ html += "<li>" + esc(a) + "</li>"; });
+    html += "</ul></div></div>";
+    detail.innerHTML = html;
+    detail.classList.add("on");
+    stageEls.forEach(function(el, k){ el.classList.toggle("current", k === i); });
+  }
+
+  function setPlaying(on){
+    playing = on;
+    btnPlay.disabled = on;
+    btnPause.disabled = !on;
+    if(on){
+      lastTs = 0;
+      rafId = requestAnimationFrame(tick);
+    } else if(rafId){
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+  }
+
+  function tick(ts){
+    if(!playing) return;
+    if(!lastTs) lastTs = ts;
+    var dt = ts - lastTs;
+    lastTs = ts;
+    var speed = totalLen / (SPEED_PER_STAGE * STAGES.length);
+    curLen += speed * dt;
+    if(curLen >= totalLen){
+      curLen = totalLen;
+      render();
+      showDetail(STAGES.length - 1);
+      setPlaying(false);
+      return;
+    }
+    render();
+    /* 到达新阶段时更新详情 */
+    for(var i=segLens.length-1;i>=0;i--){
+      if(curLen >= segLens[i] - 0.5){
+        if(i !== selected) showDetail(i);
+        break;
+      }
+    }
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function selectStage(i, user){
+    if(playing) setPlaying(false);
+    if(segLens.length === STAGES.length){
+      curLen = segLens[i];
+      render();
+    }
+    showDetail(i);
+  }
+
+  btnPlay.addEventListener("click", function(){
+    if(reduced){
+      curLen = totalLen; render(); showDetail(STAGES.length-1);
+      return;
+    }
+    if(curLen >= totalLen) curLen = 0;
+    setPlaying(true);
+  });
+  btnPause.addEventListener("click", function(){ setPlaying(false); });
+  btnPrev.addEventListener("click", function(){
+    var i = selected <= 0 ? 0 : selected - 1;
+    selectStage(i, true);
+  });
+  btnNext.addEventListener("click", function(){
+    var i = selected < 0 ? 0 : Math.min(selected + 1, STAGES.length - 1);
+    selectStage(i, true);
+  });
+  btnReset.addEventListener("click", function(){
+    setPlaying(false);
+    curLen = 0;
+    selected = -1;
+    render();
+    detail.classList.remove("on");
+    detail.innerHTML = '<div class="placeholder">点击任意阶段，或按「▶ 自动播放」观看 commit 粒子流经完整评审链路</div>';
+    stageEls.forEach(function(el){ el.classList.remove("lit","current"); });
+  });
+
+  var rsTimer = null;
+  window.addEventListener("resize", function(){
+    if(rsTimer) clearTimeout(rsTimer);
+    rsTimer = setTimeout(layout, 120);
+  });
+  /* 字体/布局稳定后初始化 */
+  layout();
+  setTimeout(layout, 300);
+
+  /* ================= S2 模式卡片展开 ================= */
+  var modes = document.querySelectorAll(".mode");
+  modes.forEach(function(m){
+    function toggle(){
+      var wasOpen = m.classList.contains("open");
+      modes.forEach(function(x){ x.classList.remove("open"); });
+      if(!wasOpen) m.classList.add("open");
+    }
+    m.addEventListener("click", toggle);
+    m.addEventListener("keydown", function(ev){
+      if(ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); toggle(); }
+    });
+  });
+
+  /* ================= S4 count-up ================= */
+  var counters = document.querySelectorAll(".cnt");
+  function runCount(el){
+    var target = parseInt(el.getAttribute("data-target"), 10);
+    if(isNaN(target)) return;
+    if(reduced || target === 0){ el.textContent = String(target); return; }
+    var dur = 1300, t0 = null;
+    function step(ts){
+      if(!t0) t0 = ts;
+      var p = Math.min((ts - t0) / dur, 1);
+      var eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = String(Math.round(target * eased));
+      if(p < 1) requestAnimationFrame(step);
+      else el.textContent = String(target);
+    }
+    requestAnimationFrame(step);
+  }
+  if("IntersectionObserver" in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){
+          runCount(e.target);
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.4 });
+    counters.forEach(function(c){ io.observe(c); });
+  } else {
+    counters.forEach(runCount);
+  }
+})();
+</script>
+</body>
+</html>
