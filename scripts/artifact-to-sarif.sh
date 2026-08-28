@@ -59,6 +59,56 @@ def code_snippet(uri: str, line: int, span: int = 1) -> str:
     except OSError:
         return ""
 
+
+
+def _file_lines(uri: str) -> list:
+    if uri not in _src_cache:
+        p = SRC_ROOT / uri
+        _src_cache[uri] = p.read_text(encoding="utf-8", errors="replace").splitlines() if p.is_file() else None
+    return _src_cache[uri] or []
+
+
+_FUNC_START_RE = re.compile(r"^\S[^;{}]*\)\s*(?:const\s*)?(?:noexcept\s*)?\{?\s*$")
+
+
+def enclosing_block(uri: str, line: int, max_lines: int = 32) -> str:
+    """启发式抽取包含 line 的完整函数/定义块（C/C++ 花括号配对）。
+    用于把函数体嵌入 message.markdown——code scanning 全文渲染 markdown。"""
+    lines = _file_lines(uri)
+    if not lines or not line:
+        return ""
+    idx = min(line - 1, len(lines) - 1)
+    start = None
+    for i in range(idx, -1, -1):
+        text = lines[i].rstrip()
+        if not text:
+            continue
+        if text.startswith(("#", "//", "*")):
+            continue
+        if text.startswith((" ", "\t")):
+            continue
+        if text.startswith(("if ", "if(", "for ", "for(", "while ", "while(",
+                            "switch ", "switch(", "return", "else", "case ", "}")):
+            continue
+        if _FUNC_START_RE.match(text) or text.endswith("{"):
+            start = i
+            break
+    if start is None:
+        start = max(0, idx - 3)
+    depth, end, seen_open = 0, None, False
+    for j in range(start, len(lines)):
+        if "{" in lines[j]:
+            seen_open = True
+        depth += lines[j].count("{") - lines[j].count("}")
+        if seen_open and depth <= 0:
+            end = j
+            break
+        if j - start >= max_lines:
+            break
+    if end is None:
+        end = min(start + max_lines - 1, len(lines) - 1)
+    return "\n".join(lines[start:end + 1])[:2400]
+
 rules_by_id = scen_meta()
 used_rule_ids, results = [], []
 for i, f in enumerate(art.get("findings", [])):
@@ -76,6 +126,18 @@ for i, f in enumerate(art.get("findings", [])):
     if f.get("flow"):
         steps = " → ".join(f'{s.get("file","")}:{s.get("line","")} {s.get("message","")}' for s in f["flow"])
         msg_text += f'\n\n**证据链**：{steps}'
+    # 代码上下文：主位置 + flow 各点的完整函数体（去重）——嵌进 message.markdown，告警内自洽
+    ctx_blocks, seen_ctx = [], set()
+    locs = [(f.get("file", ""), max(1, f.get("line") or 1))]
+    locs += [(s.get("file", ""), max(1, s.get("line") or 1)) for s in (f.get("flow") or [])]
+    for uri, ln in locs:
+        body = enclosing_block(uri, ln)
+        if body and (uri, body[:60]) not in seen_ctx:
+            seen_ctx.add((uri, body[:60]))
+            ctx_blocks.append(f"`{uri}`：\n```cpp\n{body}\n```")
+    if ctx_blocks:
+        msg_text += "\n\n**代码上下文**：\n" + "\n".join(ctx_blocks[:4])
+
     result = {
         "ruleId": rid,
         "level": LEVEL.get(f.get("severity", "minor"), "warning"),
