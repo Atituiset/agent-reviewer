@@ -199,8 +199,98 @@
   }
   footer code{font-family:var(--mono);color:var(--accent2);}
 
+  /* ---------- 通用分栏 / 代码块 ---------- */
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
+  .pane-title{font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:.08em;margin-bottom:10px;}
+  .codeblock{
+    background:#090c12;border:1px solid var(--line);border-radius:12px;padding:16px 18px;
+    font-family:var(--mono);font-size:12.5px;line-height:1.75;overflow-x:auto;color:#c6d0de;white-space:pre;
+  }
+  .codeblock .k{color:#8fb8ff;}
+  .codeblock .cm{color:#5d6879;}
+  .codeblock.prompt{white-space:pre-wrap;word-break:break-word;}
+  .note{font-size:12.5px;color:var(--dim);margin-top:12px;line-height:1.65;}
+  .note code,.a-body code{font-family:var(--mono);font-size:12px;background:rgba(90,162,255,.12);color:#a9c8ff;border-radius:5px;padding:1px 6px;}
+  .steps{list-style:none;counter-reset:st;}
+  .steps li{
+    counter-increment:st;position:relative;padding:9px 0 9px 48px;font-size:13.5px;
+    border-bottom:1px dashed rgba(38,47,66,.7);
+  }
+  .steps li:last-child{border-bottom:none;}
+  .steps li::before{
+    content:counter(st,decimal-leading-zero);position:absolute;left:0;top:10px;
+    font-family:var(--mono);font-size:11px;color:var(--accent);
+    border:1px solid rgba(57,208,196,.4);border-radius:6px;padding:1px 6px;
+  }
+  .steps .cm{display:block;font-size:12px;color:var(--dim);margin-top:1px;}
+
+  /* ---------- 两层索引卡 ---------- */
+  .idx-cards{display:grid;gap:14px;}
+  .idx-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;font-size:13.5px;}
+  .ic-tag{font-family:var(--mono);font-size:12px;color:var(--accent2);letter-spacing:.06em;margin-bottom:8px;}
+  .ic-q{color:var(--accent);font-weight:600;margin-top:6px;}
+  .note2{font-size:12.5px;color:var(--dim);margin-top:8px;border-top:1px dashed var(--line);padding-top:8px;}
+
+  /* ---------- 终端回放 ---------- */
+  .term{
+    background:#070a0f;border:1px solid var(--line);border-radius:14px;padding:20px 24px;
+    font-family:var(--mono);font-size:13px;line-height:1.8;overflow-x:auto;
+  }
+  .term .tl{
+    white-space:pre-wrap;word-break:break-word;
+    opacity:0;transform:translateY(5px);transition:opacity .45s ease,transform .45s ease;
+  }
+  .term.on .tl{opacity:1;transform:none;}
+  .tl.g{color:var(--gold);font-weight:600;margin-top:14px;}
+  .term .tl.g:first-child{margin-top:0;}
+  .tl.p{color:var(--accent);}
+  .tl.o{color:#9aa5b5;}
+  .tl.code{color:#c6d0de;}
+  .tl.hi{color:#eafffb;background:rgba(57,208,196,.1);border-radius:4px;}
+  .tl.blank{height:.9em;}
+  .term-foot{
+    margin-top:16px;padding-top:12px;border-top:1px dashed var(--line);
+    font-family:var(--mono);font-size:12px;color:var(--dim);
+  }
+  .term-foot b{color:var(--accent);}
+
+  /* ---------- SARIF 映射 ---------- */
+  .mapchips{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px;}
+  .chip{font-size:12.5px;background:var(--card);border:1px solid var(--line);border-radius:9px;padding:7px 13px;color:var(--dim);}
+  .chip b{font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:600;}
+  .chip .arw{font-family:var(--mono);color:var(--accent2);padding:0 2px;}
+
+  /* ---------- PR 告警实况 ---------- */
+  .case-cap{font-family:var(--mono);font-size:12px;color:var(--gold);letter-spacing:.08em;margin:30px 0 12px;}
+  .case-cap:first-of-type{margin-top:0;}
+  .case{display:grid;grid-template-columns:1.05fr .95fr;gap:20px;align-items:start;}
+  .lcode{
+    background:#090c12;border:1px solid var(--line);border-radius:12px;padding:14px 0;
+    font-family:var(--mono);font-size:12.5px;line-height:1.8;overflow-x:auto;
+  }
+  .lc{display:flex;padding:0 16px;white-space:pre;color:#c6d0de;}
+  .lc .ln-no{width:40px;flex:none;text-align:right;padding-right:16px;color:#4a5568;user-select:none;}
+  .lc.hl{background:rgba(242,109,109,.1);box-shadow:inset 3px 0 0 var(--red);color:#f3d3d3;}
+  .lc.gap{color:#465062;}
+  .annot{background:var(--card);border:1px solid rgba(240,181,69,.45);border-radius:12px;overflow:hidden;}
+  .a-head{
+    display:flex;align-items:center;gap:8px;padding:11px 16px;font-size:13.5px;font-weight:600;
+    background:rgba(240,181,69,.09);border-bottom:1px solid rgba(240,181,69,.3);
+  }
+  .a-ico{color:var(--gold);}
+  .a-body{padding:14px 16px;font-size:13px;line-height:1.7;}
+  .a-paths{border-top:1px dashed var(--line);padding:12px 16px;}
+  .ap-t{font-family:var(--mono);font-size:11.5px;color:var(--accent2);letter-spacing:.08em;margin-bottom:6px;}
+  .ap-ln{font-family:var(--mono);font-size:12px;color:var(--dim);padding:3px 0;}
+  .ap-ln .arw{color:var(--accent2);}
+  .mini-stack{display:grid;gap:12px;}
+  .mini-annot{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:13px;}
+  .ma-tag{font-family:var(--mono);font-size:11.5px;color:var(--accent2);letter-spacing:.06em;margin-bottom:6px;}
+  .mini-annot .verdict{margin-top:8px;}
+
   @media (max-width:820px){
     #detail .d-cols{grid-template-columns:1fr;}
+    .split,.case{grid-template-columns:1fr;}
     section{padding:52px 0 36px;}
   }
   @media (prefers-reduced-motion:reduce){
@@ -238,6 +328,182 @@
       <div id="detail">
         <div class="placeholder">点击任意阶段，或按「▶ 自动播放」观看 commit 粒子流经完整评审链路</div>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ S1.5 CI 实现 ============ -->
+<section id="ci-impl">
+  <div class="wrap">
+    <span class="sec-tag">CI 实现</span>
+    <h2>CI 实现：一个仓生产，所有仓继承</h2>
+    <p class="sec-sub">评审逻辑集中在 agent-reviewer 仓的可复用 workflow；目标仓只放一个 10 行 caller，评审升级时目标仓零改动。</p>
+    <div class="split">
+      <div class="pane">
+        <div class="pane-title">目标仓 caller · .github/workflows/ai-review.yml（全部 10 行）</div>
+        <pre class="codeblock"><span class="k">name:</span> ai-review
+<span class="k">on:</span>
+  <span class="k">pull_request:</span> [opened, synchronize]
+<span class="k">permissions:</span>
+  <span class="k">contents:</span> read
+  <span class="k">security-events:</span> write
+  <span class="k">id-token:</span> write
+  <span class="k">pull-requests:</span> write
+<span class="k">jobs:</span>
+  <span class="k">review:</span>
+    <span class="k">uses:</span> &lt;org&gt;/agent-reviewer/.github/workflows/ai-review-reusable.yml@mvp
+    <span class="k">secrets:</span> inherit</pre>
+        <p class="note"><code>uses</code> = 引用可复用 workflow（函数调用）；<code>secrets: inherit</code> = 把目标仓的模型配置（DeepSeek key / 端点 / 模型 ID）传给被调用方；评审逻辑更新时目标仓零改动。</p>
+      </div>
+      <div class="pane">
+        <div class="pane-title">可复用 workflow 实际执行的步骤（真实 step 名）</div>
+        <ol class="steps">
+          <li>checkout 双仓<span class="cm">目标仓 PR 代码 + checkout agent-reviewer 场景库到 .reviewer/</span></li>
+          <li>变更规模与豁免判定<span class="cm">diff &lt;20 行 / 纯文档跳过；读 .ai-review-mode 选模式</span></li>
+          <li>打包评审输入<span class="cm">pr.diff</span></li>
+          <li>codegraph 调用图索引<span class="cm">模式 ≥2：npm 安装 + sync</span></li>
+          <li>navmap 语义导航图产物<span class="cm">模式 3：读 navmap-outputs 分支</span></li>
+          <li>组装评审 prompt<span class="cm">按模式拼接，见下</span></li>
+          <li>场景评审<span class="cm">claude-code-action，DeepSeek 端点，产出工件</span></li>
+          <li>重新检出 agent-reviewer<span class="cm">防 workspace 被评审步骤重置</span></li>
+          <li>工件 → SARIF<span class="cm">artifact-to-sarif.sh</span></li>
+          <li>评审结论评论回 PR<span class="cm">可选</span></li>
+          <li>归档 + 上传<span class="cm">归档评审轨迹 + 上传 code scanning</span></li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 检视输入 ============ -->
+<section id="review-input">
+  <div class="wrap">
+    <span class="sec-tag">INPUT</span>
+    <h2>检视输入：场景与上下文怎么来</h2>
+    <p class="sec-sub">模型拿到的一切都由确定性工具预先提取——「跑哪些场景、看哪些上下文」不委托给模型。</p>
+    <div class="split">
+      <div class="pane">
+        <div class="pane-title">场景本身 · 确定性提取（cwe-476 SKILL.md frontmatter 原文）</div>
+        <pre class="codeblock">---
+<span class="k">name:</span> cwe-476-null-pointer-dereference
+<span class="k">description:</span> 空指针解引用检测。评审 C/C++/Java 等语言的指针/可空引用使用时调用…
+<span class="k">cwe:</span> 476
+<span class="k">severity_default:</span> high
+<span class="k">paths:</span> ["**/*.{c,h}", "**/*.{cc,cpp,hpp}", "**/*.java"]
+---</pre>
+        <p class="note"><code>paths</code> 是确定性路由的唯一数据源，<code>scripts/build-registry.sh</code> 由 14 个 SKILL.md 的 frontmatter 生成 registry.json——模型不参与「该跑哪些场景」的选择。</p>
+      </div>
+      <div class="pane">
+        <div class="pane-title">工具提取的上下文 · 两层索引</div>
+        <div class="idx-cards">
+          <div class="idx-card">
+            <div class="ic-tag">codegraph · 调用图</div>
+            <p>tree-sitter 提取；19,139 文件 → 265,327 节点 / 677,037 边；PR 时秒级同步。</p>
+            <p class="ic-q">回答「谁调用谁」</p>
+          </div>
+          <div class="idx-card">
+            <div class="ic-tag">navmap · 语义导航图</div>
+            <p>libclang 预计算。</p>
+            <p class="ic-q">回答「消息路由到哪个 handler / 全局量谁读写 / 状态机怎么转」</p>
+            <p class="note2">判空链断在函数指针处时用分发表续链（保守近似：handler 集合全部判空才证伪）。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Prompt 组装 ============ -->
+<section id="prompt-sec">
+  <div class="wrap">
+    <span class="sec-tag">PROMPT</span>
+    <h2>发给模型的 prompt（按模式组装）</h2>
+    <p class="sec-sub">模式 2 实际拼装的评审指令：场景路由、清单评审、判空链回溯、工件 schema 全部写死在指令里。</p>
+    <pre class="codeblock prompt">你是 task-reviewer。读取 /tmp/pr.diff 与 .reviewer/rules/registry.json：
+1. 用 .reviewer/scripts/_lib.py scenarios-for 对 diff 触及的每个文件做场景路由
+2. 对每个命中场景，读 .reviewer/rules/scenarios/&lt;key&gt;/SKILL.md 清单逐项评审
+3. 纪律：只报有 file:line 证据的具体缺陷；置信度 ≥80 才报；风格问题不报
+3.5 跨函数判空链回溯（cwe-476 类候选必做）：上报「解引用未判空」前，用 codegraph CLI
+   （codegraph callers &lt;fn&gt; / callees &lt;fn&gt;）沿调用链回溯 ≤10 跳：
+   - 上游找到判空（同一指针）→ 不报（FP 证伪，可在 reasoning 记录证伪链）
+   - 链在函数指针/虚函数处中断 → 保留但 reasoning 必须标注「链中断于 X，静态不可判定」
+   - 未做链回溯的跨函数判空 finding 不报
+4. 将结果写为 .review/review-artifact.json，schema：{diff_hash, verdict, findings:[{file,line,
+   severity,scenario,summary,detail,confidence,flow:[证据链],reasoning}]}</pre>
+  </div>
+</section>
+
+<!-- ============ Agent 检视实况 ============ -->
+<section id="replay-sec">
+  <div class="wrap">
+    <span class="sec-tag">REPLAY</span>
+    <h2>Agent 检视实况（真实轨迹回放）</h2>
+    <p class="sec-sub">模式 2 评审播种试验件的真实轨迹：读场景清单 → 发现疑似点 → codegraph 链回溯 → 证伪 / 上报。</p>
+    <div class="term" id="replay-term">
+      <div class="tl g"># ① 读场景清单</div>
+      <div class="tl o">Read .reviewer/rules/scenarios/cwe-476/SKILL.md</div>
+      <div class="tl g"># ② 发现疑似点：fill(p, tag) 解引用未判空 → 启动链回溯</div>
+      <div class="tl p">$ codegraph callers fill</div>
+      <div class="tl o">Callers of "fill" (1):</div>
+      <div class="tl o">function    build_banner</div>
+      <div class="tl o">  stack/nas/src/aka.cpp:187</div>
+      <div class="tl blank"></div>
+      <div class="tl p">$ codegraph callers alloc_or_die</div>
+      <div class="tl o">Callers of "alloc_or_die" (1):</div>
+      <div class="tl o">function    build_banner</div>
+      <div class="tl o">  stack/nas/src/aka.cpp:187</div>
+      <div class="tl blank"></div>
+      <div class="tl p">$ codegraph node build_banner</div>
+      <div class="tl code">**build_banner** (function)  stack/nas/src/aka.cpp:187</div>
+      <div class="tl code">187  char *build_banner(const char *tag) {</div>
+      <div class="tl code">188      char *p = alloc_or_die(64);</div>
+      <div class="tl hi">189      fill(p, tag); // 跨 2 层调用的解引用，上游已兜底</div>
+      <div class="tl code">190      return p;</div>
+      <div class="tl code">191  }</div>
+      <div class="tl g"># ③ 回溯到 alloc_or_die 的 abort 兜底 → 契约成立 → 该候选证伪（不报）</div>
+      <div class="tl g"># ④ 但 strcpy 无界进 64 字节 = 真缺陷（cwe-787 @184）→ 写入工件</div>
+      <div class="term-foot">本次评审 <b>codegraph 调用 29 次</b> · <b>20 turns</b> · <b>permission_denials 0</b> · 成本 <b>$0.98</b></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 模型输出 → SARIF ============ -->
+<section id="sarif-sec">
+  <div class="wrap">
+    <span class="sec-tag">SARIF</span>
+    <h2>模型输出 → SARIF：字段级映射</h2>
+    <p class="sec-sub">同一条 cwe-190 真实发现：左边是模型写出的工件 finding，右边是投影后的 SARIF result。</p>
+    <div class="split">
+      <div class="pane">
+        <div class="pane-title">工件 finding（JSON）</div>
+        <pre class="codeblock prompt">{"<span class="k">file</span>": "stack/rlc/src/rlc_um.cpp", "<span class="k">line</span>": 134,
+ "<span class="k">scenario</span>": "cwe-190", "<span class="k">severity</span>": "important", "<span class="k">confidence</span>": 90,
+ "<span class="k">summary</span>": "reorder 超时用 std::map 数值最小键作恢复点，16 位 SN 回绕时选错 resume",
+ "<span class="k">flow</span>": [
+   {"<span class="k">file</span>": "stack/rlc/src/rlc_um.cpp", "<span class="k">line</span>": 79, "<span class="k">message</span>": "ahead() 按 int16_t 模运算判定…"},
+   {"<span class="k">file</span>": "stack/rlc/src/rlc_um.cpp", "<span class="k">line</span>": 134, "<span class="k">message</span>": "resume 取数值最小键 2 而非 65531"}
+ ],
+ "<span class="k">reasoning</span>": "接纳逻辑用模序列、恢复逻辑用数值序，两套排序在 SN 回绕点必然冲突"}</pre>
+      </div>
+      <div class="pane">
+        <div class="pane-title">SARIF result</div>
+        <pre class="codeblock prompt">{"<span class="k">ruleId</span>": "cwe-190", "<span class="k">level</span>": "error",
+ "<span class="k">message</span>": {"<span class="k">text</span>": "…**判断理由**：接纳逻辑用模序列…**证据链**：…"},
+ "<span class="k">locations</span>": [{"<span class="k">physicalLocation</span>": {"<span class="k">uri</span>": "stack/rlc/src/rlc_um.cpp",
+                "<span class="k">region</span>": {"<span class="k">startLine</span>": 134}}}],
+ "<span class="k">codeFlows</span>": [{"<span class="k">threadFlows</span>": [{"<span class="k">locations</span>": [
+   {"<span class="k">location</span>": {"<span class="k">physicalLocation</span>": {"<span class="k">uri</span>": "stack/rlc/src/rlc_um.cpp",
+     "<span class="k">region</span>": {"<span class="k">startLine</span>": 79}}, "<span class="k">message</span>": {"<span class="k">text</span>": "ahead() 按 int16_t 模运算判定…"}}}
+ ]}]}],
+ "<span class="k">partialFingerprints</span>": {"<span class="k">diffHash</span>": "6485c5bd…", "<span class="k">findingIndex</span>": "cwe-190/stack/rlc/src/rlc_um.cpp:134"}}</pre>
+      </div>
+    </div>
+    <div class="mapchips">
+      <span class="chip"><b>scenario</b><span class="arw">→</span><b>ruleId</b></span>
+      <span class="chip"><b>severity</b><span class="arw">→</span><b>level</b></span>
+      <span class="chip"><b>flow</b><span class="arw">→</span><b>codeFlows</b>（GitHub「Show paths」的数据源）</span>
+      <span class="chip"><b>reasoning</b><span class="arw">→</span><b>message / properties</b></span>
+      <span class="chip"><b>diff_hash</b><span class="arw">→</span><b>partialFingerprints</b>（去重指纹）</span>
     </div>
   </div>
 </section>
@@ -291,6 +557,70 @@
     </div>
     <div class="conclusion">
       <b>结论：</b>三层能力递进真实存在，但规模是差异化的前提——小仓基线模型自足；差异在「表分发 + 跨文件 + 长链」同时出现时才显现，而这正是千万行级仓的常态。
+    </div>
+  </div>
+</section>
+
+<!-- ============ PR 告警实况 ============ -->
+<section id="alert-sec">
+  <div class="wrap">
+    <span class="sec-tag">ALERTS</span>
+    <h2>PR 告警实况：代码 + 证据链</h2>
+    <p class="sec-sub">左边是被评审的真实代码，右边是 GitHub code scanning 告警的还原样式（annotation + Show paths）。</p>
+
+    <div class="case-cap">案例 1 · 真实缺陷 — bs_node.cpp:1082 cwe-125 off-by-one</div>
+    <div class="case">
+      <div class="lcode">
+        <div class="lc"><span class="ln-no">1072</span>case cn::MsgType::XN_HO_PREPARE: {</div>
+        <div class="lc"><span class="ln-no">1073</span>    <span class="cm">// {tmsi:4}{from:2}{to:2}{sec:1}{key:32}{imsi_len:1}{imsi}</span></div>
+        <div class="lc"><span class="ln-no">1074</span>    if (msg.value.size() &lt; 41) break;</div>
+        <div class="lc gap"><span class="ln-no">…</span></div>
+        <div class="lc hl"><span class="ln-no">1082</span>    const size_t ilen = msg.value[41];   <span class="cm">// ← 恰好 41 字节时越界读</span></div>
+        <div class="lc"><span class="ln-no">1083</span>    if (msg.value.size() &gt;= 42 + ilen) {</div>
+      </div>
+      <div class="annot">
+        <div class="a-head"><span class="a-ico">⚠</span>越界读（CWE-125）· important</div>
+        <div class="a-body">报文格式 <code>{tmsi:4}{from:2}{to:2}{sec:1}{key:32}{imsi_len:1}</code> 至少 42 字节，守卫为 <code>if (msg.value.size() &lt; 41) break;</code>，恰好 41 字节时 <code>msg.value[41]</code> 越界读（imsi_len）。修复：守卫改为 <code>&lt; 42</code>。</div>
+        <div class="a-paths">
+          <div class="ap-t">Show paths</div>
+          <div class="ap-ln"><span class="arw">→</span> :1074 守卫放行 41 字节报文（格式最小长度实为 42）</div>
+          <div class="ap-ln"><span class="arw">→</span> :1082 msg.value[41] 越界读 imsi_len（有效下标仅 0..40）</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="case-cap">案例 2 · 三模式对照 — 表驱动试验件（同一代码，三种结论）</div>
+    <div class="case">
+      <pre class="codeblock"><span class="cm">// 引擎文件：本文件内没有任何判空</span>
+static int decode_header(const FpReq *req) { return req-&gt;buf[0]; }
+static int reassembly(const FpReq *req) { return decode_header(req); }
+static int bearer_rx(const FpReq *req) { return reassembly(req); }
+static const fp_handler_t FP_HANDLER_TBL[4] = { bearer_rx, ... };
+int fp_engine_run(uint32_t msg_id, const FpReq *req) {
+    return FP_HANDLER_TBL[msg_id](req);
+}
+<span class="cm">// 入口文件（aka.cpp）：统一判空</span>
+int handle_fp_request(const FpReq *req) {
+    if (!req || !req-&gt;buf) return -1;
+    return fp_engine_run(2, req);
+}</pre>
+      <div class="mini-stack">
+        <div class="mini-annot">
+          <div class="ma-tag">模式 1 · 纯场景库</div>
+          <p>「空指针解引用（CWE-476）@trial_fp_engine.cpp:24」——无法跟踪表分发</p>
+          <span class="verdict fp">FP 复现成功</span>
+        </div>
+        <div class="mini-annot">
+          <div class="ma-tag">模式 2 · + codegraph</div>
+          <p>链回溯沿分发表找到入口判空，候选被抑制</p>
+          <span class="verdict sup">未报</span>
+        </div>
+        <div class="mini-annot">
+          <div class="ma-tag">模式 3 · + navmap</div>
+          <p>「判空仅存在于 handle_fp_request 单一路径，fp_engine_run 是公开入口，直接调用即绕过判空」</p>
+          <span class="verdict deep">比 FP 更深的真实发现</span>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -716,6 +1046,28 @@
       if(ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); toggle(); }
     });
   });
+
+  /* ================= 终端回放逐行显现 ================= */
+  var terms = document.querySelectorAll(".term");
+  terms.forEach(function(t){
+    var lines = t.querySelectorAll(".tl");
+    lines.forEach(function(l, i){
+      l.style.transitionDelay = Math.min(i * 70, 1400) + "ms";
+    });
+  });
+  if(reduced || !("IntersectionObserver" in window)){
+    terms.forEach(function(t){ t.classList.add("on"); });
+  } else {
+    var tio = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){
+          e.target.classList.add("on");
+          tio.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.25 });
+    terms.forEach(function(t){ tio.observe(t); });
+  }
 
   /* ================= S4 count-up ================= */
   var counters = document.querySelectorAll(".cnt");
