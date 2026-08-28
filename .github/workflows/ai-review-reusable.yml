@@ -41,6 +41,9 @@ jobs:
           if [ "${STATS:-0}" -lt 20 ]; then echo "skip=small" >> "$GITHUB_OUTPUT";
           elif [ "$DOC_ONLY" = "0" ]; then echo "skip=docs" >> "$GITHUB_OUTPUT";
           else echo "skip=" >> "$GITHUB_OUTPUT"; fi
+          MODE=$(cat .ai-review-mode 2>/dev/null || echo "2")
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
+          echo "评审模式: $MODE (1=纯场景库 2=+codegraph 3=+navmap)"
 
       - name: 打包评审输入（diff）
         if: steps.gate.outputs.skip == ''
@@ -49,11 +52,47 @@ jobs:
           cd .reviewer && bash scripts/setup-env.sh || true
 
       - name: codegraph 调用图索引（供跨函数判空链回溯）
-        if: steps.gate.outputs.skip == ''
+        if: steps.gate.outputs.skip == '' && steps.gate.outputs.mode != '1'
         run: |
           npm i -g @colbymchenry/codegraph --silent 2>&1 | tail -1
           codegraph init 2>&1 | tail -1 || true
           codegraph sync 2>&1 | tail -3
+
+      - name: navmap 语义导航图产物（模式 3：读 navmap-outputs 分支）
+        if: steps.gate.outputs.skip == '' && steps.gate.outputs.mode == '3'
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          ref: navmap-outputs
+          path: .navmap-out
+
+      - name: 组装评审 prompt（按模式）
+        if: steps.gate.outputs.skip == ''
+        id: promptbuild
+        run: |
+          {
+            echo "你是 task-reviewer。读取 /tmp/pr.diff 与 .reviewer/rules/registry.json："
+            echo "1. 用 .reviewer/scripts/_lib.py scenarios-for 对 diff 触及的每个文件做场景路由"
+            echo "2. 对每个命中场景，读 .reviewer/rules/scenarios/<key>/SKILL.md 清单逐项评审（需要深入项时读 references/detailed-checks.md）"
+            echo "3. 纪律：只报有 file:line 证据的具体缺陷；置信度 ≥80 才报；风格问题不报"
+            if [ "${{ steps.gate.outputs.mode }}" != "1" ]; then
+              echo "3.5 跨函数判空链回溯（cwe-476 类候选必做）：上报「解引用未判空」前，用 codegraph CLI（codegraph callers <fn> / callees <fn>）沿调用链回溯 ≤10 跳：上游找到判空（同一指针）→ 不报（FP 证伪，可在 reasoning 记录证伪链）；链在函数指针/虚函数处中断 → 保留但 reasoning 必须标注「链中断于 X，静态不可判定」；未做链回溯的跨函数判空 finding 不报"
+            fi
+            if [ "${{ steps.gate.outputs.mode }}" == "3" ]; then
+              echo "3.6 navmap 语义导航图可用：.navmap-out/.navmap/out/ 下有本仓消息分发表/状态机表（JSON+md）。判空链在函数指针/分发表处中断时，读对应表把「不确定目标」展开为 handler 集合做保守近似：集合内全部 handler 有判空才可证伪（REFUTED），任一缺失只能 PLAUSIBLE 并标注依据的表"
+            fi
+            echo "4. 将结果写为 .review/review-artifact.json（用 Write 工具；先 mkdir -p .review），schema："
+            echo "   {diff_hash(对 /tmp/pr.diff 的 sha256), verdict(CLEAN|ISSUES_FOUND),"
+            echo "    reviewed_at(ISO8601), reviewer:\"ci-task-reviewer\", spec_ref:\"none\","
+            echo "    findings:[{file,line,severity(critical|important|minor),category,"
+            echo "               scenario(必须是 registry 中存在的场景键),summary,detail,"
+            echo "               confidence,resolved:false,"
+            echo "               flow:[{file,line,message}](证据链有序步骤，必填),"
+            echo "               reasoning(一句话判断理由)}]}"
+          } > /tmp/review-prompt.txt
+          echo "prompt<<PROMPT_EOF" >> "$GITHUB_OUTPUT"
+          cat /tmp/review-prompt.txt >> "$GITHUB_OUTPUT"
+          echo "PROMPT_EOF" >> "$GITHUB_OUTPUT"
 
       - name: 场景评审（按 SKILL 清单产出工件）
         if: steps.gate.outputs.skip == ''
@@ -69,25 +108,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}   # 绕过 Claude GitHub App 安装要求
           anthropic_api_key: ${{ secrets.AI_REVIEW_API_KEY }}
           claude_args: --allowedTools "Read,Write,Grep,Glob,Bash"
-          prompt: |
-            你是 task-reviewer。读取 /tmp/pr.diff 与 .reviewer/rules/registry.json：
-            1. 用 .reviewer/scripts/_lib.py scenarios-for 对 diff 触及的每个文件做场景路由
-            2. 对每个命中场景，读 .reviewer/rules/scenarios/<key>/SKILL.md 清单逐项评审
-               （需要深入项时读 references/detailed-checks.md）
-            3. 纪律：只报有 file:line 证据的具体缺陷；置信度 ≥80 才报；风格问题不报
-            3.5 跨函数判空链回溯（cwe-476 类候选必做）：上报「解引用未判空」前，
-               用 codegraph CLI（codegraph callers <fn> / callees <fn>）沿调用链回溯 ≤10 跳：
-               - 上游找到判空（同一指针）→ 不报（FP 证伪，可在 reasoning 记录证伪链）
-               - 链在函数指针/虚函数处中断 → 保留但 reasoning 必须标注「链中断于 X，静态不可判定」
-               - 未做链回溯的跨函数判空 finding 不报
-            4. 将结果写为 .review/review-artifact.json（用 Write 工具；先 mkdir -p .review），schema：
-               {diff_hash(对 /tmp/pr.diff 的 sha256), verdict(CLEAN|ISSUES_FOUND),
-                reviewed_at(ISO8601), reviewer:"ci-task-reviewer", spec_ref:"none",
-                findings:[{file,line,severity(critical|important|minor),category,
-                           scenario(必须是 registry 中存在的场景键),summary,detail,
-                           confidence,resolved:false,
-                           flow:[{file,line,message}](证据链有序步骤，必填),
-                           reasoning(一句话判断理由)}]}
+          prompt: ${{ steps.promptbuild.outputs.prompt }}
 
       - name: 重新检出 agent-reviewer（防 workspace 被评审步骤重置）
         if: steps.gate.outputs.skip == '' && steps.review.outcome == 'success'
