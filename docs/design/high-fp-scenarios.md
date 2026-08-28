@@ -29,6 +29,7 @@
 | C3 | 断言守护（PLM_ASSERT 类自定义宏）的解引用 | release 语义下认为路径可达 | 标准 assert 能懂，自定义宏需要说明 | 【不报】断言宏名单注入场景规则 |
 | C4 | `goto err` 集中清理 / arena-pool 统一回收 / 启动期永驻单例 | 路径合并报泄漏、double-free | **LLM 较强的领域**，惯用法大多能懂 | 【回放】正例防误杀为主 |
 | C5 | 所有权经出参/回调转移（"调用方负责释放"注释约定） | 不知道转移契约报泄漏/UAF | 同文件注释可见时能懂，跨文件断 | 【契约】所有权约定入库 |
+| C21 | **全局变量启动期初始化**：`g_xxx` 定义时为 NULL，系统启动阶段 malloc 赋值，业务期 N 层函数直接解引用不判空 | 按定义值 NULL 推「可能空指针解引用」全报 | **电信仓超高频**：生命周期跨编译单元且赋值发生在 init 阶段，LLM 与 SA 同样全报 | 【契约】`startup_init_contract`（启动初始化契约）+【索引】navmap 全局变量读写清单验证「存在启动期写点」——**该类契约可部分机械验证**（写点存在性、写点位于 init 类函数） |
 
 ### 2. 边界与长度（CWE-119/125/787）
 
@@ -237,6 +238,7 @@
 | P0 | cwe-401 SKILL 增补「RAII/容器成员/arena-pool 显式不报」条款 + goto-err 正例 | C4、P2、P3、P4 | SKILL 修订 + 回放负例 |
 | P0 | cwe-362 SKILL 增补「先判定执行模型」前置步骤 + SPSC 无锁队列豁免 | C13、C15 | SKILL 修订 |
 | P1 | 新场景 `contract-error-handling`：错误码约定类误报治理 | C2、C5、P5 | 新 SKILL（配 exemption_pattern 类型） |
+| P0 | cwe-476 SKILL 增补「全局变量先查 navmap 全局写清单再判空」验证步骤 + `startup_init_contract` 契约类型 | C21 | SKILL 修订（电信仓必修） |
 | P1 | 新场景 `enum-state-closure`：枚举闭合与状态机（接 navmap 状态机表） | C16、C17 | 新 SKILL + navmap 联动 |
 | P1 | 新场景 `template-instantiation`：模板单 TU 死代码/窄化误报 | P9、P10、P11 | 新 SKILL |
 | P2 | 新场景 `lifetime-cpp`：悬垂引用/虚析构/Rule-of-Five 类 | P6、P15、P16 | 新 SKILL |
@@ -268,5 +270,6 @@
 | `ipc_transfer_api` | 「API X（ipc_send 类）接管 buffer 所有权」 | 名单匹配（navmap 注册点产物） |
 | `ipc_message_contract` | 「进程 P→Q 的消息 M 保证字段 F 有效」 | 跨进程不可机械验证，人审 + 协议文档锚点 |
 | `dynamic_symbol` | 「符号 S 由热补丁/动态加载解析」 | 声明 + 符号表/patch 描述锚点 |
+| `startup_init_contract` | 「全局量 g_xxx 于系统启动期由 init 类函数分配初始化，业务期按非空使用」 | navmap 全局变量读写清单：验证写点存在性 + 写点位于 init/startup 类函数；LLM 评审时 codegraph 查写点复核 |
 
 每类契约依然是 **quarantine → MDE 审核 → active** 的治理流，且优先选「可机械验证」的类型——验证不了的（如 wrap_semantics）永远留人审通道。
