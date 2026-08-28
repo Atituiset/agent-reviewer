@@ -1,0 +1,156 @@
+﻿2026-08-28T12:32:59.9545856Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-08-28T12:32:59.9557061Z ##[group]Run actions/checkout@v4
+2026-08-28T12:32:59.9558268Z with:
+2026-08-28T12:32:59.9559053Z   fetch-depth: 0
+2026-08-28T12:32:59.9559930Z   repository: Atituiset/u-boot
+2026-08-28T12:32:59.9568094Z   token: ***
+2026-08-28T12:32:59.9568915Z   ssh-strict: true
+2026-08-28T12:32:59.9569770Z   ssh-user: git
+2026-08-28T12:32:59.9570631Z   persist-credentials: true
+2026-08-28T12:32:59.9571794Z   clean: true
+2026-08-28T12:32:59.9572916Z   sparse-checkout-cone-mode: true
+2026-08-28T12:32:59.9574189Z   fetch-tags: false
+2026-08-28T12:32:59.9575047Z   show-progress: true
+2026-08-28T12:32:59.9575909Z   lfs: false
+2026-08-28T12:32:59.9576698Z   submodules: false
+2026-08-28T12:32:59.9577628Z   set-safe-directory: true
+2026-08-28T12:32:59.9578599Z   allow-unsafe-pr-checkout: false
+2026-08-28T12:32:59.9579963Z ##[endgroup]
+2026-08-28T12:33:00.0644815Z Syncing repository: Atituiset/u-boot
+2026-08-28T12:33:00.0649096Z ##[group]Getting Git version info
+2026-08-28T12:33:00.0651280Z Working directory is '/home/runner/work/u-boot/u-boot'
+2026-08-28T12:33:00.0654694Z [command]/usr/bin/git version
+2026-08-28T12:33:00.0657764Z git version 2.55.0
+2026-08-28T12:33:00.0680329Z ##[endgroup]
+2026-08-28T12:33:00.0696069Z Temporarily overriding HOME='/home/runner/work/_temp/59b6026c-0825-4cae-9a9f-fafe3f86b2bf' before making global git config changes
+2026-08-28T12:33:00.0700177Z Adding repository directory to the temporary git global config as a safe directory
+2026-08-28T12:33:00.0703629Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/u-boot/u-boot
+2026-08-28T12:33:00.0754000Z Deleting the contents of '/home/runner/work/u-boot/u-boot'
+2026-08-28T12:33:00.0766306Z ##[group]Initializing the repository
+2026-08-28T12:33:00.0768929Z [command]/usr/bin/git init /home/runner/work/u-boot/u-boot
+2026-08-28T12:33:00.0855409Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-08-28T12:33:00.0865522Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-08-28T12:33:00.0876278Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-08-28T12:33:00.0879020Z hint: call:
+2026-08-28T12:33:00.0881973Z hint:
+2026-08-28T12:33:00.0883365Z hint: 	git config --global init.defaultBranch <name>
+2026-08-28T12:33:00.0885090Z hint:
+2026-08-28T12:33:00.0886739Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-08-28T12:33:00.0889416Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-08-28T12:33:00.0891948Z hint:
+2026-08-28T12:33:00.0893233Z hint: 	git branch -m <name>
+2026-08-28T12:33:00.0894565Z hint:
+2026-08-28T12:33:00.0896475Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-08-28T12:33:00.0899412Z Initialized empty Git repository in /home/runner/work/u-boot/u-boot/.git/
+2026-08-28T12:33:00.0904304Z [command]/usr/bin/git remote add origin https://github.com/Atituiset/u-boot
+2026-08-28T12:33:00.0911965Z ##[endgroup]
+2026-08-28T12:33:00.0914246Z ##[group]Disabling automatic garbage collection
+2026-08-28T12:33:00.0916038Z [command]/usr/bin/git config --local gc.auto 0
+2026-08-28T12:33:00.0952437Z ##[endgroup]
+2026-08-28T12:33:00.0954989Z ##[group]Setting up auth
+2026-08-28T12:33:00.0959425Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-08-28T12:33:00.0997725Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-08-28T12:33:00.1355635Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-08-28T12:33:00.1407702Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-08-28T12:33:00.1667083Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-08-28T12:33:00.1707940Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-08-28T12:33:00.1953159Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-08-28T12:33:00.1994530Z ##[endgroup]
+2026-08-28T12:33:00.1995995Z ##[group]Fetching the repository
+2026-08-28T12:33:00.2005494Z [command]/usr/bin/git -c protocol.version=2 fetch --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/* +d6a20eaff3e1b1d3ca29d7cb9c3b48cdfd72d364:refs/remotes/pull/3/merge
+2026-08-28T12:33:27.9023365Z From https://github.com/Atituiset/u-boot
+2026-08-28T12:33:27.9024384Z  * [new branch]              main                                     -> origin/main
+2026-08-28T12:33:27.9025245Z  * [new branch]              review-gate-trial                        -> origin/review-gate-trial
+2026-08-28T12:33:27.9026163Z  * [new branch]              trial/ai-review-ci                       -> origin/trial/ai-review-ci
+2026-08-28T12:33:27.9027460Z  * [new branch]              trial/fp-xfile-1                         -> origin/trial/fp-xfile-1
+2026-08-28T12:33:27.9028259Z  * [new branch]              trial/fp-xfile-2                         -> origin/trial/fp-xfile-2
+2026-08-28T12:33:27.9029116Z  * [new ref]                 d6a20eaff3e1b1d3ca29d7cb9c3b48cdfd72d364 -> pull/3/merge
+2026-08-28T12:33:27.9037761Z ##[endgroup]
+2026-08-28T12:33:27.9038591Z ##[group]Determining the checkout info
+2026-08-28T12:33:27.9039465Z ##[endgroup]
+2026-08-28T12:33:27.9046083Z [command]/usr/bin/git sparse-checkout disable
+2026-08-28T12:33:27.9104904Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-08-28T12:33:27.9138960Z ##[group]Checking out the ref
+2026-08-28T12:33:27.9142692Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/3/merge
+2026-08-28T12:33:28.9608428Z Updating files:  42% (16500/38574)
+2026-08-28T12:33:29.0030882Z Updating files:  43% (16587/38574)
+2026-08-28T12:33:29.0297224Z Updating files:  44% (16973/38574)
+2026-08-28T12:33:29.0627792Z Updating files:  45% (17359/38574)
+2026-08-28T12:33:29.0889298Z Updating files:  46% (17745/38574)
+2026-08-28T12:33:29.1082215Z Updating files:  47% (18130/38574)
+2026-08-28T12:33:29.1268479Z Updating files:  48% (18516/38574)
+2026-08-28T12:33:29.1452655Z Updating files:  49% (18902/38574)
+2026-08-28T12:33:29.1638590Z Updating files:  50% (19287/38574)
+2026-08-28T12:33:29.1828292Z Updating files:  51% (19673/38574)
+2026-08-28T12:33:29.2036768Z Updating files:  52% (20059/38574)
+2026-08-28T12:33:29.2215899Z Updating files:  53% (20445/38574)
+2026-08-28T12:33:29.2415418Z Updating files:  54% (20830/38574)
+2026-08-28T12:33:29.2597251Z Updating files:  55% (21216/38574)
+2026-08-28T12:33:29.2790799Z Updating files:  56% (21602/38574)
+2026-08-28T12:33:29.3000350Z Updating files:  57% (21988/38574)
+2026-08-28T12:33:29.3180323Z Updating files:  58% (22373/38574)
+2026-08-28T12:33:29.3352295Z Updating files:  59% (22759/38574)
+2026-08-28T12:33:29.3569539Z Updating files:  60% (23145/38574)
+2026-08-28T12:33:29.3746738Z Updating files:  61% (23531/38574)
+2026-08-28T12:33:29.3928907Z Updating files:  62% (23916/38574)
+2026-08-28T12:33:29.4149989Z Updating files:  63% (24302/38574)
+2026-08-28T12:33:29.4358774Z Updating files:  64% (24688/38574)
+2026-08-28T12:33:29.4532940Z Updating files:  65% (25074/38574)
+2026-08-28T12:33:29.4771202Z Updating files:  66% (25459/38574)
+2026-08-28T12:33:29.4962781Z Updating files:  67% (25845/38574)
+2026-08-28T12:33:29.5238677Z Updating files:  68% (26231/38574)
+2026-08-28T12:33:29.5470254Z Updating files:  69% (26617/38574)
+2026-08-28T12:33:29.5711130Z Updating files:  70% (27002/38574)
+2026-08-28T12:33:29.5985927Z Updating files:  71% (27388/38574)
+2026-08-28T12:33:29.6237092Z Updating files:  72% (27774/38574)
+2026-08-28T12:33:29.6448714Z Updating files:  73% (28160/38574)
+2026-08-28T12:33:29.6655297Z Updating files:  74% (28545/38574)
+2026-08-28T12:33:29.6903343Z Updating files:  75% (28931/38574)
+2026-08-28T12:33:29.7151747Z Updating files:  76% (29317/38574)
+2026-08-28T12:33:29.7461783Z Updating files:  77% (29702/38574)
+2026-08-28T12:33:29.7778058Z Updating files:  78% (30088/38574)
+2026-08-28T12:33:29.8038122Z Updating files:  79% (30474/38574)
+2026-08-28T12:33:29.8298755Z Updating files:  80% (30860/38574)
+2026-08-28T12:33:29.8497786Z Updating files:  81% (31245/38574)
+2026-08-28T12:33:29.8721977Z Updating files:  82% (31631/38574)
+2026-08-28T12:33:29.8994835Z Updating files:  83% (32017/38574)
+2026-08-28T12:33:29.9199805Z Updating files:  84% (32403/38574)
+2026-08-28T12:33:29.9410072Z Updating files:  85% (32788/38574)
+2026-08-28T12:33:29.9519465Z Updating files:  86% (33174/38574)
+2026-08-28T12:33:29.9677226Z Updating files:  86% (33325/38574)
+2026-08-28T12:33:29.9950586Z Updating files:  87% (33560/38574)
+2026-08-28T12:33:30.0243250Z Updating files:  88% (33946/38574)
+2026-08-28T12:33:30.0524105Z Updating files:  89% (34331/38574)
+2026-08-28T12:33:30.0873808Z Updating files:  90% (34717/38574)
+2026-08-28T12:33:30.1341188Z Updating files:  91% (35103/38574)
+2026-08-28T12:33:30.1555224Z Updating files:  92% (35489/38574)
+2026-08-28T12:33:30.1750311Z Updating files:  93% (35874/38574)
+2026-08-28T12:33:30.2134229Z Updating files:  94% (36260/38574)
+2026-08-28T12:33:30.2747861Z Updating files:  95% (36646/38574)
+2026-08-28T12:33:30.2999338Z Updating files:  96% (37032/38574)
+2026-08-28T12:33:30.3236525Z Updating files:  97% (37417/38574)
+2026-08-28T12:33:30.3393150Z Updating files:  98% (37803/38574)
+2026-08-28T12:33:30.3658713Z Updating files:  99% (38189/38574)
+2026-08-28T12:33:30.3659180Z Updating files: 100% (38574/38574)
+2026-08-28T12:33:30.3659608Z Updating files: 100% (38574/38574), done.
+2026-08-28T12:33:30.4179717Z Note: switching to 'refs/remotes/pull/3/merge'.
+2026-08-28T12:33:30.4180293Z 
+2026-08-28T12:33:30.4180722Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-08-28T12:33:30.4181713Z changes and commit them, and you can discard any commits you make in this
+2026-08-28T12:33:30.4182604Z state without impacting any branches by switching back to a branch.
+2026-08-28T12:33:30.4183090Z 
+2026-08-28T12:33:30.4183459Z If you want to create a new branch to retain commits you create, you may
+2026-08-28T12:33:30.4184158Z do so (now or later) by using -c with the switch command. Example:
+2026-08-28T12:33:30.4184541Z 
+2026-08-28T12:33:30.4184698Z   git switch -c <new-branch-name>
+2026-08-28T12:33:30.4184935Z 
+2026-08-28T12:33:30.4185085Z Or undo this operation with:
+2026-08-28T12:33:30.4185309Z 
+2026-08-28T12:33:30.4185427Z   git switch -
+2026-08-28T12:33:30.4185602Z 
+2026-08-28T12:33:30.4185904Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-08-28T12:33:30.4186370Z 
+2026-08-28T12:33:30.4186998Z HEAD is now at d6a20eaff3e Merge 208764d4505ad72530f9da4f97970d961f065a99 into 05174f23783a69efd6ead625f674723af0b78063
+2026-08-28T12:33:30.4273691Z ##[endgroup]
+2026-08-28T12:33:30.4326673Z [command]/usr/bin/git log -1 --format=%H
+2026-08-28T12:33:30.4360417Z d6a20eaff3e1b1d3ca29d7cb9c3b48cdfd72d364

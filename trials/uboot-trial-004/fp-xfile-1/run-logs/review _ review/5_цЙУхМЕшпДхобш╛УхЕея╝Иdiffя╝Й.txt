@@ -1,0 +1,7 @@
+﻿2026-08-28T12:33:50.4692279Z ##[group]Run git diff "05174f23783a69efd6ead625f674723af0b78063"...HEAD > /tmp/pr.diff
+2026-08-28T12:33:50.4693152Z [36;1mgit diff "05174f23783a69efd6ead625f674723af0b78063"...HEAD > /tmp/pr.diff[0m
+2026-08-28T12:33:50.4693619Z [36;1mcd .reviewer && bash scripts/setup-env.sh || true[0m
+2026-08-28T12:33:50.4733499Z shell: /usr/bin/bash -e {0}
+2026-08-28T12:33:50.4733761Z ##[endgroup]
+2026-08-28T12:33:53.5532239Z [setup-env] 已创建 /home/runner/work/u-boot/u-boot/.reviewer/.venv
+2026-08-28T12:33:53.5833441Z [setup-env] stdlib ok: 3.12.3

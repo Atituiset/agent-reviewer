@@ -1,0 +1,77 @@
+﻿2026-08-28T12:33:49.1945811Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-08-28T12:33:49.1947621Z ##[group]Run actions/checkout@v4
+2026-08-28T12:33:49.1947887Z with:
+2026-08-28T12:33:49.1948117Z   repository: Atituiset/agent-reviewer
+2026-08-28T12:33:49.1948390Z   ref: mvp
+2026-08-28T12:33:49.1948594Z   path: .reviewer
+2026-08-28T12:33:49.1951120Z   token: ***
+2026-08-28T12:33:49.1951330Z   ssh-strict: true
+2026-08-28T12:33:49.1951546Z   ssh-user: git
+2026-08-28T12:33:49.1951769Z   persist-credentials: true
+2026-08-28T12:33:49.1952020Z   clean: true
+2026-08-28T12:33:49.1952247Z   sparse-checkout-cone-mode: true
+2026-08-28T12:33:49.1952515Z   fetch-depth: 1
+2026-08-28T12:33:49.1952864Z   fetch-tags: false
+2026-08-28T12:33:49.1953108Z   show-progress: true
+2026-08-28T12:33:49.1953371Z   lfs: false
+2026-08-28T12:33:49.1953576Z   submodules: false
+2026-08-28T12:33:49.1953795Z   set-safe-directory: true
+2026-08-28T12:33:49.1954052Z   allow-unsafe-pr-checkout: false
+2026-08-28T12:33:49.1954310Z ##[endgroup]
+2026-08-28T12:33:49.2792196Z Syncing repository: Atituiset/agent-reviewer
+2026-08-28T12:33:49.2796375Z ##[group]Getting Git version info
+2026-08-28T12:33:49.2797136Z Working directory is '/home/runner/work/u-boot/u-boot/.reviewer'
+2026-08-28T12:33:49.2838325Z [command]/usr/bin/git version
+2026-08-28T12:33:49.2882660Z git version 2.55.0
+2026-08-28T12:33:49.2904507Z ##[endgroup]
+2026-08-28T12:33:49.2918697Z Temporarily overriding HOME='/home/runner/work/_temp/a1ae8e7a-9430-4e70-9f92-18134f99e8fe' before making global git config changes
+2026-08-28T12:33:49.2919469Z Adding repository directory to the temporary git global config as a safe directory
+2026-08-28T12:33:49.2924699Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/u-boot/u-boot/.reviewer
+2026-08-28T12:33:49.2962191Z ##[group]Initializing the repository
+2026-08-28T12:33:49.2967466Z [command]/usr/bin/git init /home/runner/work/u-boot/u-boot/.reviewer
+2026-08-28T12:33:49.3009788Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-08-28T12:33:49.3010804Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-08-28T12:33:49.3011824Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-08-28T12:33:49.3012610Z hint: call:
+2026-08-28T12:33:49.3013162Z hint:
+2026-08-28T12:33:49.3013681Z hint: 	git config --global init.defaultBranch <name>
+2026-08-28T12:33:49.3014185Z hint:
+2026-08-28T12:33:49.3014631Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-08-28T12:33:49.3015232Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-08-28T12:33:49.3015623Z hint:
+2026-08-28T12:33:49.3015856Z hint: 	git branch -m <name>
+2026-08-28T12:33:49.3016166Z hint:
+2026-08-28T12:33:49.3016688Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-08-28T12:33:49.3017556Z Initialized empty Git repository in /home/runner/work/u-boot/u-boot/.reviewer/.git/
+2026-08-28T12:33:49.3022406Z [command]/usr/bin/git remote add origin https://github.com/Atituiset/agent-reviewer
+2026-08-28T12:33:49.3059525Z ##[endgroup]
+2026-08-28T12:33:49.3060152Z ##[group]Disabling automatic garbage collection
+2026-08-28T12:33:49.3064677Z [command]/usr/bin/git config --local gc.auto 0
+2026-08-28T12:33:49.3096862Z ##[endgroup]
+2026-08-28T12:33:49.3097379Z ##[group]Setting up auth
+2026-08-28T12:33:49.3105021Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-08-28T12:33:49.3140826Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-08-28T12:33:49.3412111Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-08-28T12:33:49.3447704Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-08-28T12:33:49.3718775Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-08-28T12:33:49.3764526Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-08-28T12:33:49.4029499Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-08-28T12:33:49.4072906Z ##[endgroup]
+2026-08-28T12:33:49.4073589Z ##[group]Fetching the repository
+2026-08-28T12:33:49.4084295Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/mvp*:refs/remotes/origin/mvp* +refs/tags/mvp*:refs/tags/mvp*
+2026-08-28T12:33:50.3105201Z From https://github.com/Atituiset/agent-reviewer
+2026-08-28T12:33:50.3105947Z  * [new branch]      mvp        -> origin/mvp
+2026-08-28T12:33:50.3111346Z ##[endgroup]
+2026-08-28T12:33:50.3111946Z ##[group]Determining the checkout info
+2026-08-28T12:33:50.3120053Z [command]/usr/bin/git branch --list --remote origin/mvp
+2026-08-28T12:33:50.3158693Z   origin/mvp
+2026-08-28T12:33:50.3162950Z ##[endgroup]
+2026-08-28T12:33:50.3167600Z [command]/usr/bin/git sparse-checkout disable
+2026-08-28T12:33:50.3210130Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-08-28T12:33:50.3243765Z ##[group]Checking out the ref
+2026-08-28T12:33:50.3247672Z [command]/usr/bin/git checkout --progress --force -B mvp refs/remotes/origin/mvp
+2026-08-28T12:33:50.4117168Z Switched to a new branch 'mvp'
+2026-08-28T12:33:50.4118120Z branch 'mvp' set up to track 'origin/mvp'.
+2026-08-28T12:33:50.4134929Z ##[endgroup]
+2026-08-28T12:33:50.4183361Z [command]/usr/bin/git log -1 --format=%H
+2026-08-28T12:33:50.4213276Z 0d27f952883d9626a33875e299b429ab6378796d

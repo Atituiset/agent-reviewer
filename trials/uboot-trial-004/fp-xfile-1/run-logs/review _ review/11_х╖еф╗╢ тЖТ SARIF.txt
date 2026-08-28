@@ -1,0 +1,9 @@
+﻿2026-08-28T12:37:01.2068041Z ##[group]Run ls -la "$GITHUB_WORKSPACE/.review/review-artifact.json" || { echo "工件缺失（评审未产出）——fail-open 跳过"; exit 0; }
+2026-08-28T12:37:01.2068845Z [36;1mls -la "$GITHUB_WORKSPACE/.review/review-artifact.json" || { echo "工件缺失（评审未产出）——fail-open 跳过"; exit 0; }[0m
+2026-08-28T12:37:01.2069536Z [36;1mexport SARIF_VIEWER_URI="https://github.com/Atituiset/u-boot/actions/runs/33171538589"[0m
+2026-08-28T12:37:01.2070255Z [36;1mcd .reviewer && bash scripts/artifact-to-sarif.sh "$GITHUB_WORKSPACE/.review/review-artifact.json" /tmp/review.sarif[0m
+2026-08-28T12:37:01.2071002Z [36;1mcp /tmp/review.sarif "$GITHUB_WORKSPACE/.review.sarif" || cp /tmp/review.sarif ./review.sarif[0m
+2026-08-28T12:37:01.2112055Z shell: /usr/bin/bash -e {0}
+2026-08-28T12:37:01.2112336Z ##[endgroup]
+2026-08-28T12:37:01.2187723Z -rw-r--r-- 1 runner runner 6420 Aug 28 12:36 /home/runner/work/u-boot/u-boot/.review/review-artifact.json
+2026-08-28T12:37:01.2519405Z wrote /tmp/review.sarif: 4 results, 2 rules

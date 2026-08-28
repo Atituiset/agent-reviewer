@@ -1,0 +1,10 @@
+﻿2026-08-28T12:33:35.0415995Z ##[group]Run npm i -g @colbymchenry/codegraph --silent 2>&1 | tail -1
+2026-08-28T12:33:35.0416510Z [36;1mnpm i -g @colbymchenry/codegraph --silent 2>&1 | tail -1[0m
+2026-08-28T12:33:35.0416913Z [36;1mcodegraph init 2>&1 | tail -1 || true[0m
+2026-08-28T12:33:35.0417224Z [36;1mcodegraph sync 2>&1 | tail -3[0m
+2026-08-28T12:33:35.0457870Z shell: /usr/bin/bash -e {0}
+2026-08-28T12:33:35.0458251Z ##[endgroup]
+2026-08-28T12:34:58.9943727Z 
+2026-08-28T12:35:00.7055015Z │
+2026-08-28T12:35:00.7055455Z └  Done
+2026-08-28T12:35:00.7055623Z 

@@ -1,0 +1,493 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "agent-reviewer",
+          "version": "0.1.0",
+          "informationUri": "https://github.com/Atituiset/agent-reviewer",
+          "rules": [
+            {
+              "id": "default",
+              "name": "default",
+              "shortDescription": {
+                "text": "通用代码评审基线。所有 diff 默认加载，覆盖正确性、错误处理、可读性底线，不重复场景化清单（CWE 专项）的内容。"
+              },
+              "properties": {
+                "cwe": "null",
+                "severity_default": "medium",
+                "origin": "builtin"
+              }
+            },
+            {
+              "id": "cwe-476",
+              "name": "cwe-476-null-pointer-dereference",
+              "shortDescription": {
+                "text": "空指针解引用（CWE-CWE-476）。"
+              },
+              "properties": {
+                "cwe": "476",
+                "severity_default": "high",
+                "origin": "mitre-top25"
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "default",
+          "level": "error",
+          "message": {
+            "text": "#include \"../include/common.h\" 引用不存在的头文件，common/cli.c 无条件编译导致构建失败\n\n引号 include 相对被包含文件所在目录 common/ 解析为 common/../include/common.h = include/common.h，而该文件在本仓库不存在（test -f 确认 MISSING，新版 u-boot 已移除 monolithic common.h）。gcc 复现：fatal error: ../include/common.h: No such file or directory。common/cli.c 经 common/Makefile obj-y += cli.o 无条件进入编译，此错误直接阻断整个构建。\n\n**判断理由**：引用不存在的头文件是确定性编译失败，已用最小用例 gcc -c 复现，与 include 解析规则吻合。\n\n**证据链**：common/cli.c:347 diff 新增 #include \"../include/common.h\"（位于 cli_init 之后、无任何 #ifdef 包裹，恒被编译） → include/common.h:1 目标头文件在本仓库不存在（test -f MISSING；gcc -c 复现 fatal error: ../include/common.h: No such file or directory） → common/Makefile:93 obj-y += cli.o 使 common/cli.c 成为必编编译单元，头文件缺失即整体构建失败\n\n**代码上下文**：\n`common/cli.c`：\n```cpp\n{\n#ifdef CONFIG_HUSH_PARSER\n\t/* This if block is used to initialize hush parser gd flag. */\n\tif (!(gd->flags & GD_FLG_HUSH_OLD_PARSER)\n\t\t&& !(gd->flags & GD_FLG_HUSH_MODERN_PARSER)) {\n\t\tif (CONFIG_IS_ENABLED(HUSH_OLD_PARSER))\n\t\t\tgd->flags |= GD_FLG_HUSH_OLD_PARSER;\n\t\telse if (CONFIG_IS_ENABLED(HUSH_MODERN_PARSER))\n\t\t\tgd->flags |= GD_FLG_HUSH_MODERN_PARSER;\n\t}\n\n\tif (gd->flags & GD_FLG_HUSH_OLD_PARSER) {\n\t\tu_boot_hush_start();\n\t} else if (gd->flags & GD_FLG_HUSH_MODERN_PARSER) {\n\t\tu_boot_hush_start_modern();\n\t} else {\n\t\tprintf(\"No valid hush parser to use, cli will not initialized!\\n\");\n\t\treturn;\n\t}\n#endif\n\n#if defined(CONFIG_HUSH_INIT_VAR)\n\thush_init_var();\n#endif\n\n\tif (CONFIG_IS_ENABLED(VIDEO_ANSI))\n\t\tprintf(ANSI_CURSOR_SHOW \"\\n\");\n}\n```\n`common/Makefile`：\n```cpp\nCFLAGS_REMOVE_board_r.o := $(LTO_CFLAGS)\nendif\nendif\nobj-$(CONFIG_DISPLAY_BOARDINFO) += board_info.o\nobj-$(CONFIG_DISPLAY_BOARDINFO_LATE) += board_info.o\n\nobj-$(CONFIG_MII) += miiphyutil.o\nobj-$(CONFIG_CMD_MII) += miiphyutil.o\nobj-$(CONFIG_PHYLIB) += miiphyutil.o\n\nobj-$(CONFIG_USB_HOST) += usb.o usb_hub.o\nobj-$(CONFIG_USB_GADGET) += usb.o\nobj-$(CONFIG_USB_STORAGE) += usb_storage.o\nobj-$(CONFIG_USB_ONBOARD_HUB) += usb_onboard_hub.o\n\n# others\nobj-$(CONFIG_CONSOLE_MUX) += iomux.o\nobj-$(CONFIG_MTD_NOR_FLASH) += flash.o\nobj-$(CONFIG_CMD_KGDB) += kgdb.o kgdb_stubs.o\nobj-$(CONFIG_I2C_EDID) += edid.o\nobj-$(CONFIG_KALLSYMS) += kallsyms.o\nobj-y += splash.o\nobj-$(CONFIG_SPLASH_SOURCE) += splash_source.o\nobj-$(CONFIG_MENU) += menu.o\nobj-$(CONFIG_UPDATE_COMMON) += update.o\nobj-$(CONFIG_USB_KEYBOARD) += usb_kbd.o\n\nendif # !CONFIG_XPL_BUILD\n\nobj-$(CONFIG_$(PHASE_)BOOTSTAGE) += bootstage.o\nobj-$(CONFIG_$(PHASE_)BLOBLIST) += bloblist.o\n\n```",
+            "markdown": "#include \"../include/common.h\" 引用不存在的头文件，common/cli.c 无条件编译导致构建失败\n\n引号 include 相对被包含文件所在目录 common/ 解析为 common/../include/common.h = include/common.h，而该文件在本仓库不存在（test -f 确认 MISSING，新版 u-boot 已移除 monolithic common.h）。gcc 复现：fatal error: ../include/common.h: No such file or directory。common/cli.c 经 common/Makefile obj-y += cli.o 无条件进入编译，此错误直接阻断整个构建。\n\n**判断理由**：引用不存在的头文件是确定性编译失败，已用最小用例 gcc -c 复现，与 include 解析规则吻合。\n\n**证据链**：common/cli.c:347 diff 新增 #include \"../include/common.h\"（位于 cli_init 之后、无任何 #ifdef 包裹，恒被编译） → include/common.h:1 目标头文件在本仓库不存在（test -f MISSING；gcc -c 复现 fatal error: ../include/common.h: No such file or directory） → common/Makefile:93 obj-y += cli.o 使 common/cli.c 成为必编编译单元，头文件缺失即整体构建失败\n\n**代码上下文**：\n`common/cli.c`：\n```cpp\n{\n#ifdef CONFIG_HUSH_PARSER\n\t/* This if block is used to initialize hush parser gd flag. */\n\tif (!(gd->flags & GD_FLG_HUSH_OLD_PARSER)\n\t\t&& !(gd->flags & GD_FLG_HUSH_MODERN_PARSER)) {\n\t\tif (CONFIG_IS_ENABLED(HUSH_OLD_PARSER))\n\t\t\tgd->flags |= GD_FLG_HUSH_OLD_PARSER;\n\t\telse if (CONFIG_IS_ENABLED(HUSH_MODERN_PARSER))\n\t\t\tgd->flags |= GD_FLG_HUSH_MODERN_PARSER;\n\t}\n\n\tif (gd->flags & GD_FLG_HUSH_OLD_PARSER) {\n\t\tu_boot_hush_start();\n\t} else if (gd->flags & GD_FLG_HUSH_MODERN_PARSER) {\n\t\tu_boot_hush_start_modern();\n\t} else {\n\t\tprintf(\"No valid hush parser to use, cli will not initialized!\\n\");\n\t\treturn;\n\t}\n#endif\n\n#if defined(CONFIG_HUSH_INIT_VAR)\n\thush_init_var();\n#endif\n\n\tif (CONFIG_IS_ENABLED(VIDEO_ANSI))\n\t\tprintf(ANSI_CURSOR_SHOW \"\\n\");\n}\n```\n`common/Makefile`：\n```cpp\nCFLAGS_REMOVE_board_r.o := $(LTO_CFLAGS)\nendif\nendif\nobj-$(CONFIG_DISPLAY_BOARDINFO) += board_info.o\nobj-$(CONFIG_DISPLAY_BOARDINFO_LATE) += board_info.o\n\nobj-$(CONFIG_MII) += miiphyutil.o\nobj-$(CONFIG_CMD_MII) += miiphyutil.o\nobj-$(CONFIG_PHYLIB) += miiphyutil.o\n\nobj-$(CONFIG_USB_HOST) += usb.o usb_hub.o\nobj-$(CONFIG_USB_GADGET) += usb.o\nobj-$(CONFIG_USB_STORAGE) += usb_storage.o\nobj-$(CONFIG_USB_ONBOARD_HUB) += usb_onboard_hub.o\n\n# others\nobj-$(CONFIG_CONSOLE_MUX) += iomux.o\nobj-$(CONFIG_MTD_NOR_FLASH) += flash.o\nobj-$(CONFIG_CMD_KGDB) += kgdb.o kgdb_stubs.o\nobj-$(CONFIG_I2C_EDID) += edid.o\nobj-$(CONFIG_KALLSYMS) += kallsyms.o\nobj-y += splash.o\nobj-$(CONFIG_SPLASH_SOURCE) += splash_source.o\nobj-$(CONFIG_MENU) += menu.o\nobj-$(CONFIG_UPDATE_COMMON) += update.o\nobj-$(CONFIG_USB_KEYBOARD) += usb_kbd.o\n\nendif # !CONFIG_XPL_BUILD\n\nobj-$(CONFIG_$(PHASE_)BOOTSTAGE) += bootstage.o\nobj-$(CONFIG_$(PHASE_)BLOBLIST) += bloblist.o\n\n```"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "common/cli.c"
+                },
+                "region": {
+                  "startLine": 347,
+                  "snippet": {
+                    "text": "#include \"../include/common.h\""
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "diffHash": "04c9896128d79d5c80fad71f29b56a5fe9f847c9137bfd875f7f1121f4477904",
+            "findingIndex": "default/common/cli.c:347"
+          },
+          "properties": {
+            "confidence": 98,
+            "severity": "important",
+            "category": "build",
+            "checklist_item": null,
+            "refs": [],
+            "ruling": null,
+            "resolved": false,
+            "reasoning": "引用不存在的头文件是确定性编译失败，已用最小用例 gcc -c 复现，与 include 解析规则吻合。"
+          },
+          "codeFlows": [
+            {
+              "threadFlows": [
+                {
+                  "locations": [
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "common/cli.c"
+                          },
+                          "region": {
+                            "startLine": 347,
+                            "snippet": {
+                              "text": "#include \"../include/common.h\""
+                            }
+                          }
+                        },
+                        "message": {
+                          "text": "diff 新增 #include \"../include/common.h\"（位于 cli_init 之后、无任何 #ifdef 包裹，恒被编译）"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "include/common.h"
+                          },
+                          "region": {
+                            "startLine": 1,
+                            "snippet": {
+                              "text": ""
+                            }
+                          }
+                        },
+                        "message": {
+                          "text": "目标头文件在本仓库不存在（test -f MISSING；gcc -c 复现 fatal error: ../include/common.h: No such file or directory）"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "common/Makefile"
+                          },
+                          "region": {
+                            "startLine": 93,
+                            "snippet": {
+                              "text": "obj-y += cli.o"
+                            }
+                          }
+                        },
+                        "message": {
+                          "text": "obj-y += cli.o 使 common/cli.c 成为必编编译单元，头文件缺失即整体构建失败"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "hostedViewerUri": "https://github.com/Atituiset/u-boot/actions/runs/33171538589"
+        },
+        {
+          "ruleId": "default",
+          "level": "error",
+          "message": {
+            "text": "对不完整类型 struct trial_frame 取成员 frame->buf，编译错误\n\ncli.c:349 仅前向声明 `struct trial_frame;`（不完整类型），完整定义 struct trial_frame { const char *buf; } 只在另一编译单元 lib/trial_engine.c:8，cli.c 的翻译单元内不可见；frame->buf 访问不完整类型成员是 C 约束违例。gcc 复现：error: invalid use of undefined type 'const struct trial_frame'。此错误独立于 finding 1，即使头文件 include 修复仍然编译不过。\n\n**判断理由**：C 标准禁止对不完整类型解引用成员，已用最小用例复现；共享结构体定义需移入头文件或在本 TU 提供定义。\n\n**证据链**：common/cli.c:349 struct trial_frame; 仅为不完整类型前向声明 → lib/trial_engine.c:8 完整定义 struct trial_frame { const char *buf; } 只在另一编译单元（且该 .c 未加入任何 Makefile），cli.c 不可见 → common/cli.c:355 frame->buf 对不完整类型取成员 → 编译错误（gcc -c 复现 invalid use of undefined type）\n\n**代码上下文**：\n`common/cli.c`：\n```cpp\n{\n\tif (!frame || !frame->buf)\n\t\treturn -1;\n\treturn trial_engine_render(chan, frame); /* 经函数指针表 → render_line（契约保证非空） */\n}\n```\n`common/cli.c`：\n```cpp\n{\n#ifdef CONFIG_HUSH_PARSER\n\t/* This if block is used to initialize hush parser gd flag. */\n\tif (!(gd->flags & GD_FLG_HUSH_OLD_PARSER)\n\t\t&& !(gd->flags & GD_FLG_HUSH_MODERN_PARSER)) {\n\t\tif (CONFIG_IS_ENABLED(HUSH_OLD_PARSER))\n\t\t\tgd->flags |= GD_FLG_HUSH_OLD_PARSER;\n\t\telse if (CONFIG_IS_ENABLED(HUSH_MODERN_PARSER))\n\t\t\tgd->flags |= GD_FLG_HUSH_MODERN_PARSER;\n\t}\n\n\tif (gd->flags & GD_FLG_HUSH_OLD_PARSER) {\n\t\tu_boot_hush_start();\n\t} else if (gd->flags & GD_FLG_HUSH_MODERN_PARSER) {\n\t\tu_boot_hush_start_modern();\n\t} else {\n\t\tprintf(\"No valid hush parser to use, cli will not initialized!\\n\");\n\t\treturn;\n\t}\n#endif\n\n#if defined(CONFIG_HUSH_INIT_VAR)\n\thush_init_var();\n#endif\n\n\tif (CONFIG_IS_ENABLED(VIDEO_ANSI))\n\t\tprintf(ANSI_CURSOR_SHOW \"\\n\");\n}\n```\n`lib/trial_engine.c`：\n```cpp\nstruct trial_frame {\n\tconst char *buf;\n};\n```",
+            "markdown": "对不完整类型 struct trial_frame 取成员 frame->buf，编译错误\n\ncli.c:349 仅前向声明 `struct trial_frame;`（不完整类型），完整定义 struct trial_frame { const char *buf; } 只在另一编译单元 lib/trial_engine.c:8，cli.c 的翻译单元内不可见；frame->buf 访问不完整类型成员是 C 约束违例。gcc 复现：error: invalid use of undefined type 'const struct trial_frame'。此错误独立于 finding 1，即使头文件 include 修复仍然编译不过。\n\n**判断理由**：C 标准禁止对不完整类型解引用成员，已用最小用例复现；共享结构体定义需移入头文件或在本 TU 提供定义。\n\n**证据链**：common/cli.c:349 struct trial_frame; 仅为不完整类型前向声明 → lib/trial_engine.c:8 完整定义 struct trial_frame { const char *buf; } 只在另一编译单元（且该 .c 未加入任何 Makefile），cli.c 不可见 → common/cli.c:355 frame->buf 对不完整类型取成员 → 编译错误（gcc -c 复现 invalid use of undefined type）\n\n**代码上下文**：\n`common/cli.c`：\n```cpp\n{\n\tif (!frame || !frame->buf)\n\t\treturn -1;\n\treturn trial_engine_render(chan, frame); /* 经函数指针表 → render_line（契约保证非空） */\n}\n```\n`common/cli.c`：\n```cpp\n{\n#ifdef CONFIG_HUSH_PARSER\n\t/* This if block is used to initialize hush parser gd flag. */\n\tif (!(gd->flags & GD_FLG_HUSH_OLD_PARSER)\n\t\t&& !(gd->flags & GD_FLG_HUSH_MODERN_PARSER)) {\n\t\tif (CONFIG_IS_ENABLED(HUSH_OLD_PARSER))\n\t\t\tgd->flags |= GD_FLG_HUSH_OLD_PARSER;\n\t\telse if (CONFIG_IS_ENABLED(HUSH_MODERN_PARSER))\n\t\t\tgd->flags |= GD_FLG_HUSH_MODERN_PARSER;\n\t}\n\n\tif (gd->flags & GD_FLG_HUSH_OLD_PARSER) {\n\t\tu_boot_hush_start();\n\t} else if (gd->flags & GD_FLG_HUSH_MODERN_PARSER) {\n\t\tu_boot_hush_start_modern();\n\t} else {\n\t\tprintf(\"No valid hush parser to use, cli will not initialized!\\n\");\n\t\treturn;\n\t}\n#endif\n\n#if defined(CONFIG_HUSH_INIT_VAR)\n\thush_init_var();\n#endif\n\n\tif (CONFIG_IS_ENABLED(VIDEO_ANSI))\n\t\tprintf(ANSI_CURSOR_SHOW \"\\n\");\n}\n```\n`lib/trial_engine.c`：\n```cpp\nstruct trial_frame {\n\tconst char *buf;\n};\n```"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "common/cli.c"
+                },
+                "region": {
+                  "startLine": 355,
+                  "snippet": {
+                    "text": "if (!frame || !frame->buf)"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "diffHash": "04c9896128d79d5c80fad71f29b56a5fe9f847c9137bfd875f7f1121f4477904",
+            "findingIndex": "default/common/cli.c:355"
+          },
+          "properties": {
+            "confidence": 98,
+            "severity": "important",
+            "category": "correctness",
+            "checklist_item": null,
+            "refs": [],
+            "ruling": null,
+            "resolved": false,
+            "reasoning": "C 标准禁止对不完整类型解引用成员，已用最小用例复现；共享结构体定义需移入头文件或在本 TU 提供定义。"
+          },
+          "codeFlows": [
+            {
+              "threadFlows": [
+                {
+                  "locations": [
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "common/cli.c"
+                          },
+                          "region": {
+                            "startLine": 349,
+                            "snippet": {
+                              "text": "struct trial_frame;"
+                            }
+                          }
+                        },
+                        "message": {
+                          "text": "struct trial_frame; 仅为不完整类型前向声明"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "lib/trial_engine.c"
+                          },
+                          "region": {
+                            "startLine": 8,
+                            "snippet": {
+                              "text": "struct trial_frame {"
+                            }
+                          }
+                        },
+                        "message": {
+                          "text": "完整定义 struct trial_frame { const char *buf; } 只在另一编译单元（且该 .c 未加入任何 Makefile），cli.c 不可见"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "common/cli.c"
+                          },
+                          "region": {
+                            "startLine": 355,
+                            "snippet": {
+                              "text": "if (!frame || !frame->buf)"
+                            }
+                          }
+                        },
+                        "message": {
+                          "text": "frame->buf 对不完整类型取成员 → 编译错误（gcc -c 复现 invalid use of undefined type）"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "hostedViewerUri": "https://github.com/Atituiset/u-boot/actions/runs/33171538589"
+        },
+        {
+          "ruleId": "cwe-476",
+          "level": "error",
+          "message": {
+            "text": "导出符号 trial_engine_render 未判空 frame 即经函数指针表四层转发后在深处解引用 frame->buf，判空契约仅在被调用方所在 TU\n\ntrial_engine_render 是非 static 全局符号（新公开 API），只校验 chan>=3（line 31）未校验 frame；frame 经 TRIAL_HANDLER_TBL → accept/prepare/compose → render_line 纯转发后在 line 15 解引用 frame->buf[0]。唯一判空 if (!frame || !frame->buf) 位于另一编译单元 cli_trial_handle（common/cli.c:355），导出边界未强制该契约；任何未走该入口的调用方以 frame==NULL 调用即空指针解引用。属 cwe-476 检测信号「把可能为空的指针传入内部约定非空的函数」。\n\n**判断理由**：跨文件契约「入口判空」只落在调用方 TU，导出函数自身无守卫即存在第二条未防护入口，任何其他调用方传 NULL 即崩溃，属空指针解引用隐患。\n\n**证据链**：lib/trial_engine.c:29 导出符号 int trial_engine_render(unsigned int chan, const struct trial_frame *frame)，本 TU 内无 frame 判空 → lib/trial_engine.c:31 仅检查 chan >= 3 越界，未检查 frame → lib/trial_engine.c:33 TRIAL_HANDLER_TBL[chan](frame) 将未校验指针传入处理链 → lib/trial_engine.c:15 render_line 内 frame->buf[0] 解引用：frame==NULL 即空指针解引用 → common/cli.c:355 唯一判空在另一编译单元的 cli_trial_handle，导出的 trial_engine_render 边界不继承该保护\n\n**代码上下文**：\n`lib/trial_engine.c`：\n```cpp\nint trial_engine_render(unsigned int chan, const struct trial_frame *frame)\n{\n\tif (chan >= 3)\n\t\treturn -1;\n\treturn TRIAL_HANDLER_TBL[chan](frame);\n}\n```\n`lib/trial_engine.c`：\n```cpp\n{\n\tif (chan >= 3)\n\t\treturn -1;\n\treturn TRIAL_HANDLER_TBL[chan](frame);\n}\n```\n`lib/trial_engine.c`：\n```cpp\n{\n\treturn frame->buf[0];\n}\n```\n`common/cli.c`：\n```cpp\n{\n\tif (!frame || !frame->buf)\n\t\treturn -1;\n\treturn trial_engine_render(chan, frame); /* 经函数指针表 → render_line（契约保证非空） */\n}\n```",
+            "markdown": "导出符号 trial_engine_render 未判空 frame 即经函数指针表四层转发后在深处解引用 frame->buf，判空契约仅在被调用方所在 TU\n\ntrial_engine_render 是非 static 全局符号（新公开 API），只校验 chan>=3（line 31）未校验 frame；frame 经 TRIAL_HANDLER_TBL → accept/prepare/compose → render_line 纯转发后在 line 15 解引用 frame->buf[0]。唯一判空 if (!frame || !frame->buf) 位于另一编译单元 cli_trial_handle（common/cli.c:355），导出边界未强制该契约；任何未走该入口的调用方以 frame==NULL 调用即空指针解引用。属 cwe-476 检测信号「把可能为空的指针传入内部约定非空的函数」。\n\n**判断理由**：跨文件契约「入口判空」只落在调用方 TU，导出函数自身无守卫即存在第二条未防护入口，任何其他调用方传 NULL 即崩溃，属空指针解引用隐患。\n\n**证据链**：lib/trial_engine.c:29 导出符号 int trial_engine_render(unsigned int chan, const struct trial_frame *frame)，本 TU 内无 frame 判空 → lib/trial_engine.c:31 仅检查 chan >= 3 越界，未检查 frame → lib/trial_engine.c:33 TRIAL_HANDLER_TBL[chan](frame) 将未校验指针传入处理链 → lib/trial_engine.c:15 render_line 内 frame->buf[0] 解引用：frame==NULL 即空指针解引用 → common/cli.c:355 唯一判空在另一编译单元的 cli_trial_handle，导出的 trial_engine_render 边界不继承该保护\n\n**代码上下文**：\n`lib/trial_engine.c`：\n```cpp\nint trial_engine_render(unsigned int chan, const struct trial_frame *frame)\n{\n\tif (chan >= 3)\n\t\treturn -1;\n\treturn TRIAL_HANDLER_TBL[chan](frame);\n}\n```\n`lib/trial_engine.c`：\n```cpp\n{\n\tif (chan >= 3)\n\t\treturn -1;\n\treturn TRIAL_HANDLER_TBL[chan](frame);\n}\n```\n`lib/trial_engine.c`：\n```cpp\n{\n\treturn frame->buf[0];\n}\n```\n`common/cli.c`：\n```cpp\n{\n\tif (!frame || !frame->buf)\n\t\treturn -1;\n\treturn trial_engine_render(chan, frame); /* 经函数指针表 → render_line（契约保证非空） */\n}\n```"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "lib/trial_engine.c"
+                },
+                "region": {
+                  "startLine": 29,
+                  "snippet": {
+                    "text": "int trial_engine_render(unsigned int chan, const struct trial_frame *frame)"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "diffHash": "04c9896128d79d5c80fad71f29b56a5fe9f847c9137bfd875f7f1121f4477904",
+            "findingIndex": "cwe-476/lib/trial_engine.c:29"
+          },
+          "properties": {
+            "confidence": 85,
+            "severity": "important",
+            "category": "null-pointer-dereference",
+            "checklist_item": null,
+            "refs": [],
+            "ruling": null,
+            "resolved": false,
+            "reasoning": "跨文件契约「入口判空」只落在调用方 TU，导出函数自身无守卫即存在第二条未防护入口，任何其他调用方传 NULL 即崩溃，属空指针解引用隐患。"
+          },
+          "codeFlows": [
+            {
+              "threadFlows": [
+                {
+                  "locations": [
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "lib/trial_engine.c"
+                          },
+                          "region": {
+                            "startLine": 29,
+                            "snippet": {
+                              "text": "int trial_engine_render(unsigned int chan, const struct trial_frame *frame)"
+                            }
+                          }
+                        },
+                        "message": {
+                          "text": "导出符号 int trial_engine_render(unsigned int chan, const struct trial_frame *frame)，本 TU 内无 frame 判空"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "lib/trial_engine.c"
+                          },
+                          "region": {
+                            "startLine": 31,
+                            "snippet": {
+                              "text": "if (chan >= 3)"
+                            }
+                          }
+                        },
+                        "message": {
+                          "text": "仅检查 chan >= 3 越界，未检查 frame"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "lib/trial_engine.c"
+                          },
+                          "region": {
+                            "startLine": 33,
+                            "snippet": {
+                              "text": "return TRIAL_HANDLER_TBL[chan](frame);"
+                            }
+                          }
+                        },
+                        "message": {
+                          "text": "TRIAL_HANDLER_TBL[chan](frame) 将未校验指针传入处理链"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "lib/trial_engine.c"
+                          },
+                          "region": {
+                            "startLine": 15,
+                            "snippet": {
+                              "text": "return frame->buf[0];"
+                            }
+                          }
+                        },
+                        "message": {
+                          "text": "render_line 内 frame->buf[0] 解引用：frame==NULL 即空指针解引用"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "common/cli.c"
+                          },
+                          "region": {
+                            "startLine": 355,
+                            "snippet": {
+                              "text": "if (!frame || !frame->buf)"
+                            }
+                          }
+                        },
+                        "message": {
+                          "text": "唯一判空在另一编译单元的 cli_trial_handle，导出的 trial_engine_render 边界不继承该保护"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "hostedViewerUri": "https://github.com/Atituiset/u-boot/actions/runs/33171538589"
+        },
+        {
+          "ruleId": "default",
+          "level": "note",
+          "message": {
+            "text": "新增 lib/trial_engine.c 未加入任何 Makefile，且其调用方 cli_trial_handle 无任何引用，整个特性为不可达死代码\n\ngrep 全仓 Makefile 无任何 trial_engine 引用，lib/Makefile 的 obj-y 列表不含 trial_engine.o，因此该编译单元根本不会被编译；同时 common/cli.c 的 cli_trial_handle 也无任何调用方。default 清单第 3 条「是否有死代码被引入（写了但无任何路径可达）」明确命中：新代码既不可达也不进构建。\n\n**判断理由**：未接入构建且无调用方的全新代码即死代码，default 评审清单第 3 条要求报告。\n\n**证据链**：lib/trial_engine.c:29 新增导出符号 trial_engine_render（无构建入口） → lib/Makefile:29 obj-y 列表（如 obj-y += charset.o 等）无 trial_engine.o，lib/trial_engine.c 不被编译 → common/cli.c:357 cli_trial_handle 调用 trial_engine_render，但 cli_trial_handle 本身无任何调用方（grep 全仓无引用），整链不可达\n\n**代码上下文**：\n`lib/trial_engine.c`：\n```cpp\nint trial_engine_render(unsigned int chan, const struct trial_frame *frame)\n{\n\tif (chan >= 3)\n\t\treturn -1;\n\treturn TRIAL_HANDLER_TBL[chan](frame);\n}\n```\n`lib/Makefile`：\n```cpp\nifneq ($(CONFIG_CHARSET),)\nobj-y += charset.o\nendif\nendif\n\nobj-$(CONFIG_CIRCBUF) += circbuf.o\n\nobj-y += crc8.o\nobj-$(CONFIG_ERRNO_STR) += errno_str.o\nobj-$(CONFIG_FIT) += fdtdec_common.o\nobj-$(CONFIG_TEST_FDTDEC) += fdtdec_test.o\nobj-$(CONFIG_GZIP_COMPRESSED) += gzip.o\n\n# With QEMU the SMBIOS tables come from there, not from U-Boot\nifndef CONFIG_QFW_SMBIOS\nobj-$(CONFIG_GENERATE_SMBIOS_TABLE) += smbios.o\nendif\n\nobj-$(CONFIG_SMBIOS_PARSER) += smbios-parser.o\nobj-$(CONFIG_IMAGE_SPARSE) += image-sparse.o\nobj-y += ldiv.o\nobj-$(CONFIG_XXHASH) += xxhash.o\nobj-y += net_utils.o\nobj-$(CONFIG_PHYSMEM) += physmem.o\nobj-y += rc4.o\nobj-$(CONFIG_RBTREE)\t+= rbtree.o\nobj-$(CONFIG_BITREVERSE) += bitrev.o\nobj-y += list_sort.o\nobj-$(CONFIG_PMBUS) += pmbus.o\nendif\n\nobj-$(CONFIG_$(PHASE_)TPM) += tpm-common.o\n```\n`common/cli.c`：\n```cpp\n{\n\tif (!frame || !frame->buf)\n\t\treturn -1;\n\treturn trial_engine_render(chan, frame); /* 经函数指针表 → render_line（契约保证非空） */\n}\n```",
+            "markdown": "新增 lib/trial_engine.c 未加入任何 Makefile，且其调用方 cli_trial_handle 无任何引用，整个特性为不可达死代码\n\ngrep 全仓 Makefile 无任何 trial_engine 引用，lib/Makefile 的 obj-y 列表不含 trial_engine.o，因此该编译单元根本不会被编译；同时 common/cli.c 的 cli_trial_handle 也无任何调用方。default 清单第 3 条「是否有死代码被引入（写了但无任何路径可达）」明确命中：新代码既不可达也不进构建。\n\n**判断理由**：未接入构建且无调用方的全新代码即死代码，default 评审清单第 3 条要求报告。\n\n**证据链**：lib/trial_engine.c:29 新增导出符号 trial_engine_render（无构建入口） → lib/Makefile:29 obj-y 列表（如 obj-y += charset.o 等）无 trial_engine.o，lib/trial_engine.c 不被编译 → common/cli.c:357 cli_trial_handle 调用 trial_engine_render，但 cli_trial_handle 本身无任何调用方（grep 全仓无引用），整链不可达\n\n**代码上下文**：\n`lib/trial_engine.c`：\n```cpp\nint trial_engine_render(unsigned int chan, const struct trial_frame *frame)\n{\n\tif (chan >= 3)\n\t\treturn -1;\n\treturn TRIAL_HANDLER_TBL[chan](frame);\n}\n```\n`lib/Makefile`：\n```cpp\nifneq ($(CONFIG_CHARSET),)\nobj-y += charset.o\nendif\nendif\n\nobj-$(CONFIG_CIRCBUF) += circbuf.o\n\nobj-y += crc8.o\nobj-$(CONFIG_ERRNO_STR) += errno_str.o\nobj-$(CONFIG_FIT) += fdtdec_common.o\nobj-$(CONFIG_TEST_FDTDEC) += fdtdec_test.o\nobj-$(CONFIG_GZIP_COMPRESSED) += gzip.o\n\n# With QEMU the SMBIOS tables come from there, not from U-Boot\nifndef CONFIG_QFW_SMBIOS\nobj-$(CONFIG_GENERATE_SMBIOS_TABLE) += smbios.o\nendif\n\nobj-$(CONFIG_SMBIOS_PARSER) += smbios-parser.o\nobj-$(CONFIG_IMAGE_SPARSE) += image-sparse.o\nobj-y += ldiv.o\nobj-$(CONFIG_XXHASH) += xxhash.o\nobj-y += net_utils.o\nobj-$(CONFIG_PHYSMEM) += physmem.o\nobj-y += rc4.o\nobj-$(CONFIG_RBTREE)\t+= rbtree.o\nobj-$(CONFIG_BITREVERSE) += bitrev.o\nobj-y += list_sort.o\nobj-$(CONFIG_PMBUS) += pmbus.o\nendif\n\nobj-$(CONFIG_$(PHASE_)TPM) += tpm-common.o\n```\n`common/cli.c`：\n```cpp\n{\n\tif (!frame || !frame->buf)\n\t\treturn -1;\n\treturn trial_engine_render(chan, frame); /* 经函数指针表 → render_line（契约保证非空） */\n}\n```"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "lib/trial_engine.c"
+                },
+                "region": {
+                  "startLine": 29,
+                  "snippet": {
+                    "text": "int trial_engine_render(unsigned int chan, const struct trial_frame *frame)"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "diffHash": "04c9896128d79d5c80fad71f29b56a5fe9f847c9137bfd875f7f1121f4477904",
+            "findingIndex": "default/lib/trial_engine.c:29"
+          },
+          "properties": {
+            "confidence": 90,
+            "severity": "minor",
+            "category": "dead-code",
+            "checklist_item": null,
+            "refs": [],
+            "ruling": null,
+            "resolved": false,
+            "reasoning": "未接入构建且无调用方的全新代码即死代码，default 评审清单第 3 条要求报告。"
+          },
+          "codeFlows": [
+            {
+              "threadFlows": [
+                {
+                  "locations": [
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "lib/trial_engine.c"
+                          },
+                          "region": {
+                            "startLine": 29,
+                            "snippet": {
+                              "text": "int trial_engine_render(unsigned int chan, const struct trial_frame *frame)"
+                            }
+                          }
+                        },
+                        "message": {
+                          "text": "新增导出符号 trial_engine_render（无构建入口）"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "lib/Makefile"
+                          },
+                          "region": {
+                            "startLine": 29,
+                            "snippet": {
+                              "text": "obj-y += charset.o"
+                            }
+                          }
+                        },
+                        "message": {
+                          "text": "obj-y 列表（如 obj-y += charset.o 等）无 trial_engine.o，lib/trial_engine.c 不被编译"
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "common/cli.c"
+                          },
+                          "region": {
+                            "startLine": 357,
+                            "snippet": {
+                              "text": "return trial_engine_render(chan, frame); /* 经函数指针表 → render_line（契约保证非空） */"
+                            }
+                          }
+                        },
+                        "message": {
+                          "text": "cli_trial_handle 调用 trial_engine_render，但 cli_trial_handle 本身无任何调用方（grep 全仓无引用），整链不可达"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "hostedViewerUri": "https://github.com/Atituiset/u-boot/actions/runs/33171538589"
+        }
+      ],
+      "properties": {
+        "verdict": "ISSUES_FOUND",
+        "diff_hash": "04c9896128d79d5c80fad71f29b56a5fe9f847c9137bfd875f7f1121f4477904",
+        "reviewed_at": "2026-08-28T12:36:22Z",
+        "scenarios_scanned": []
+      }
+    }
+  ]
+}

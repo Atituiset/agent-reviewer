@@ -1,0 +1,76 @@
+﻿2026-08-28T12:38:42.8441729Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-08-28T12:38:42.8442990Z ##[group]Run actions/checkout@v4
+2026-08-28T12:38:42.8443245Z with:
+2026-08-28T12:38:42.8443469Z   repository: Atituiset/agent-reviewer
+2026-08-28T12:38:42.8443746Z   ref: mvp
+2026-08-28T12:38:42.8443939Z   path: .reviewer
+2026-08-28T12:38:42.8446428Z   token: ***
+2026-08-28T12:38:42.8446640Z   ssh-strict: true
+2026-08-28T12:38:42.8446862Z   ssh-user: git
+2026-08-28T12:38:42.8447077Z   persist-credentials: true
+2026-08-28T12:38:42.8447317Z   clean: true
+2026-08-28T12:38:42.8447535Z   sparse-checkout-cone-mode: true
+2026-08-28T12:38:42.8447791Z   fetch-depth: 1
+2026-08-28T12:38:42.8447998Z   fetch-tags: false
+2026-08-28T12:38:42.8448219Z   show-progress: true
+2026-08-28T12:38:42.8448467Z   lfs: false
+2026-08-28T12:38:42.8448659Z   submodules: false
+2026-08-28T12:38:42.8448869Z   set-safe-directory: true
+2026-08-28T12:38:42.8449122Z   allow-unsafe-pr-checkout: false
+2026-08-28T12:38:42.8449377Z ##[endgroup]
+2026-08-28T12:38:42.9335047Z Syncing repository: Atituiset/agent-reviewer
+2026-08-28T12:38:42.9336436Z ##[group]Getting Git version info
+2026-08-28T12:38:42.9337593Z Working directory is '/home/runner/work/u-boot/u-boot/.reviewer'
+2026-08-28T12:38:42.9373879Z [command]/usr/bin/git version
+2026-08-28T12:38:42.9417774Z git version 2.55.0
+2026-08-28T12:38:42.9437764Z ##[endgroup]
+2026-08-28T12:38:42.9452532Z Temporarily overriding HOME='/home/runner/work/_temp/b7fa2d96-2e22-4818-bd33-d15ace8e47f4' before making global git config changes
+2026-08-28T12:38:42.9453784Z Adding repository directory to the temporary git global config as a safe directory
+2026-08-28T12:38:42.9458659Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/u-boot/u-boot/.reviewer
+2026-08-28T12:38:42.9502270Z [command]/usr/bin/git config --local --get remote.origin.url
+2026-08-28T12:38:42.9528713Z https://github.com/Atituiset/agent-reviewer
+2026-08-28T12:38:42.9543489Z ##[group]Removing previously created refs, to avoid conflicts
+2026-08-28T12:38:42.9548038Z [command]/usr/bin/git rev-parse --symbolic-full-name --verify --quiet HEAD
+2026-08-28T12:38:42.9574519Z refs/heads/mvp
+2026-08-28T12:38:42.9583542Z [command]/usr/bin/git checkout --detach
+2026-08-28T12:38:43.0349416Z HEAD is now at 0d27f95 feat: message.markdown 嵌入完整函数体（代码上下文段）——告警内自洽，不用翻源码仓
+2026-08-28T12:38:43.0406833Z [command]/usr/bin/git branch --delete --force mvp
+2026-08-28T12:38:43.0443861Z Deleted branch mvp (was 0d27f95).
+2026-08-28T12:38:43.0489555Z ##[endgroup]
+2026-08-28T12:38:43.0494862Z [command]/usr/bin/git submodule status
+2026-08-28T12:38:43.0755016Z ##[group]Cleaning the repository
+2026-08-28T12:38:43.0758377Z [command]/usr/bin/git clean -ffdx
+2026-08-28T12:38:43.1177017Z Removing .venv/
+2026-08-28T12:38:43.1188628Z [command]/usr/bin/git reset --hard HEAD
+2026-08-28T12:38:43.1244768Z HEAD is now at 0d27f95 feat: message.markdown 嵌入完整函数体（代码上下文段）——告警内自洽，不用翻源码仓
+2026-08-28T12:38:43.1250556Z ##[endgroup]
+2026-08-28T12:38:43.1252597Z ##[group]Disabling automatic garbage collection
+2026-08-28T12:38:43.1258431Z [command]/usr/bin/git config --local gc.auto 0
+2026-08-28T12:38:43.1292986Z ##[endgroup]
+2026-08-28T12:38:43.1293526Z ##[group]Setting up auth
+2026-08-28T12:38:43.1301683Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-08-28T12:38:43.1339559Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-08-28T12:38:43.1593913Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-08-28T12:38:43.1622886Z http.https://github.com/.extraheader
+2026-08-28T12:38:43.1631915Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-08-28T12:38:43.1669054Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-08-28T12:38:43.1911010Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-08-28T12:38:43.1948039Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-08-28T12:38:43.2192026Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-08-28T12:38:43.2234889Z ##[endgroup]
+2026-08-28T12:38:43.2235549Z ##[group]Fetching the repository
+2026-08-28T12:38:43.2244714Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/mvp*:refs/remotes/origin/mvp* +refs/tags/mvp*:refs/tags/mvp*
+2026-08-28T12:38:43.6077476Z ##[endgroup]
+2026-08-28T12:38:43.6078251Z ##[group]Determining the checkout info
+2026-08-28T12:38:43.6085494Z [command]/usr/bin/git branch --list --remote origin/mvp
+2026-08-28T12:38:43.6116677Z   origin/mvp
+2026-08-28T12:38:43.6126846Z ##[endgroup]
+2026-08-28T12:38:43.6137035Z [command]/usr/bin/git sparse-checkout disable
+2026-08-28T12:38:43.6179529Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-08-28T12:38:43.6212885Z ##[group]Checking out the ref
+2026-08-28T12:38:43.6218797Z [command]/usr/bin/git checkout --progress --force -B mvp refs/remotes/origin/mvp
+2026-08-28T12:38:43.6289545Z Switched to a new branch 'mvp'
+2026-08-28T12:38:43.6292667Z branch 'mvp' set up to track 'origin/mvp'.
+2026-08-28T12:38:43.6299520Z ##[endgroup]
+2026-08-28T12:38:43.6347564Z [command]/usr/bin/git log -1 --format=%H
+2026-08-28T12:38:43.6382633Z 0d27f952883d9626a33875e299b429ab6378796d
