@@ -203,6 +203,17 @@
   .split{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
   .pane-title{font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:.08em;margin-bottom:10px;}
   .pane-note{font-size:12px;color:var(--dim);margin:8px 0 2px;line-height:1.5;}
+  /* ---------- 30 秒速览 ---------- */
+  .exec-card{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:12px;padding:18px 22px;margin:18px 0 24px;}
+  .exec-title{font-family:var(--mono);font-size:13px;color:var(--accent);letter-spacing:.1em;margin-bottom:10px;}
+  .exec-list{list-style:none;display:grid;gap:8px;font-size:14px;color:var(--txt);}
+  .exec-list li{padding-left:14px;position:relative;}
+  .exec-list li::before{content:"▸";position:absolute;left:0;color:var(--accent);}
+  .exec-list b{color:var(--gold);}
+  .exec-nav{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);font-size:13px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+  .exec-nav span{color:var(--dim);}
+  .exec-nav a{color:var(--accent2);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:3px 12px;background:var(--bg2);}
+  .exec-nav a:hover{border-color:var(--accent2);}
   .codeblock{
     background:#090c12;border:1px solid var(--line);border-radius:12px;padding:16px 18px;
     font-family:var(--mono);font-size:12.5px;line-height:1.75;overflow-x:auto;color:#c6d0de;white-space:pre;
@@ -406,6 +417,23 @@
   <div class="wrap">
     <h1>AI 代码评审 MVP：从代码修改到评审告警的全链路</h1>
     <p class="sub"><b>场景库驱动</b> · <b>调用图增强</b> · <b>SARIF 标准化</b> · <b>反馈飞轮</b></p>
+
+    <div class="exec-card">
+      <div class="exec-title">⏱ 30 秒速览</div>
+      <ul class="exec-list">
+        <li><b>问题</b>：AI 写码提速后，评审没跟上——PR 后评审成本已沉没、规则靠 prompt 自觉、结论不沉淀；千万行级 C/C++ 仓还有「上游已判空、深处解引用」的系统性误报。</li>
+        <li><b>做法</b>：CWE 场景库（SKILL 格式 + 确定性路由）+ commit 前机械门禁 + PR 端 CI 评审（DeepSeek）+ 调用图证据链回溯 + SARIF 标准化输出 + TP/FP 反馈飞轮。</li>
+        <li><b>结果</b>：播种缺陷 <b>12/12</b> 检出、0 误报、6+ 条真实增量发现；单次评审 <b>~$1</b>（托管服务 $15–25）；三模式实验证明调用图能抑制表驱动误报、语义导航图能发现契约级问题。</li>
+        <li><b>关键差异</b>：反馈资产归团队（TP/FP 经人审进规则库），评审左移到 commit 前，成本差 15–25 倍。</li>
+      </ul>
+      <div class="exec-nav">
+        <span>快捷跳转：</span>
+        <a href="#metrics">📊 数据面板</a>
+        <a href="#hero">▶ 全链路动画</a>
+        <a href="#replay-sec">🖥 Agent 轨迹</a>
+        <a href="#timeline-sec">🧭 实验过程</a>
+      </div>
+    </div>
 
     <div class="pipeline-shell">
       <div id="pipeline-track">
@@ -984,7 +1012,7 @@ int handle_fp_request(const FpReq *req) {
 
 <!-- ============ S4 数据面板 ============ -->
 <section id="stats-sec">
-  <div class="wrap">
+  <div class="wrap" id="metrics">
     <span class="sec-tag">METRICS</span>
     <h2>数据面板</h2>
     <p class="sec-sub">滚动到此处时数字从 0 计数至真实值。全部来自试验归档。</p>
