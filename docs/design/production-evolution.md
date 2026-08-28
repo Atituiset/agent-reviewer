@@ -110,3 +110,80 @@
 - 我们的设计：`docs/design/mvp-minimal-design.md`（§2.4.2 回放协议、§5 验收标准）
 - 验证证据：`trials/`（uboot-trial-001/002、aether-trial-001/002）、`docs/validation/`
 - 飞轮治理：`docs/design/ai-native-dev-memory-architecture.md`（ANDM §4 状态机、§10 记忆工程机制）
+
+---
+
+## 7. 千万行级 C/C++ 核心仓的 FP 治理：codegraph 与「判空契约」
+
+> 背景：核心目标生产仓是千万行级无线通信基站代码（C/C++），全局变量、函数指针、模板函数、虚函数密集。最突出的误报类：**malloc 处在上游已判空，解引用处在 5~10 层函数调用之下未重复判空**——LLM 评审标为风险，开发者视为 FP。这类 FP 不解决，场景库在核心仓会被静音。
+
+### 7.1 问题本质
+
+这不是模型能力问题，是**证据可达性问题**：
+
+- LLM 评审的自然探查半径是 grep/Read 级别的 1-2 跳；5-10 跳的判空证据链靠 agent 自由探查，成本高且不可靠——查不到上游判空就按「疑似风险」上报
+- 开发者的「这是 FP」背后是**仓库级判空契约**：「本仓在分配处/模块边界判空，内部函数不重复判」——这条契约存在团队共识里，不存在任何文件里，LLM 自然不知道
+- 所以治理要双管齐下：**给验证段配上过程间证据工具**（让判空链可查证），**把判空契约显式化**（让约定进规则与记忆）
+
+### 7.2 codegraph 实测（2026-08-28）
+
+[codegraph](https://github.com/colbymchenry/codegraph)（Rust kernel + tree-sitter，SQLite 图库，100% 本地，MCP 接口）在两个试验仓的实测：
+
+| 仓 | 规模 | 索引 | 调用解析质量 |
+|---|---|---|---|
+| AetherStack（C++ 电信栈） | 2,108 节点 / 6,601 边 | <1s（增量） | `callers prepare_handover` 精确命中 3 处含测试；接口方法 `send` 的 20 个调用点齐全 |
+| u-boot（C，~19k 文件） | **265,327 节点 / 677,037 边 / 504MB** | 秒级 | `callers strcpy` 跨 arch 精确；`cli_trial_banner` 正确显示零调用方（与死代码 finding 互证） |
+
+**能力边界（诚实声明）**：
+
+- 直接调用、方法调用、接口方法调用点：解析良好
+- **函数指针、虚函数动态分派、模板实例化、宏生成代码：静态不可判定**——图是欠近似的，断链 ≠ 无路径，必须按「未知」处理
+- 全局变量作为跨函数指针来源时调用链分析失效（需要写点分析，codegraph 只给引用点不给数据流）
+- 千万行级可行性：u-boot 量级（19k 文件/26 万节点）索引与增量同步无压力，504MB SQLite 可接受；更大仓需实测但架构（Rust kernel + 增量）方向可行
+
+### 7.3 集成设计：验证段的过程间证据协议
+
+把三态验证（阶段 1.1）在 C/C++ 大仓具体化。verifier 拿到「解引用未判空」类候选时，执行**判空链回溯**（codegraph callers BFS，上限 10 跳）：
+
+```
+候选：函数 D 在 line N 解引用指针 p 未判空
+  │
+  ├─ 回溯 p 的来源链（callers → 实参 → 返回值 → 全局量）
+  │
+  ├─ 上游 K 跳内发现判空（且数据流上为同一指针）
+  │    → REFUTED（FP），记录证伪链进工件 flow 字段
+  │
+  ├─ 链在函数指针/虚函数/宏处中断
+  │    → PLAUSIBLE（保留但标注中断点：「链在 fn_ptr_table[i] 处不可静态判定」）
+  │
+  └─ 全程无判空
+       → CONFIRMED，证据链完整（分配点 → 未经判空的完整路径 → 解引用点）
+```
+
+关键纪律：**「查不到判空」不等于「没有判空」**——欠近似图上，只有「找到判空」才能 REFUTED，「没找到」只能维持 PLAUSIBLE/CONFIRMED 取决于路径是否完整闭合。误报侧保守，漏报侧由 recall 级别补偿。
+
+### 7.4 判空契约显式化：exemption_pattern 记忆类型
+
+这类 FP 的根治不在逐条标注，在**规则级豁免**：
+
+1. 开发者对「解引用未判空」告警标 👎 并注「上游已判空」→ `memory-label.sh` 除 scenario_trust 减分外，触发**判空契约提炼**
+2. 新增记忆类型 `exemption_pattern`（incident_pattern 的反面）：「模块 X 的判空约定：分配处/边界层判空，内部函数不重复判（证据：src/x/alloc.c:42 判空 + MDE 确认）」→ quarantine → MDE 审核 → active
+3. cwe-476 场景评审时，命中模块的 exemption_pattern 注入 prompt：「本仓判空契约如下，符合契约的解引用不报」——从根上压低该类 FP 的产生率，而非事后过滤
+4. 飞轮指标：cwe-476 的 per-scenario FP 率应随 exemption_pattern 积累单调下降——这是「飞轮在核心仓有效」的直接证据
+
+### 7.5 与 CodeFuse-Query 的分工
+
+| | codegraph | CodeFuse-Query |
+|---|---|---|
+| 技术 | tree-sitter 近似调用图 | Datalog/COREF 精确关系 |
+| C++ 支持 | 全语言但欠近似 | beta，需 compile_commands.json，重 |
+| 千万行级成本 | 低（本地 SQLite，分钟级） | 高（抽取器 + 图计算） |
+| 定位 | **验证段的判空链回溯**（打底） | 变更影响分析等精确需求（可选增强） |
+
+结论：codegraph 打底（轻、全、近似但够用），CodeFuse 类工具只在需要精确变更影响分析时引入。
+
+### 7.6 对阶段计划的修订
+
+- **阶段 1 新增 1.8**：codegraph 接入验证段（MCP 或 CLI 调用），判空链回溯协议进 verifier prompt；验收标准 = 构造「上游 5 跳已判空」试验件，verifier 必须输出 REFUTED 且带证伪链
+- **cwe-476 SKILL 修订**：检测信号补「跨函数判空契约」条目——先查 codegraph 调用链再下结论；输出要求补「未做链回溯的跨函数判空 finding 不报」
+- **阶段 2 新增**：exemption_pattern 记忆类型与判空契约提炼管线（ANDM §4 状态机复用，新 kind 值）
