@@ -1,211 +1,201 @@
-# Claude Code 官方评审体系技术深度分析：claude-code-action 与 /code-review
+# Claude Code 评审体系纯技术分析：做法、原理与企业自建借鉴
 
 > 日期：2026-08-28
-> 目的：拆解 Anthropic 官方两条评审链路（GitHub Action 驱动的 PR 审核、本地 `/code-review` 命令）的技术实现，评估我们自建体系可借鉴的实现点
-> 可信度标注：**[源码]** = 读到仓库源码/文档原文；**[官方]** = 官方文档声明但无源码；**[推测]** = 间接证据推断
-> 调研底稿：本文件由子代理调研汇总整理，全部来源见附录
+> 性质：纯技术分析。拆解 Anthropic 官方 Claude Code 评审体系（claude-code-action、code-review 插件、内置 /code-review skill、托管 Code Review 服务）的做法与原理，并提炼企业自建 AI 评审体系可借鉴的通用思路——不绑定任何特定实现
+> 可信度标注：**[源码]** = 仓库源码/文档原文可证；**[官方]** = 官方文档声明；**[推测]** = 间接证据推断
 
 ---
 
-## 0. 全景：官方评审的三个形态
+## 1. 全景：一个范式，四种形态
+
+Anthropic 的评审能力不是单个产品，而是同一范式（**find → verify → rank → report**）在四个交付形态上的展开：
+
+| 形态 | 交付物 | 运行位置 | 定位 |
+|---|---|---|---|
+| 托管 Code Review | GitHub App + 云服务 | Anthropic 基础设施 | 零运维 PR 终审，$15-25/次 |
+| claude-code-action | 开源 GitHub Action | 用户自己的 runner | 自托管 CI 集成，模型端点可自选 |
+| code-review 插件 | claude-code 仓内 command 文件 | 本地/CI 内 Claude Code | 9 步评审流水线 |
+| 内置 /code-review skill | Claude Code 内置能力 | 本地终端/桌面端 | effort 分档的交互式评审 |
+
+理解这套体系的关键：四个形态共享同一套**流水线哲学、误报治理纪律、安全边界设计**，差异只在工程包装。下面按层拆解。
+
+## 2. claude-code-action：CI 集成的工程范本 [源码]
+
+### 2.1 分层与信任边界
+
+- **主 action**：GitHub 侧逻辑（模式检测、token、prompt 构建、MCP 工具注入、评论管理）；**base-action**：薄封装（装运行时、跑 SDK 会话）。信任边界全部上移到主 action——base-action 明确声明"不做任何信任假设"
+- 这一分层的意义：**执行内核可以天真，安全判断必须集中**。企业自建时同理：评审内核（LLM 调用）与治理逻辑（权限、过滤、路由）应该是两层
+
+### 2.2 双模式与上下文注入策略
+
+- **tag 模式**（@claude 交互）：预取完整 GitHub 上下文（标题/body/全部评论/变更文件），XML 标签结构化注入；**diff 不内联**，指示模型 `git diff origin/<base>...HEAD` 自取——大 PR 的上下文预算控制
+- **agent 模式**（自动化）：只传用户 prompt 原文，上下文全靠调用方自行打包——**集成方必须自己解决"喂什么上下文"的问题**，action 不替你决定
+
+### 2.3 输出机制：五个精心设计的细节
+
+1. **收窄的 inline 评论工具**：刻意不提供 PR review 能力，**让模型在结构上无法 approve/merge PR**——不是 prompt 里叮嘱"别 approve"，而是工具面直接没有
+2. **`confirmed` 三态缓冲**：直发 / 缓冲待发 / 缓冲丢弃，防止 subagent 继承工具后试探性发 probe 评论
+3. **会话后 Haiku 分类**：post-step 用便宜模型对缓冲评论做"真实评审 vs test/probe"分类，只发真的；分类失败 fallback 全发（不丢真评论优先）
+4. **追踪评论单点更新**：交互模式下模型只能反复编辑同一条评论（"Never create new comments"），进度 checkbox 是格式约定而非状态机
+5. **输出净化**：所有自动发出的文本过防注入 sanitize + 密钥脱敏
+
+### 2.4 工具权限模型
+
+- **刻意不 allow `Edit/Write`**：配合 `acceptEdits` 权限模式，工作区内编辑自动放行、工作区外自动拒绝；显式 allow 写工具等于授予整个 runner 任意写权限
+- 任意 Bash 必须按命令模式显式放行（`Bash(npm test:*)`）
+- 无交互环境下"ask"一律 deny——headless 评审的行为完全由白名单决定
+
+### 2.5 结构化工件通道
+
+- `claude-execution-output.json` = 完整 SDK 消息流（init/assistant/tool result/result）
+- **`structured_output`**：`--json-schema` 让模型产出 schema 校验后的结构化输出——**不需要文件写权限的结构化结果通道**
+- `session_id` 支持 `--resume` 续会话
+
+## 3. code-review 插件：流水线的教科书 [源码]
+
+9 步流水线，每一步的模型选择都体现成本工程：
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│ 形态 A：托管服务 Code Review（GitHub App + Anthropic 云）      │
-│   PR 触发 → 多 agent 并行 → 验证 → 去重排序 → inline 评论      │
-│   $15-25/次，零运维，模型与数据全在 Anthropic                  │
-├─────────────────────────────────────────────────────────────┤
-│ 形态 B：claude-code-action（自托管 CI）                        │
-│   自己的 runner + 自己的模型端点（可 DeepSeek）                │
-│   tag 模式（@claude 交互）/ agent 模式（prompt 驱动自动评审）  │
-├─────────────────────────────────────────────────────────────┤
-│ 形态 C：本地 /code-review 命令（v2.1.x）                       │
-│   effort 梯队 low→max + ultrareview 云端深度版                 │
-│   finder angles 多路并行 → 三态验证 → ReportFindings 结构化    │
-└─────────────────────────────────────────────────────────────┘
-```
-
-我们 CI 链路用的是形态 B 的 agent 模式；形态 C 的 prompt 工程是最值得拆解的部分；形态 A 是同一范式的云端放大版（内部细节未公开，多为 [推测]）。
-
-## 1. claude-code-action 技术拆解（我们 CI 的执行底座）
-
-### 1.1 分层与信任边界 [源码]
-
-- **主 action**（`src/`）：GitHub 侧逻辑——模式检测、token、prompt 构建、MCP server 注入、评论管理
-- **base-action**：薄封装，装 Bun + Claude Code，经 `@anthropic-ai/claude-agent-sdk` 的 `query()` 跑会话；**明确不做信任边界**——信任逻辑（actor 权限检查、从 base ref 恢复 `.claude/`/`CLAUDE.md` 配置防 PR 作者篡改）全在主 action
-
-### 1.2 两种运行模式 [源码]
-
-v1.0 后 `mode` 废弃，自动判定：
-
-- **tag 模式**：@claude mention 触发。预取完整 GitHub 上下文（标题/body/全部评论/变更文件/图片），发追踪评论供模型反复编辑，可建分支提交代码
-- **agent 模式**：有 `prompt` 输入即触发（自动评审的标准用法）。**只传 prompt 原文，不带任何 GitHub 上下文**——diff、场景路由全靠 prompt 模板注入（这正是我们 CI 的用法，也解释了为什么我们要自己打包输入）
-
-### 1.3 Token 双链路 [源码]
-
-- **默认**：OIDC（`id-token: write`）→ Anthropic 端点换 Claude GitHub App 安装 token；服务端校验 workflow 必须已合入默认分支；job 结束吊销
-- **override**：`github_token` 输入直接跳过交换（我们用的路径，绕过 App 安装要求）
-- 模型认证是**独立链路**：api_key / OAuth token / workload identity / Bedrock / Vertex——所以换 DeepSeek 只影响模型链路，不影响 GitHub 交互链路（我们排障时的分层与此一致）
-
-### 1.4 输出机制（最精细的部分）[源码]
-
-| 通道 | 机制 | 设计动机 |
-|---|---|---|
-| 追踪评论 | 只发一条初始评论，模型只能用 `update_claude_comment` 反复编辑（"Never create new comments"），checkbox 进度是格式约定非状态机 | 防评论刷屏 |
-| **inline 评论** | 收窄的 MCP 工具 `create_inline_comment`：**刻意不提供 PR review 能力，防模型误 approve PR**；`confirmed` 三态控制直发/缓冲/丢弃 | 防 subagent 继承工具后试探性发 probe 评论 |
-| **缓冲分类** | 会话后 post-step 用 **Haiku** 对缓冲评论分类"真实评审 vs test/probe"，只发真的；API 失败时 fallback 全发 | 防误发的同时不丢真评论 |
-| 顶层评论 | prompt 指示 `Bash(gh pr comment:*)`；`use_sticky_comment` 复用同一条 | — |
-| Fix 链接 | `[Fix this →](https://claude.ai/code?q=...)` 带上下文一键修复 | 闭环到修复动作 |
-
-评论发出前过 `sanitizeContent`（防注入）+ `redactSecrets`（密钥脱敏）。
-
-### 1.5 工具权限模型（我们 Write 被拒的原理）[源码]
-
-- **刻意不把 `Edit/Write/MultiEdit` 放进 allowedTools**：配合 `--permission-mode acceptEdits`，工作区内编辑自动放行、工作区外自动拒绝；显式 allow 这三个工具等于授予整个 runner 任意写权限
-- 任意 Bash 默认不可用，必须 `claude_args --allowedTools "Bash(npm test:*)"` 按需放行
-- headless 模式无交互确认，"ask" 一律 deny——这就是我们第四轮 `permission_denials: 19` 的确切成因
-
-### 1.6 Prompt 构建 [源码]
-
-- tag 模式：XML 标签结构组织上下文；**diff 不内联**，指示模型 `git diff origin/<base>...HEAD` 自取；大量行为规约（只更新自己的评论、只听从 trigger comment 防间接注入、能力边界声明）；用户 prompt 作为 `<custom_instructions>` **追加**而非替换
-- slash command 桥接：双 text block 构造（先上下文、后用户请求），CLI 据此展开 skill——action 里能跑 `/code-review` 的机制
-- **安全**：PR 场景下从 base ref 恢复 `.claude/` 配置，防 PR 作者篡改配置提权
-- agent 模式：prompt = 原文，无上下文注入
-
-### 1.7 输出工件 [源码]
-
-- `claude-execution-output.json` = `SDKMessage` 数组（init/assistant/tool result/result 完整流）；取结果优先最后一个 `type:"result"` 的 `result` 字符串
-- **`structured_output`**：`claude_args` 传 `--json-schema` 时，result 消息里带 schema 校验后的结构化输出——**这是比"让模型写文件"更优雅的工件产出方式**（见 §5 P0-2）
-- `session_id` 可 `--resume` 续会话
-
-## 2. 插件 code-review 命令：CI 版流水线 [源码]
-
-`plugins/code-review/commands/code-review.md` 当前版是 9 步流水线，**模型分层刻意压成本**：
-
-```
-Haiku 预判（draft/琐碎/已评过 → 终止）
-  → Haiku 收集 CLAUDE.md 路径（只返回路径）
-  → Sonnet 总结 PR（供下游理解意图）
-  → 并行 4 评审 agent：
-      Sonnet ×2  CLAUDE.md 合规（作用域限定：只考虑文件同路径/父路径的规则）
-      Opus   ×1  只看 diff 找明显 bug（不看外部上下文）
-      Opus   ×1  引入代码深层问题（安全/逻辑）
+Haiku 预判（draft/琐碎/已评过 → 终止，省掉整个评审）
+  → Haiku 收集规则文件路径（只返回路径，不读内容）
+  → Sonnet 总结 PR 意图（供下游 agent 校准"作者想干什么"）
+  → 并行 4 评审 agent（Sonnet ×2 规则合规 + Opus ×2 缺陷发现）
   → 逐 issue 验证 subagent（bug 用 Opus、违规用 Sonnet）
-  → 过滤未通过者 → inline 评论（confirmed:true，一条 issue 只发一条）
+  → 过滤 → 输出
 ```
 
-关键纪律（与我们场景库「显式不报」清单高度同构）：
+值得逐条抄的纪律：
 
-- "If you are not certain an issue is real, do not flag it. **False positives erode trust.**"
-- 显式不报：pre-existing、看着像 bug 实际正确的、学究 nit、linter 能抓的（且**禁止真的去跑 linter 验证**）、已被 lint ignore 注释豁免的规则
-- 每个 subagent 都带 PR 标题/描述理解作者意图
-- 工具面纯只读（只有 `gh` 只读子命令 + inline 评论工具）
+- **"If you are not certain an issue is real, do not flag it. False positives erode trust."**——误报侵蚀信任是整个体系的第一原则
+- 显式不报清单：存量问题、看着像 bug 实际正确的、学究 nit、linter 能抓的（且禁止真去跑 linter 验证）、已被显式豁免的规则
+- 规则作用域限定：评估某文件时只考虑该文件同路径/父路径上的规则——**规则必须有作用域，全局规则全局生效是误报温床**
+- 每个 subagent 都带 PR 标题/描述：先理解作者意图，再判断对错——大量"疑似缺陷"其实是作者有意为之
 
-注意 [文档漂移]：同目录 README 还是旧版（0-100 打分制），以命令源文件为准。
+## 4. 内置 /code-review skill：prompt 工程的集大成者 [源码：第三方逆向 v2.1.247]
 
-## 3. 内置 /code-review skill：prompt 工程的集大成者 [源码：Piebald-AI 逆向提取 v2.1.247]
+### 4.1 effort 梯队：把"评审深度"做成可调旋钮
 
-这是本次调研含金量最高的部分。内置 skill 已演进为**模板拼装架构**（变量插值组装各 effort 的 prompt）。
+| 级别 | 流程 | finder angles | 验证 | 上限 | 导向 |
+|---|---|---|---|---|---|
+| low | 2 turns 单遍，不起 subagent | 单遍 hunk 检查 | 无 | ≤4 | 快速 |
+| medium | 8 个 finder angle subagent | 各 ≤6 候选 | 一票验证 | ≤8 | precision |
+| high | 同上 | 同上 | **recall-biased** | ≤10 | 平衡 |
+| max | 10 angles + gap sweep | 各 ≤8 候选 | 验证+补扫 | ≤15 | recall |
 
-### 3.1 effort 梯队：成本-覆盖的工程化分档
+核心思想：**深度与成本是显式权衡，应该暴露给用户/调用方选择**，而不是一刀切的最强配置。
 
-| 级别 | 流程 | finder angles | verify | 上限 |
-|---|---|---|---|---|
-| low | 2 turns 单遍，不读全文件、不起 subagent、**不验证** | 单遍 hunk 检查 | 无 | ≤4 |
-| medium | 8 个 finder angle subagent（3 正确性+3 cleanup+1 altitude+1 约定） | 各产 ≤6 候选 | 一票验证 | ≤8，偏 precision |
-| high | 同 medium | 同上 | **recall-biased** | ≤10 |
-| xhigh/max | 10 angles，允许同行多报 | 各 ≤8 候选 | 验证 + **gap sweep 补扫** | ≤15，纯 recall |
+### 4.2 Finder Angle 的 scoping 哲学
 
-### 3.2 Finder Angle A 的 scoping 哲学 [源码]
+逐 hunk 逐行扫，并且 **Read 每个 hunk 所在的完整函数**——被触碰函数的未改动行也在评审范围内（"PR 使其重新暴露或未能修复的问题"）。评审半径 = diff + 周边上下文，但归属判定区分「本 PR 引入」与「存量暴露」——这是托管服务 🟣 Pre-existing 标记的同源设计。
 
-逐 hunk 逐行扫，**并且 Read 每个 hunk 所在的完整函数**——被触碰函数的未改动行也在评审范围内（"the PR re-exposes or fails to fix them"）。这与托管服务的 🟣 Pre-existing 标记共享同一 scoping 哲学：评审半径 = diff + 周边，归属判定区分「本 PR 引入」与「被暴露的存量」。
+### 4.3 三态验证：整个体系最有价值的单点机制
 
-### 3.3 三态验证（最值得抄的机制）[源码]
+每个候选由独立 verifier 分类：
 
-每个候选由 verifier 分类：
-
-- **CONFIRMED**：能指名触发的输入/状态和错误输出，引用行号
-- **PLAUSIBLE**：机制真实、触发条件不确定（说明如何确证）
+- **CONFIRMED**：能指名触发的输入/状态与错误输出，引用行号
+- **PLAUSIBLE**：机制真实但触发条件不确定（说明如何确证）——recall 导向级别默认保留
 - **REFUTED**：代码层面可构造反证，引用证据行
 
-high/max 用 **recall-biased 变体**：默认 PLAUSIBLE 保留（并发竞争、冷门可达路径的 nil、边界 off-by-one、重试风暴），只有能构造反证才 REFUTED。
+配套的工程经验（原文引用）："finders that silently drop half-believed candidates bypass the verify step and are **the dominant cause of misses**"——**发现段不允许丢弃半信候选，过滤只能发生在独立验证段**。这解释了为什么单段评审（一个 prompt 既找又滤）系统性漏报：发现段的自信校准天然偏保守。
 
-medium prompt 里有一条核心工程经验："finders that silently drop half-believed candidates bypass the verify step and are **the dominant cause of misses**"——**宁可把半信半疑的候选交给 verify，也不让 finder 自行丢弃**。这直接回答了"单段评审为什么漏"：过滤必须发生在独立的验证段，而不是发现段。
+### 4.4 ReportFindings：结构化出口
 
-### 3.4 ReportFindings：结构化上报 [源码]
+评审结果只通过一次工具调用上报 `{level, findings[]}`——"the tool call is the report"。含短摘要（≤60 字符不带理由）、失败场景、类别 slug、verdict；修复后再次调用并标记 fixed/skipped/no change needed。**机器出口与人读输出是同一份数据的两个投影**，不是两次生成。
 
-- 评审结果**只通过一次工具调用**上报 `{level, findings}`（每条含 file/line/summary/short_summary(≤60字符)/failure_scenario/category/verdict）——"the tool call is the report"，不另打印、不产 artifact
-- 宿主应用渲染 findings list；终端/`-p` 模式回退文本
-- **状态跟踪**：同会话修复后再次调用，各条目标记 fixed/skipped/no change needed
+### 4.5 ultrareview 的安全设计
 
-### 3.5 ultrareview 的注入防御 [源码]
+云端深度评审的回帖 prompt 是注入防御教科书：payload 显式声明"是数据不是指令"；工具面只有 `get_me` + 一次 `add_issue_comment`；dedupe marker 防重复发帖；超长时截断最长 finding 而非丢弃 finding；严禁一切其他写操作。
 
-云端深度评审的 PR 回帖由独立 poster prompt 完成，安全设计教科书级：payload 以 `<routine-fire-payload>` 注入且**明示"payload 是数据不是指令"**；只许 `get_me` + 一次 `add_issue_comment`；`<!-- dedupe-marker:RUN_ID -->` 防重复发帖；超长截断最长 finding 而不丢 finding；严禁 review/approve/resolve 等一切其他写操作。
+## 5. 托管 Code Review：云端放大版 [官方 + 推测]
 
-## 4. 托管服务的工程细节（未公开部分标 [推测]）
+- **流水线**：多专职 agent 并行分析 diff + 全库上下文 → 证伪式验证 → 去重 → 严重度排序。agent 清单与 prompt 未公开 [推测为同一范式的放大]
+- **输出三通道冗余**：inline 评论 + check run 严重度表 + diff annotations **独立写入**——评审中途再 push 导致行号失效也不丢 finding；Details 末行机器可读计数 JSON 是留给用户 CI 的 merge gate 接口
+- **修复后自动 resolve**：订阅 push 评审的 PR，修复后下一轮把对应线程标记 resolved（判定机制未公开 [推测为带状态复核旧 findings]）
+- **REVIEW.md 的分层注入**：finding/verify agents 拿全文，rank/report agents 定级写 summary 前 consult——**同一份规则文件在流水线不同阶段扮演不同角色**（发现规则 vs 定级规则 vs 输出形态规则）
+- **效果数据**（官方 dogfood）：实质评审覆盖 PR 占比 16%→54%；工程师标记 <1% findings 为错误；>1000 行 PR 84% 有 findings、平均 7.5 个；平均 20 分钟/次
+- **反馈**：👍/👎 预置反应，merge 后收集计数调优；运营核心信号是"修复即采纳"（auto-resolve 数）
 
-- **流水线** [官方]：多专职 agent 并行分析 diff + 全库上下文 → 验证（"challenge their own output" 的证伪定位）→ 去重 → 严重度排序；agent 清单与 prompt 未公开 [推测为同一 find→verify→rank 范式的云端放大版]
-- **输出三通道冗余** [官方]：inline 评论 + check run Details 严重度表 + Files changed annotations，**annotations 独立写入**——评审中途再 push 导致行号失效也不丢 finding；**Details 最后一行是机器可读 JSON 计数**（`{"normal":2,...}`），是官方预留的 merge gate 接口
-- **auto-resolve** [官方+推测]：修复 push 后下一轮评审把对应线程标记 resolved；机制未公开，推测为带状态复核旧 findings 在当前 head 是否仍存在
-- **REVIEW.md 注入点** [官方]：finding/verify agents 拿全文（与默认指引并列）；rank/report agents 定级与写 summary 前 consult——所以严重度重定义、nit 上限、re-review 收敛规则都有效；as-is 读取，@import 不展开
-- **👍/👎** [官方]：预置反应按钮，merge 后收集计数调优 reviewer；运营核心信号是"修复即采纳"（auto-resolve 数）
-- **效果数据** [官方 dogfood]：实质评审覆盖 PR 占比 16%→54%；工程师标记 <1% findings 为错误；>1000 行 PR 84% 有 findings（平均 7.5 个）；平均 20 分钟
+## 6. 跨形态的设计原则提炼
 
-## 5. 对我们的借鉴清单（按优先级）
+把四个形态反复出现的决策抽出来，是这套体系真正的"道"：
 
-### 5.1 方向验证（我们已与官方同构，无需改）
+1. **流水线阶段分离**：发现、验证、定级、报告是四个独立阶段，各有自己的模型、prompt、纪律。单段评审（一个 prompt 全包）在漏报和误报两端都更差
+2. **误报治理 > 检出能力**：所有形态的 prompt 里篇幅最大的不是"怎么找 bug"，而是"什么不许报"。评审工具的死因不是漏报，是团队把它静音
+3. **过滤只能在验证段**：发现段禁止丢弃半信候选；验证段才有资格 REFUTED
+4. **模型分层压成本**：预判/收集/分类用小模型，发现/验证用强模型，后处理再用小模型——一次评审是多模型协作，不是单模型调用
+5. **深度做成显式旋钮**：effort 分档让用户为每次评审选择成本-覆盖权衡
+6. **意图先于判断**：每个评审 agent 先读作者意图（PR 标题/描述），再判断对错
+7. **收窄工具面，而不是叮嘱**：防 approve、防刷屏、防 probe 评论全部靠工具面收窄实现，prompt 规约只是第二层
+8. **结构化的机器出口**：结果必须有一份 schema 化的投影（ReportFindings / 计数 JSON / structured_output），人读输出是它的渲染
+9. **安全边界集中**：信任判断（谁能触发、配置从哪恢复、什么能写）集中在治理层，执行内核保持天真
+10. **带状态的演进**：反馈（👍/👎、auto-resolve、fixed 跟踪）让评审成为可度量的持续系统，而不是无状态的一次性调用
 
-并行多维评审 → 验证段过滤、reviewer 纯只读、置信度阈值、"明确不报"清单、防 approve 的收窄工具面、按路径限定规则作用域（我们的 glob 路由 ≈ 他们的 CLAUDE.md 目录链作用域）。**我们的场景库 + SKILL 路由在规则组织上比单个 REVIEW.md 更结构化**（官方自己也承认 REVIEW.md as-is 读取、无路由）。
+## 7. 企业自建可借鉴的思路与方向
 
-### 5.2 P0：直接可抄，成本极低
+按「直接决定成败」的程度排序：
 
-| # | 借鉴点 | 落到我们哪里 |
-|---|---|---|
-| P0-1 | **三态验证（CONFIRMED/PLAUSIBLE/REFUTED）替代二元置信度**；recall-biased 变体用于高严重度场景；"finders 不得自行丢弃半信候选"写进纪律 | `templates/reviewer-prompt.md` + 工件 schema 加 `verification` 字段 |
-| P0-2 | **用 `structured_output`（`claude_args --json-schema`）产出工件**，替代"让模型 Write 文件"——正是我们被 Write 权限坑过的点，官方通道天然绕开 | CI 可复用 workflow 的评审步骤 |
-| P0-3 | **机器可读计数行做 merge gate**（`{"normal":2,...}` 模式）：check run Details 末行附 JSON，需要 hard gate 的仓自行解析 | SARIF 步骤后加一行计数输出 |
-| P0-4 | **effort 分档**：按 PR 规模选 low/medium/high（小 PR 单遍不起 subagent，大 PR 才上多 angle） | CI gate 步骤按 diff 行数分档 |
-| P0-5 | **buffered inline + 会话后 Haiku 分类**：如果我们启用 inline 评论，直接用 action 内置机制（`confirmed` 省略进缓冲，post-step 自动分类）——不需要自建 | 未来 inline 评论功能 |
+### 7.1 先想清楚误报治理，再谈检出
 
-### 5.3 P1：值得做，中等成本
+- 评审上线第一周决定生死：误报率高的工具会被团队永久静音。官方所有形态都把 precision 放在 recall 之前，recall 只做可选项（effort 高档）
+- 落地要件：显式不报清单、三态验证、独立验证段、"修复即采纳"作为核心质量指标
+- **度量先于规模**：先能量化 precision/recall（哪怕人工抽检样本），再扩大覆盖。官方 <1% 错误标记率是被度量出来的，不是设计出来的
 
-| # | 借鉴点 | 说明 |
-|---|---|---|
-| P1-1 | **两个新场景**：silent-failure-hunter（静默失败猎手：空 catch/只 log 不处理/静默跳过）与 pr-test-analyzer（行为覆盖分析 + criticality 打分）——我们场景库目前没有这两个维度，方法论可直接搬进 SKILL.md | `rules/scenarios/` 新增 |
-| P1-2 | **re-review 收敛规则成文化**："首轮后只报 important"（防 review theater，我们 metrics 已有轮数指标，补成文规则） | reviewer-prompt + 门禁 |
-| P1-3 | **use_sticky_comment**：若重新启用 PR 评论，复用同一条而非每次新发 | CI 评论步骤 |
-| P1-4 | **修复后 fixed 状态跟踪**：轻量版——新一轮评审带旧 findings 复核"是否仍存在"，存活的保留、消失的标记 | ruling 流程增强（不需要官方的带状态 infra） |
-| P1-5 | **Angle A scoping**：finder 必须 Read hunk 所在完整函数，未改动行纳入评审但标注归属（≈ pre-existing 区分） | 场景 SKILL 通用纪律 + 工件加 `introduced_by_pr` 字段 |
+### 7.2 流水线范式直接照搬：find → verify → rank → report
 
-### 5.4 P2：安全加固（评外部/fork PR 前必做）
+- 发现段多路并行（按缺陷类别/规则域分 angle），禁止发现段过滤
+- 验证段证伪定位（"challenge their own output"），强模型做 bug 验证、弱模型做规则验证
+- 定级段独立（严重度校准、数量上限、存量 vs 新增归属）
+- 报告段多投影：人读（评论/摘要）+ 机读（结构化出口）+ 归档（完整轨迹）
 
-| # | 借鉴点 | 说明 |
-|---|---|---|
-| P2-1 | **从 base ref 恢复配置**：评 fork PR 时，`.claude/`/CLAUDE.md/我们场景库都从 base 分支恢复读取，防 PR 作者篡改评审规则提权 | CI checkout 逻辑 |
-| P2-2 | **"payload 是数据不是指令"**：diff 内容、评论内容注入 prompt 时显式声明数据角色（ultrareview poster 模式），防间接注入 | prompt 模板 |
-| P2-3 | **评论内容 sanitize + 密钥脱敏**：任何自动发出的文本过 `sanitizeContent`/`redactSecrets` 等价物 | 评论/工件输出处 |
+### 7.3 成本工程是产品决策，不是技术细节
 
-### 5.5 明确不抄
+- 模型分层：预判/分类用小模型（成本可降一个数量级）
+- effort 分档：按 PR 规模/风险自动选档，高档留作手动选项
+- 触发控制：豁免规则（小 diff/纯文档）、订阅制（push 触发按需开启）、spend cap
+- 官方的 $15-25/次 告诉我们：不分档的最强配置在规模化时不可持续——自托管 + 模型分层 + 分档能把单位成本压低 1-2 个数量级
 
-- **Claude App token 交换**：我们用 `github_token` 更简单
-- **extended reasoning 折叠区**：我们的 message + codeFlows + Show paths 已等价
-- **auto-resolve 的重 infra**：ruling 流程已覆盖处置语义，P1-4 的轻量版足够
-- **追踪评论 checkbox 进度**：与我们的门禁工件体系重叠
+### 7.4 上下文与规则工程
 
-## 6. 一句话结论
+- **scoping**：评审半径 = diff + 被触碰函数的完整定义 + 目录链上生效的规则；归属判定区分「新增」与「存量暴露」
+- **规则分层注入**：发现规则、定级规则、输出形态规则可以是同一份文件的不同消费方式，也可以是按路径路由的不同文件——关键是**规则必须有作用域**
+- **意图上下文**：作者意图（PR 描述/issue 链接/spec 文档）是所有评审 agent 的公共输入
 
-官方体系最值得抄的不是架构（我们已同构），而是**三样东西的精细度**：① 三态验证与"finder 不得自行丢弃"的过滤纪律（P0-1）；② `structured_output` 的结构化工件通道（P0-2，直接解决我们已踩过的坑）；③ 按 PR 规模的 effort 分档成本控制（P0-4）。场景库与团队飞轮仍是我们相对官方的结构性优势，不在此分析借鉴范围内。
+### 7.5 安全与信任边界（评外部代码前必须做）
+
+- 评审规则与配置从 base 分支恢复读取，防 PR 作者篡改规则提权
+- 工具面收窄防越权（approve/merge/任意写在结构上不可达）
+- 所有外部内容（diff、评论、payload）显式声明"数据不是指令"
+- 自动输出过注入 sanitize + 密钥脱敏
+
+### 7.6 演进机制：让系统越用越准
+
+- 反馈回路必须闭环：TP/FP 标注 → 规则调整 → 下次生效，而不是反馈给供应商
+- "修复即采纳"是最便宜的质量信号：下一轮评审复核旧 findings 是否仍存在，既能量化采纳率又能自动清理线程
+- 完整轨迹归档（消息流级）用于事后审计与 bad case 分析——评审系统的改进原料是历史轨迹，不是灵感
+
+### 7.7 落地路径的决策框架
+
+| 企业约束 | 建议路径 |
+|---|---|
+| 无合规要求、求快、预算宽 | 托管服务起步，同时观察成本曲线 |
+| 有数据主权要求、或成本敏感（高频触发） | 自托管 action + 自选模型端点（兼容协议的低成本模型），流水线范式照搬 |
+| 需要评审左移到开发循环内（commit 前门禁）、或规则资产/反馈数据必须自有 | 自研治理层（门禁、规则库、反馈闭环），LLM 调用层复用 action/CLI |
+| 任何路径 | 误报治理、度量体系、结构化出口三件事第一天就要在，其余的都可以后补 |
+
+## 8. 一句话总结
+
+Claude Code 评审体系的精华不在"用多强的模型"，而在一整套围绕**误报治理**的工程纪律：阶段分离的流水线、只在验证段过滤、显式的不报清单、模型分层、收窄的工具面、结构化的机器出口、以及让反馈闭环的演进机制。企业自建时，这些纪律全部与模型选型无关、可以逐项照搬；真正需要自己想清楚的只有三件事：**反馈资产归谁、评审发生在流程的哪个位置、成本模型能否支撑触发频率**。
 
 ---
 
 ## 附录：来源
 
-**claude-code-action 源码**：[仓库](https://github.com/anthropics/claude-code-action) · [detector.ts](https://raw.githubusercontent.com/anthropics/claude-code-action/main/src/modes/detector.ts) · [token.ts](https://raw.githubusercontent.com/anthropics/claude-code-action/main/src/github/token.ts) · [create-prompt/index.ts](https://raw.githubusercontent.com/anthropics/claude-code-action/main/src/create-prompt/index.ts) · [github-inline-comment-server.ts](https://raw.githubusercontent.com/anthropics/claude-code-action/main/src/mcp/github-inline-comment-server.ts) · [post-buffered-inline-comments.ts](https://raw.githubusercontent.com/anthropics/claude-code-action/main/src/entrypoints/post-buffered-inline-comments.ts) · [base-action README](https://raw.githubusercontent.com/anthropics/claude-code-action/main/base-action/README.md) · [usage.md](https://raw.githubusercontent.com/anthropics/claude-code-action/main/docs/usage.md) · [solutions.md](https://raw.githubusercontent.com/anthropics/claude-code-action/main/docs/solutions.md)
+**claude-code-action**：[仓库](https://github.com/anthropics/claude-code-action) · [detector.ts](https://raw.githubusercontent.com/anthropics/claude-code-action/main/src/modes/detector.ts) · [token.ts](https://raw.githubusercontent.com/anthropics/claude-code-action/main/src/github/token.ts) · [create-prompt](https://raw.githubusercontent.com/anthropics/claude-code-action/main/src/create-prompt/index.ts) · [inline-comment server](https://raw.githubusercontent.com/anthropics/claude-code-action/main/src/mcp/github-inline-comment-server.ts) · [post-buffered-inline-comments](https://raw.githubusercontent.com/anthropics/claude-code-action/main/src/entrypoints/post-buffered-inline-comments.ts) · [base-action README](https://raw.githubusercontent.com/anthropics/claude-code-action/main/base-action/README.md) · [solutions.md](https://raw.githubusercontent.com/anthropics/claude-code-action/main/docs/solutions.md)
 
-**claude-code 插件**：[code-review.md](https://raw.githubusercontent.com/anthropics/claude-code/main/plugins/code-review/commands/code-review.md) · [pr-review-toolkit](https://github.com/anthropics/claude-code/tree/main/plugins/pr-review-toolkit)（6 个 agent 原文）
+**插件**：[code-review.md](https://raw.githubusercontent.com/anthropics/claude-code/main/plugins/code-review/commands/code-review.md) · [pr-review-toolkit](https://github.com/anthropics/claude-code/tree/main/plugins/pr-review-toolkit)
 
-**内置 skill 逆向**：[Piebald-AI/claude-code-system-prompts](https://github.com/Piebald-AI/claude-code-system-prompts)（v2.1.247 npm 包提取；含 [effort 各档](https://raw.githubusercontent.com/Piebald-AI/claude-code-system-prompts/main/system-prompts/agent-prompt-code-review-part-7-high-effort-mode.md)、[三态验证](https://raw.githubusercontent.com/Piebald-AI/claude-code-system-prompts/main/system-prompts/agent-prompt-code-review-part-4-three-state-verification-phase.md)、[recall-biased 变体](https://raw.githubusercontent.com/Piebald-AI/claude-code-system-prompts/main/system-prompts/agent-prompt-code-review-part-5-recall-biased-verification-phase.md)、[ReportFindings](https://raw.githubusercontent.com/Piebald-AI/claude-code-system-prompts/main/system-prompts/agent-prompt-code-review-part-10-reportfindings-output-format.md)、[ultrareview poster](https://raw.githubusercontent.com/Piebald-AI/claude-code-system-prompts/main/system-prompts/agent-prompt-ultrareview-github-comment-poster.md)）——属第三方逆向，引用时注意其非官方身份
+**内置 skill 逆向**：[Piebald-AI/claude-code-system-prompts](https://github.com/Piebald-AI/claude-code-system-prompts)（v2.1.247；第三方逆向，非官方）
 
 **托管服务**：[官方文档](https://code.claude.com/docs/en/code-review) · [CodeAnt 分析](https://codeant.ai/blogs/anthropic-claude-code-review) · [tessl 报道](https://tessl.io/blog/anthropic-launches-ai-code-review-agents-that-scan-pull-requests-for-bugs)
 
-**未确证开放问题**：托管服务 agent 清单与 prompt、去重算法、auto-resolve 判定细节、👍/👎 消费方式、Angle A 以外各 finder angle 的完整文本。
+**未确证**：托管服务 agent 清单与 prompt、去重算法、auto-resolve 判定细节、👍/👎 消费方式、Angle A 以外各 finder angle 完整文本。
