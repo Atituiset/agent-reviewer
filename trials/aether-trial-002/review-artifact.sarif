@@ -65,7 +65,7 @@
                 "region": {
                   "startLine": 134,
                   "snippet": {
-                    "text": "const uint16_t resume = buffer_.begin()->first;"
+                    "text": ""
                   }
                 }
               }
@@ -101,7 +101,7 @@
                           "region": {
                             "startLine": 79,
                             "snippet": {
-                              "text": "if (!timer_running_) {"
+                              "text": ""
                             }
                           }
                         },
@@ -119,7 +119,7 @@
                           "region": {
                             "startLine": 78,
                             "snippet": {
-                              "text": "buffer_[sn] = {fi, {pdu.begin() + 3, pdu.end()}};"
+                              "text": ""
                             }
                           }
                         },
@@ -137,7 +137,7 @@
                           "region": {
                             "startLine": 134,
                             "snippet": {
-                              "text": "const uint16_t resume = buffer_.begin()->first;"
+                              "text": ""
                             }
                           }
                         },
@@ -155,7 +155,7 @@
                           "region": {
                             "startLine": 141,
                             "snippet": {
-                              "text": "LOG_WARN(ev::RLC_UM_GAP_SKIP, {{\"skipped\", std::to_string(skipped)}});"
+                              "text": ""
                             }
                           }
                         },
@@ -186,7 +186,7 @@
                 "region": {
                   "startLine": 1082,
                   "snippet": {
-                    "text": "const size_t ilen = msg.value[41];"
+                    "text": ""
                   }
                 }
               }
@@ -222,7 +222,7 @@
                           "region": {
                             "startLine": 1074,
                             "snippet": {
-                              "text": "if (msg.value.size() < 41) break;"
+                              "text": ""
                             }
                           }
                         },
@@ -240,7 +240,7 @@
                           "region": {
                             "startLine": 1082,
                             "snippet": {
-                              "text": "const size_t ilen = msg.value[41];"
+                              "text": ""
                             }
                           }
                         },
@@ -271,7 +271,7 @@
                 "region": {
                   "startLine": 1274,
                   "snippet": {
-                    "text": "if (initiated_ho_.count(crnti)) {"
+                    "text": ""
                   }
                 }
               }
@@ -307,7 +307,7 @@
                           "region": {
                             "startLine": 1298,
                             "snippet": {
-                              "text": "initiated_ho_[crnti] = {target_cell_id, 0}; // rnti known at ACK"
+                              "text": ""
                             }
                           }
                         },
@@ -325,7 +325,7 @@
                           "region": {
                             "startLine": 1349,
                             "snippet": {
-                              "text": "downlink_send(crnti, mac::LCID_CCCH, cmd.encode());"
+                              "text": ""
                             }
                           }
                         },
@@ -343,7 +343,7 @@
                           "region": {
                             "startLine": 1274,
                             "snippet": {
-                              "text": "if (initiated_ho_.count(crnti)) {"
+                              "text": ""
                             }
                           }
                         },
@@ -374,7 +374,7 @@
                 "region": {
                   "startLine": 1361,
                   "snippet": {
-                    "text": "ho_prepared_[new_crnti] = ctx;"
+                    "text": ""
                   }
                 }
               }
@@ -410,7 +410,7 @@
                           "region": {
                             "startLine": 1361,
                             "snippet": {
-                              "text": "ho_prepared_[new_crnti] = ctx;"
+                              "text": ""
                             }
                           }
                         },
@@ -428,7 +428,7 @@
                           "region": {
                             "startLine": 848,
                             "snippet": {
-                              "text": "if (ho_prepared_.count(new_crnti)) {"
+                              "text": ""
                             }
                           }
                         },
@@ -446,7 +446,7 @@
                           "region": {
                             "startLine": 1356,
                             "snippet": {
-                              "text": "auto& f = flow(new_crnti);"
+                              "text": ""
                             }
                           }
                         },

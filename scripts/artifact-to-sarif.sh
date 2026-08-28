@@ -83,7 +83,7 @@ for i, f in enumerate(art.get("findings", [])):
         "locations": [{
             "physicalLocation": {
                 "artifactLocation": {"uri": f.get("file", "")},
-                "region": {"startLine": f.get("line", 1), "snippet": {"text": code_snippet(f.get("file", ""), f.get("line", 1))}},
+                "region": {"startLine": max(1, f.get("line") or 1), "snippet": {"text": code_snippet(f.get("file", ""), max(1, f.get("line") or 1))}},
             }
         }],
         "partialFingerprints": {
@@ -110,8 +110,8 @@ for i, f in enumerate(art.get("findings", [])):
                         "location": {
                             "physicalLocation": {
                                 "artifactLocation": {"uri": step.get("file", "")},
-                                "region": {"startLine": step.get("line", 1),
-                                           "snippet": {"text": code_snippet(step.get("file", ""), step.get("line", 1))}},
+                                "region": {"startLine": max(1, step.get("line") or 1),
+                                           "snippet": {"text": code_snippet(step.get("file", ""), max(1, step.get("line") or 1))}},
                             },
                             "message": {"text": step.get("message", "")},
                         }
