@@ -48,6 +48,13 @@ jobs:
           git diff "${{ github.event.pull_request.base.sha }}"...HEAD > /tmp/pr.diff
           cd .reviewer && bash scripts/setup-env.sh || true
 
+      - name: codegraph 调用图索引（供跨函数判空链回溯）
+        if: steps.gate.outputs.skip == ''
+        run: |
+          npm i -g @colbymchenry/codegraph --silent 2>&1 | tail -1
+          codegraph init 2>&1 | tail -1 || true
+          codegraph sync 2>&1 | tail -3
+
       - name: 场景评审（按 SKILL 清单产出工件）
         if: steps.gate.outputs.skip == ''
         id: review
@@ -68,6 +75,11 @@ jobs:
             2. 对每个命中场景，读 .reviewer/rules/scenarios/<key>/SKILL.md 清单逐项评审
                （需要深入项时读 references/detailed-checks.md）
             3. 纪律：只报有 file:line 证据的具体缺陷；置信度 ≥80 才报；风格问题不报
+            3.5 跨函数判空链回溯（cwe-476 类候选必做）：上报「解引用未判空」前，
+               用 codegraph CLI（codegraph callers <fn> / callees <fn>）沿调用链回溯 ≤10 跳：
+               - 上游找到判空（同一指针）→ 不报（FP 证伪，可在 reasoning 记录证伪链）
+               - 链在函数指针/虚函数处中断 → 保留但 reasoning 必须标注「链中断于 X，静态不可判定」
+               - 未做链回溯的跨函数判空 finding 不报
             4. 将结果写为 .review/review-artifact.json（用 Write 工具；先 mkdir -p .review），schema：
                {diff_hash(对 /tmp/pr.diff 的 sha256), verdict(CLEAN|ISSUES_FOUND),
                 reviewed_at(ISO8601), reviewer:"ci-task-reviewer", spec_ref:"none",
