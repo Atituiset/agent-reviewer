@@ -257,35 +257,59 @@
   .hl-red{color:var(--red);font-weight:600;}
   .hl-green{color:var(--green);font-weight:600;}
 
-  /* ---------- S5 navmap mini-pipeline ---------- */
-  .mini-scroll{overflow-x:auto;padding-bottom:14px;scrollbar-width:thin;scrollbar-color:var(--line) transparent;}
-  .mini-pipe{display:flex;gap:0;min-width:1060px;position:relative;padding-top:34px;}
-  .mini-pipe::before{
-    content:"";position:absolute;top:12px;left:2%;right:2%;height:2px;
-    background:linear-gradient(90deg,var(--gold),var(--accent),var(--accent2));
+  /* ---------- S5 漏斗可视化 ---------- */
+  .funnel{display:grid;gap:0;margin:0 0 40px;}
+  .fstage{
+    border-radius:12px;padding:15px 20px;
+    opacity:.35;transform:translateY(8px);
+    transition:opacity .55s ease,transform .55s ease;
   }
-  .mp-item{flex:1;padding:0 12px;position:relative;}
-  .mp-item::before{
-    content:"";position:absolute;top:-28px;left:20px;width:12px;height:12px;border-radius:50%;
-    background:var(--bg);border:2px solid var(--gold);box-shadow:0 0 10px rgba(240,181,69,.55);
-    transition:background .4s,border-color .4s,box-shadow .4s;
+  .funnel.lit .fstage{opacity:1;transform:none;}
+  .fstage.fs1{width:100%;background:rgba(57,208,196,.05);border:1px solid rgba(57,208,196,.22);}
+  .fstage.fs2{width:62%;min-width:300px;background:rgba(57,208,196,.11);border:1px solid rgba(57,208,196,.42);transition-delay:.18s;}
+  .fstage.fs3{
+    width:36%;min-width:300px;background:rgba(57,208,196,.18);border:1px solid var(--accent);
+    box-shadow:0 0 22px rgba(57,208,196,.14);transition-delay:.36s;
   }
-  .mp-item .mp-node{
-    background:var(--card);border:1px solid var(--line);border-radius:11px;padding:11px 12px;
-    opacity:.4;transform:translateY(8px);
-    transition:opacity .5s ease,transform .5s ease,border-color .5s;
-    transition-delay:calc(var(--i) * 160ms);
+  .fstage .f-name{font-weight:700;font-size:14.5px;}
+  .fstage .f-cap{font-family:var(--mono);font-size:12px;color:var(--dim);margin-top:2px;}
+  .fstage.fs3 .f-cap{color:#9adfd8;}
+  .farrow{
+    font-family:var(--mono);font-size:11.5px;color:var(--accent);
+    padding:5px 0 5px 22px;letter-spacing:.04em;
   }
-  .mini-pipe.lit .mp-item .mp-node{opacity:1;transform:none;}
-  .mini-pipe.lit .mp-item::before{
-    background:var(--gold);transition-delay:calc(var(--i) * 160ms);
+  .farrow::before{content:"↓ ";color:var(--accent2);}
+
+  /* ---------- S5 构建线输入→输出标签 ---------- */
+  .io{
+    font-family:var(--mono);font-size:11.5px;color:var(--accent2);margin-top:7px;line-height:1.6;
+    border-top:1px dashed rgba(38,47,66,.8);padding-top:6px;
   }
-  .mp-item .mp-phase{font-family:var(--mono);font-size:11px;color:var(--gold);letter-spacing:.08em;}
-  .mp-item h4{font-size:13.5px;margin:4px 0 5px;line-height:1.4;}
-  .mp-item p{font-size:12px;color:var(--dim);line-height:1.6;}
-  .mp-item.cron .mp-phase{color:var(--accent);}
-  .mp-item.cron::before{border-color:var(--accent);box-shadow:0 0 10px rgba(57,208,196,.55);}
-  .mini-pipe.lit .mp-item.cron::before{background:var(--accent);}
+  .io .arw{color:var(--accent);padding:0 4px;}
+
+  /* ---------- S5 四类提取器 2×2 网格 ---------- */
+  .ext-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+  .ext-card{
+    background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:11px 13px;
+    font-size:12.5px;line-height:1.6;color:var(--dim);
+  }
+  .ext-card .e-tag{font-family:var(--mono);font-size:11.5px;color:var(--accent);letter-spacing:.04em;}
+  .ext-card h5{font-size:13px;color:var(--txt);margin:3px 0 5px;}
+  .ext-card code{font-family:var(--mono);font-size:11px;background:rgba(90,162,255,.12);color:#a9c8ff;border-radius:4px;padding:0 5px;}
+  .ext-card b{color:var(--txt);}
+  @media (max-width:720px){
+    .ext-grid{grid-template-columns:1fr;}
+  }
+
+  /* ---------- S5 衔接卡箭头流 ---------- */
+  .link-flow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:6px;}
+  .lf-node{
+    background:var(--bg2);border:1px solid var(--line);border-radius:9px;
+    padding:7px 12px;font-size:12.5px;line-height:1.5;max-width:270px;
+  }
+  .lf-node b{color:var(--accent);font-weight:600;}
+  .lf-node small{display:block;color:var(--dim);font-size:11.5px;margin-top:2px;}
+  .lf-node code{font-family:var(--mono);font-size:11px;background:rgba(90,162,255,.12);color:#a9c8ff;border-radius:4px;padding:0 5px;}
 
   footer{
     border-top:1px solid var(--line);margin-top:40px;padding:28px 0 40px;text-align:center;
@@ -304,7 +328,7 @@
   @media (prefers-reduced-motion:reduce){
     html{scroll-behavior:auto;}
     *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important;}
-    .stepcard,.mp-item .mp-node{opacity:1;transform:none;}
+    .stepcard,.fstage{opacity:1;transform:none;}
   }
 </style>
 </head>
@@ -600,65 +624,173 @@
   </div>
 </section>
 
-<!-- ============ S5 navmap-nightly 生产端 ============ -->
+<!-- ============ S5 navmap-nightly 构建线 ============ -->
 <section id="navmap-sec">
   <div class="wrap">
     <span class="sec-tag">生产端</span>
-    <h2>navmap-nightly：产物从哪来</h2>
-    <p class="sec-sub">模式 3 消费的 navmap 产物由一条独立的夜间 workflow 预计算，PR 链路只读分支。</p>
-    <div class="mini-scroll">
-      <div class="mini-pipe" id="mini-pipe">
-        <div class="mp-item cron" style="--i:0">
-          <div class="mp-node">
-            <div class="mp-phase">CRON</div>
-            <h4>定时触发</h4>
-            <p>UTC 18:17 = 北京 02:17，schedule 只在默认分支生效；60 天不活动 GitHub 自动禁用，需手动 re-enable 或改外部调度。</p>
+    <h2>navmap-nightly 构建线：漏斗形态，索引当筛子、AST 当镊子</h2>
+    <p class="sec-sub">绝不做全量 AST 扫描——全仓文本粗筛（分钟级）→ 候选文件（几百个）→ libclang 只解析候选文件（十几分钟级）。<b>compile_commands.json 是参数字典，不是扫描队列。</b></p>
+
+    <!-- 漏斗可视化 -->
+    <div class="funnel" id="funnel">
+      <div class="fstage fs1">
+        <div class="f-name">全仓源文件</div>
+        <div class="f-cap">千万行级 / u-boot 19,139 文件</div>
+      </div>
+      <div class="farrow">scan.py 文本粗筛（分钟级，允许误报不允许漏报）</div>
+      <div class="fstage fs2">
+        <div class="f-name">候选文件清单</div>
+        <div class="f-cap">几百个 · 粗筛命中 · navmap-candidates.json</div>
+      </div>
+      <div class="farrow">libclang 只解析候选文件（十几分钟级）</div>
+      <div class="fstage fs3">
+        <div class="f-name">产物</div>
+        <div class="f-cap">四类导航图 JSON + md</div>
+      </div>
+    </div>
+
+    <!-- 构建线 12 节点 -->
+    <div class="v-timeline">
+      <div class="phase" id="ph5">
+        <div class="phase-marker">N</div>
+        <div class="phase-title">nightly 构建线<span class="pt-sub">12 节点 · 每节点标输入→输出</span></div>
+        <div class="stepcards">
+
+          <div class="stepcard" style="--i:0">
+            <span class="sn">01</span>
+            <span class="st">cron 触发<span class="who">GitHub 调度</span></span>
+            <p>schedule: <b>UTC 18:17 = 北京 02:17</b>，每周一/四 或每日低峰；schedule 只在默认分支生效；60 天不活动 GitHub 自动禁用，需手动 re-enable。</p>
+            <div class="io">入：cron schedule<span class="arw">→</span>出：排队 run</div>
           </div>
-        </div>
-        <div class="mp-item" style="--i:1">
-          <div class="mp-node">
-            <div class="mp-phase">STEP ①</div>
-            <h4>checkout master</h4>
-            <p><code>fetch-depth: 0</code>，增量要 git 历史。</p>
+
+          <div class="stepcard" style="--i:1">
+            <span class="sn">02</span>
+            <span class="st">checkout master<span class="who">GitHub 读 u-boot</span></span>
+            <p><code>fetch-depth: 0</code>——增量 refresh 要算 git diff，必须拿完整历史。</p>
+            <div class="io">入：run 排队<span class="arw">→</span>出：完整 git 历史</div>
           </div>
-        </div>
-        <div class="mp-item" style="--i:2">
-          <div class="mp-node">
-            <div class="mp-phase">STEP ②</div>
-            <h4>生成 compile_commands.json</h4>
+
+          <div class="stepcard" style="--i:2">
+            <span class="sn">03</span>
+            <span class="st">生成 compile_commands.json<span class="who">cmake 读构建配置</span></span>
             <p>cmake 一行；真实核心仓复用生产 clangd 编译数据库。</p>
+            <div class="io">入：master 源码树<span class="arw">→</span>出：编译参数全集</div>
           </div>
-        </div>
-        <div class="mp-item" style="--i:3">
-          <div class="mp-node">
-            <div class="mp-phase">STEP ③</div>
-            <h4>checkout navmap 工具仓 + pip 安装</h4>
-            <p>工具与数据分离，工具仓独立演进。</p>
+
+          <div class="stepcard" style="--i:3">
+            <span class="sn">04</span>
+            <span class="st">checkout navmap 工具仓 + pip install<span class="who">GitHub 读工具仓</span></span>
+            <p>public 仓，含 <b>vendored libclang 20.1.0</b>；启动时强制校验 libclang 与 Python 绑定同版本，不匹配直接报错。</p>
+            <div class="io">入：工具仓源码<span class="arw">→</span>出：提取器就绪</div>
           </div>
-        </div>
-        <div class="mp-item" style="--i:4">
-          <div class="mp-node">
-            <div class="mp-phase">STEP ④</div>
-            <h4>分支提取</h4>
-            <p>已有产物 → <code>navmap refresh</code>（git diff ∩ 候选，分钟级）/ 首跑 → <code>navmap extract</code>（粗筛→候选→libclang 解析，十几分钟级）；产物 = 分发表/注册式/状态机表/全局变量读写清单，JSON+md 双格式标基线 commit。</p>
+
+          <div class="stepcard" style="--i:4">
+            <span class="sn">05</span>
+            <span class="st">粗筛 scan.py<span class="who">全仓文本级 · 分钟级</span></span>
+            <p>命中条件 = 函数指针模式（<code>(*fn)(</code>）∪ 数组初始化器（<code>name[]{...}= {</code>，name 含 tbl/table/disp/map/hdlr 词根）∪ 注册 API 调用（register_apis 名单）；<code>exclude_dirs</code>（fnmatch：build*/_deps/vendor/third_party/.navmap-tool/googletest…）挡第三方与构建产物。</p>
+            <div class="io">入：全仓源文件<span class="arw">→</span>出：navmap-candidates.json（几百个，允许误报不允许漏报）</div>
           </div>
-        </div>
-        <div class="mp-item" style="--i:5">
-          <div class="mp-node">
-            <div class="mp-phase">STEP ⑤</div>
-            <h4>navmap report 质检</h4>
-            <p>ERROR / WARN / INFO 分级。</p>
+
+          <div class="stepcard" style="--i:5">
+            <span class="sn">06</span>
+            <span class="st">compdb.py 查参数<span class="who">参数字典查询</span></span>
+            <p>每个候选文件取 compile_commands.json 里对应 TU 的<b>原始编译参数</b>（宏展开和 #ifdef 才正确）；头文件没有自己的 TU → 借包含它的 .c TU 的参数。</p>
+            <div class="io">入：候选清单 + 编译参数全集<span class="arw">→</span>出：逐文件解析参数</div>
           </div>
-        </div>
-        <div class="mp-item" style="--i:6">
-          <div class="mp-node">
-            <div class="mp-phase">STEP ⑥</div>
-            <h4>提交产物分支</h4>
-            <p><code>git checkout -B navmap-outputs</code> &&amp; 提交强推产物分支。</p>
+
+          <div class="stepcard" style="--i:6">
+            <span class="sn">07</span>
+            <span class="st">libclang 按正确参数解析 AST<span class="who">只跑候选 · 十几分钟级</span></span>
+            <p>与 clangd 同前端——<b>提取时看到的 = 查询时看到的</b>。</p>
+            <div class="io">入：候选文件 + 各自编译参数<span class="arw">→</span>出：各文件的 AST</div>
           </div>
+
+          <div class="stepcard gold" style="--i:7">
+            <span class="sn">08</span>
+            <span class="st">四类提取器并行<span class="who">AST → 图条目</span></span>
+            <div class="ext-grid">
+              <div class="ext-card">
+                <div class="e-tag">dispatch.py</div>
+                <h5>消息分发表</h5>
+                结构体数组（含函数指针成员）+ <b>裸函数指针数组（一维/多维 <code>tbl[N][M]</code> 递归展开，msg_id=复合下标 i,j）</b>；提取 handler 函数 USR + file:line、msg_id 源码宏拼写（<code>MSG_1001</code> 而非展开值）、#ifdef 条件、X-Macro 支持。
+              </div>
+              <div class="ext-card">
+                <div class="e-tag">registry.py</div>
+                <h5>注册式分发</h5>
+                <code>RegisterHandler(MSG_X, fn)</code> 调用点参数提取（register_apis 名单驱动；suggest-apis 自动发现候选名单，人审后追加）。
+              </div>
+              <div class="ext-card">
+                <div class="e-tag">statemachine.py</div>
+                <h5>状态机表</h5>
+                <code>{state, event, handler, next_state}</code> 四元组。
+              </div>
+              <div class="ext-card">
+                <div class="e-tag">globalvar.py</div>
+                <h5>全局变量读写分类</h5>
+                引用行级 AST 分类（赋值/++/取地址=写，其余=读）→ 写者函数 Top N + 读者按模块分组 + 布局。
+              </div>
+            </div>
+            <div class="io">入：各文件 AST<span class="arw">→</span>出：四类原始图条目</div>
+          </div>
+
+          <div class="stepcard" style="--i:8">
+            <span class="sn">09</span>
+            <span class="st">resolve<span class="who">跨 TU 对齐</span></span>
+            <p>USR（Unified Symbol Resolution）跨 TU 符号对齐 + file:line 补全。</p>
+            <div class="io">入：原始图条目<span class="arw">→</span>出：带定位的图条目</div>
+          </div>
+
+          <div class="stepcard" style="--i:9">
+            <span class="sn">10</span>
+            <span class="st">render<span class="who">双格式同源生成</span></span>
+            <p>JSON（机器查询/MCP）+ Markdown（prompt 注入）双格式同源生成，头部标基线 commit + 每文件 hash。</p>
+            <div class="io">入：带定位的图条目<span class="arw">→</span>出：.navmap/out/*.json + *.md</div>
+          </div>
+
+          <div class="stepcard" style="--i:10">
+            <span class="sn">11</span>
+            <span class="st">quality 质检<span class="who">产物自检</span></span>
+            <p>覆盖率（消息枚举有 ID 但表里没有 handler 的清单）+ 一致性校验（表内 handler 的 callers 是否包含表文件）。</p>
+            <div class="io">入：.navmap/out 产物<span class="arw">→</span>出：ERROR / WARN / INFO 分级报告</div>
+          </div>
+
+          <div class="stepcard" style="--i:11">
+            <span class="sn">12</span>
+            <span class="st">提交产物分支<span class="who">GitHub 写 u-boot 分支</span></span>
+            <p><code>git checkout -B navmap-outputs &amp;&amp; git add -f .navmap/out/ &amp;&amp; commit &amp;&amp; push -f</code>（无变化跳过）。</p>
+            <div class="io">入：质检后的产物<span class="arw">→</span>出：navmap-outputs 分支更新</div>
+          </div>
+
         </div>
       </div>
     </div>
+
+    <!-- 增量机制卡 -->
+    <div class="card" style="margin-top:26px;">
+      <div class="c-tag">增量机制 · 默认 refresh，不走全量 extract</div>
+      <h3>nightly 每晚只重算受影响的部分</h3>
+      <ul class="kv">
+        <li><code>git diff &lt;上次基线&gt;..HEAD</code> → 受影响集合 = 变更文件 ∪ 变更文件实现的 handler 所在的表 ∪ 引用集变化的全局变量</li>
+        <li>只重提取受影响单元并 merge（<b>分钟级</b>）；未受影响的图因 hash 不变原样保留</li>
+        <li>周级（周末低峰）全量 extract 校正增量漂移</li>
+      </ul>
+    </div>
+
+    <!-- 与消费端的衔接卡 -->
+    <div class="card" style="margin-top:16px;">
+      <div class="c-tag">衔接 · 产物怎么进 PR 评审</div>
+      <h3>navmap-outputs 分支 → ai-review 模式 3</h3>
+      <div class="link-flow">
+        <span class="lf-node"><b>navmap-outputs 分支</b><small>本构建线的唯一出口</small></span>
+        <span class="far">→</span>
+        <span class="lf-node"><b>PR 评审 checkout</b><small>ai-review 模式 3 时拉到 <code>.navmap-out/</code>（S3 第 6 步）</small></span>
+        <span class="far">→</span>
+        <span class="lf-node"><b>prompt 3.6 条款</b><small>告知模型产物位置与使用纪律：「handler 集合全部判空才可证伪，任一缺失只能 PLAUSIBLE」</small></span>
+        <span class="far">→</span>
+        <span class="lf-node"><b>模型续链</b><small>判空链断在函数指针时读表续链</small></span>
+      </div>
+    </div>
+
     <div class="conclusion"><b>成本形态决定拓扑</b>：codegraph 语法级秒级 → 进 PR 链路现算；navmap 语义级分钟级 → 只能离线预计算 + 分支存储 + PR 消费，<b>时延零增加</b>。</div>
   </div>
 </section>
@@ -675,8 +807,8 @@
   "use strict";
   var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  /* 进入视口逐节点点亮：主时间线 4 个阶段 + navmap mini-pipeline */
-  var targets = document.querySelectorAll(".phase, #mini-pipe");
+  /* 进入视口逐节点点亮：主时间线 4 个阶段 + S5 漏斗与构建线 */
+  var targets = document.querySelectorAll(".phase, .funnel");
   if(reduced || !("IntersectionObserver" in window)){
     targets.forEach(function(t){ t.classList.add("lit"); });
     return;
