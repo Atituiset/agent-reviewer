@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="u-boot 消费 agent-reviewer 的 GitHub Actions 全流程拆解：10 行 caller、workflow_call 继承、runner 逐步执行、secrets/OIDC 深水区与 navmap-nightly 生产端。">
+<title>AI Review CI 全流程拆解：u-boot 如何消费 agent-reviewer 的 GitHub Actions</title>
+<style>
+  :root{
+    --bg:#0b0e14;
+    --bg2:#10141d;
+    --card:#151a26;
+    --card2:#1a2130;
+    --line:#262f42;
+    --txt:#e6eaf2;
+    --dim:#8b94a7;
+    --accent:#39d0c4;
+    --accent2:#5aa2ff;
+    --gold:#f0b545;
+    --red:#f26d6d;
+    --green:#4ecb71;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1200px;margin:0 auto;padding:0 24px;}
+  section{padding:72px 0 48px;}
+  .sec-tag{
+    display:inline-block;font-size:12px;letter-spacing:.18em;color:var(--accent);
+    border:1px solid rgba(57,208,196,.35);border-radius:999px;padding:3px 14px;margin-bottom:14px;
+    font-family:var(--mono);
+  }
+  h2{font-size:28px;font-weight:700;margin-bottom:10px;}
+  .sec-sub{color:var(--dim);margin-bottom:32px;max-width:760px;}
+  .codeblock{
+    background:#090c12;border:1px solid var(--line);border-radius:12px;padding:16px 18px;
+    font-family:var(--mono);font-size:12.5px;line-height:1.75;overflow-x:auto;color:#c6d0de;white-space:pre;
+  }
+  .codeblock .k{color:#8fb8ff;}
+  .codeblock .cm{color:#5d6879;}
+  .note{font-size:12.5px;color:var(--dim);margin-top:12px;line-height:1.65;}
+  .note code,.card code,.stepcard code,li code{
+    font-family:var(--mono);font-size:12px;background:rgba(90,162,255,.12);
+    color:#a9c8ff;border-radius:5px;padding:1px 6px;
+  }
+  .conclusion{
+    margin-top:26px;background:linear-gradient(120deg,rgba(57,208,196,.08),rgba(90,162,255,.06));
+    border:1px solid rgba(57,208,196,.3);border-radius:14px;padding:18px 22px;font-size:14.5px;
+  }
+  .conclusion b{color:var(--accent);}
+
+  /* ---------- S1 Hero ---------- */
+  #hero{padding-top:64px;}
+  #hero h1{
+    font-size:clamp(24px,3.8vw,42px);font-weight:800;line-height:1.3;
+    background:linear-gradient(100deg,#e6eaf2 20%,var(--accent) 55%,var(--accent2) 90%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    max-width:960px;
+  }
+  #hero .sub{color:var(--dim);margin-top:14px;font-size:16px;letter-spacing:.05em;}
+  #hero .sub b{color:var(--txt);font-weight:600;}
+
+  /* ---------- S1 三角色关系图 ---------- */
+  .roles-shell{
+    margin-top:44px;background:var(--bg2);border:1px solid var(--line);
+    border-radius:18px;padding:28px 24px;position:relative;overflow:hidden;
+  }
+  .roles-shell::before{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(600px 240px at 20% 0%,rgba(57,208,196,.07),transparent 70%);
+  }
+  .roles{position:relative;display:grid;grid-template-columns:1fr 60px 1fr 60px 1fr;align-items:stretch;}
+  .role{
+    background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;
+    transition:border-color .3s,box-shadow .3s,transform .3s;
+  }
+  .role:hover{transform:translateY(-3px);border-color:rgba(57,208,196,.5);}
+  .role .r-tag{font-family:var(--mono);font-size:12px;letter-spacing:.1em;}
+  .role.producer .r-tag{color:var(--accent);}
+  .role.platform .r-tag{color:var(--accent2);}
+  .role.consumer .r-tag{color:var(--gold);}
+  .role h3{font-size:17px;margin:5px 0 10px;}
+  .role ul{list-style:none;}
+  .role li{font-size:13px;color:var(--dim);padding:3px 0 3px 16px;position:relative;line-height:1.55;}
+  .role li::before{content:"▸";position:absolute;left:0;color:var(--accent2);}
+  .role.producer{border-top:3px solid var(--accent);}
+  .role.platform{border-top:3px solid var(--accent2);}
+  .role.consumer{border-top:3px solid var(--gold);}
+  .role-arrow{
+    display:flex;align-items:center;justify-content:center;position:relative;
+    color:var(--dim);font-family:var(--mono);
+  }
+  .role-arrow svg{width:100%;max-width:56px;height:auto;overflow:visible;}
+  .role-arrow .cap{
+    position:absolute;top:calc(50% + 14px);font-size:11px;white-space:nowrap;color:var(--dim);
+  }
+  .role-arrow .arr{stroke:var(--line);stroke-width:2;fill:none;}
+  .role-arrow .arr-glow{
+    stroke:rgba(57,208,196,.55);stroke-width:2;fill:none;stroke-dasharray:10 60;
+    animation:flow 2.4s linear infinite;
+    filter:drop-shadow(0 0 5px rgba(57,208,196,.8));
+  }
+  .role-arrow.a2 .arr-glow{stroke:rgba(240,181,69,.55);filter:drop-shadow(0 0 5px rgba(240,181,69,.8));}
+  @keyframes flow{from{stroke-dashoffset:70;}to{stroke-dashoffset:0;}}
+  @media (max-width:900px){
+    .roles{grid-template-columns:1fr;}
+    .role-arrow{transform:rotate(90deg);height:56px;}
+    .role-arrow .cap{transform:rotate(-90deg);top:auto;right:-70px;}
+  }
+
+  /* ---------- S2 安装两卡 ---------- */
+  .install-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:20px;align-items:start;}
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;
+    transition:border-color .3s,transform .3s;
+  }
+  .card:hover{transform:translateY(-3px);border-color:rgba(57,208,196,.45);}
+  .card .c-tag{font-family:var(--mono);font-size:12px;color:var(--accent2);letter-spacing:.1em;}
+  .card h3{font-size:18px;margin:5px 0 12px;}
+  .card .kv{list-style:none;margin-top:4px;}
+  .card .kv li{font-size:13.5px;padding:7px 0 7px 18px;position:relative;border-bottom:1px dashed rgba(38,47,66,.7);}
+  .card .kv li:last-child{border-bottom:none;}
+  .card .kv li::before{content:"◆";position:absolute;left:0;top:9px;color:var(--gold);font-size:10px;}
+  .kv .vt{font-family:var(--mono);font-size:11px;border-radius:999px;padding:1px 8px;margin-right:6px;}
+  .vt.secret{background:rgba(242,109,109,.13);color:var(--red);border:1px solid rgba(242,109,109,.4);}
+  .vt.var{background:rgba(90,162,255,.13);color:var(--accent2);border:1px solid rgba(90,162,255,.4);}
+
+  /* ---------- S3 主时间线 ---------- */
+  .v-timeline{position:relative;margin-top:8px;padding-left:64px;}
+  .v-timeline::before{
+    content:"";position:absolute;left:24px;top:12px;bottom:12px;width:2px;
+    background:linear-gradient(180deg,var(--accent),var(--accent2),var(--gold));
+  }
+  .phase{position:relative;margin-bottom:44px;}
+  .phase:last-child{margin-bottom:0;}
+  .phase-marker{
+    position:absolute;left:-64px;top:0;width:50px;height:50px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--bg);border:2px solid var(--line);color:var(--dim);
+    font-family:var(--mono);font-size:22px;font-weight:700;
+    transition:border-color .5s,color .5s,box-shadow .5s;
+  }
+  .phase.lit .phase-marker{
+    border-color:var(--accent);color:var(--accent);
+    box-shadow:0 0 14px rgba(57,208,196,.5);
+  }
+  .phase-title{
+    display:inline-block;background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:8px 16px;font-size:16px;font-weight:700;margin-bottom:14px;margin-left:2px;
+    transition:border-color .5s;
+  }
+  .phase.lit .phase-title{border-color:rgba(57,208,196,.5);}
+  .phase-title .pt-sub{font-family:var(--mono);font-size:11.5px;color:var(--accent2);font-weight:400;margin-left:10px;}
+  .phase-body{font-size:13.5px;color:var(--dim);margin:0 2px 14px;line-height:1.7;}
+  .phase-body b{color:var(--txt);}
+
+  .stepcards{display:grid;gap:12px;}
+  .stepcard{
+    background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px 14px 52px;
+    position:relative;font-size:13.5px;line-height:1.65;
+    opacity:.35;transform:translateX(12px);
+    transition:opacity .5s ease,transform .5s ease,border-color .5s,background .5s;
+  }
+  .phase.lit .stepcard{opacity:1;transform:none;}
+  .phase.lit .stepcard{transition-delay:calc(var(--i) * 130ms);}
+  .stepcard:hover{border-color:rgba(57,208,196,.4);}
+  .stepcard .sn{
+    position:absolute;left:14px;top:14px;font-family:var(--mono);font-size:11px;color:var(--dim);
+    border:1px solid var(--line);border-radius:6px;padding:1px 7px;transition:all .5s;
+  }
+  .phase.lit .stepcard .sn{color:var(--accent);border-color:rgba(57,208,196,.45);}
+  .stepcard .st{font-weight:700;font-size:14px;display:block;margin-bottom:3px;}
+  .stepcard .who{
+    display:inline-block;font-family:var(--mono);font-size:11px;color:var(--gold);
+    border:1px solid rgba(240,181,69,.4);border-radius:999px;padding:0 9px;margin-left:8px;font-weight:400;
+  }
+  .stepcard p{color:var(--dim);font-size:13px;}
+  .stepcard p b{color:var(--txt);font-weight:600;}
+  .stepcard.gold{border-color:rgba(240,181,69,.4);background:rgba(240,181,69,.04);}
+  .analogy{
+    margin-top:14px;background:linear-gradient(120deg,rgba(90,162,255,.08),rgba(57,208,196,.06));
+    border:1px solid rgba(90,162,255,.35);border-radius:12px;padding:14px 18px;font-size:13.5px;
+  }
+  .analogy .a-tag{font-family:var(--mono);font-size:11.5px;color:var(--accent2);letter-spacing:.1em;display:block;margin-bottom:6px;}
+  .analogy code{font-family:var(--mono);font-size:12px;background:rgba(90,162,255,.12);color:#a9c8ff;border-radius:5px;padding:1px 6px;}
+
+  /* step 8 子卡（claude-code-action 展开） */
+  details.sub{
+    margin-top:10px;background:var(--bg2);border:1px solid var(--line);border-radius:10px;overflow:hidden;
+  }
+  details.sub summary{
+    cursor:pointer;list-style:none;padding:10px 14px;font-size:13px;font-weight:600;
+    display:flex;align-items:center;gap:8px;
+  }
+  details.sub summary::-webkit-details-marker{display:none;}
+  details.sub summary::before{content:"▸";color:var(--accent2);transition:transform .25s;}
+  details.sub[open] summary::before{transform:rotate(90deg);}
+  details.sub summary:hover{color:var(--accent);}
+  details.sub .sub-body{padding:2px 14px 14px;}
+  details.sub ol{list-style:none;counter-reset:sub;}
+  details.sub ol li{
+    counter-increment:sub;position:relative;padding:6px 0 6px 34px;font-size:12.5px;color:var(--dim);
+    border-bottom:1px dashed rgba(38,47,66,.7);line-height:1.6;
+  }
+  details.sub ol li:last-child{border-bottom:none;}
+  details.sub ol li::before{
+    content:counter(sub);position:absolute;left:0;top:7px;
+    font-family:var(--mono);font-size:11px;color:var(--accent2);
+    border:1px solid rgba(90,162,255,.4);border-radius:6px;padding:0 6px;
+  }
+  details.sub ol li b{color:var(--txt);}
+
+  /* S3 ④ 结果呈现三处 */
+  .out-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;}
+  .out-card{
+    background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;font-size:13px;
+    transition:border-color .3s,transform .3s;
+  }
+  .out-card:hover{transform:translateY(-3px);border-color:rgba(57,208,196,.45);}
+  .out-card .o-tag{font-family:var(--mono);font-size:11.5px;color:var(--accent);letter-spacing:.08em;}
+  .out-card h4{font-size:14.5px;margin:5px 0 7px;}
+  .out-card p{color:var(--dim);font-size:12.5px;line-height:1.65;}
+
+  /* ---------- S4 深水区 ---------- */
+  .deep-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:18px;align-items:start;}
+  .deep-card{
+    background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;
+  }
+  .deep-card .d-tag{font-family:var(--mono);font-size:12px;color:var(--accent2);letter-spacing:.1em;}
+  .deep-card h3{font-size:17px;margin:5px 0 12px;}
+  .deep-card p{font-size:13px;color:var(--dim);line-height:1.7;margin-bottom:8px;}
+  .deep-card p b{color:var(--txt);}
+  .deep-card code{font-family:var(--mono);font-size:12px;background:rgba(90,162,255,.12);color:#a9c8ff;border-radius:5px;padding:1px 6px;}
+  .flow-chips{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:8px 0;}
+  .fchip{font-size:12px;background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:4px 10px;}
+  .fchip b{color:var(--accent);font-weight:600;}
+  .far{color:var(--accent2);font-family:var(--mono);}
+  .vs-block{margin-top:8px;}
+  .path-row{
+    background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:10px 13px;margin-top:8px;font-size:12.5px;line-height:1.65;
+  }
+  .path-row .p-tag{
+    display:inline-block;font-family:var(--mono);font-size:11px;border-radius:6px;padding:1px 8px;margin-bottom:5px;
+  }
+  .path-row.a .p-tag{background:rgba(242,109,109,.13);color:var(--red);border:1px solid rgba(242,109,109,.4);}
+  .path-row.b .p-tag{background:rgba(78,203,113,.13);color:var(--green);border:1px solid rgba(78,203,113,.4);}
+  .path-row.b{border-color:rgba(78,203,113,.4);}
+  .path-row p{color:var(--dim);font-size:12.5px;}
+  .path-row b{color:var(--txt);}
+  .hl-red{color:var(--red);font-weight:600;}
+  .hl-green{color:var(--green);font-weight:600;}
+
+  /* ---------- S5 navmap mini-pipeline ---------- */
+  .mini-scroll{overflow-x:auto;padding-bottom:14px;scrollbar-width:thin;scrollbar-color:var(--line) transparent;}
+  .mini-pipe{display:flex;gap:0;min-width:1060px;position:relative;padding-top:34px;}
+  .mini-pipe::before{
+    content:"";position:absolute;top:12px;left:2%;right:2%;height:2px;
+    background:linear-gradient(90deg,var(--gold),var(--accent),var(--accent2));
+  }
+  .mp-item{flex:1;padding:0 12px;position:relative;}
+  .mp-item::before{
+    content:"";position:absolute;top:-28px;left:20px;width:12px;height:12px;border-radius:50%;
+    background:var(--bg);border:2px solid var(--gold);box-shadow:0 0 10px rgba(240,181,69,.55);
+    transition:background .4s,border-color .4s,box-shadow .4s;
+  }
+  .mp-item .mp-node{
+    background:var(--card);border:1px solid var(--line);border-radius:11px;padding:11px 12px;
+    opacity:.4;transform:translateY(8px);
+    transition:opacity .5s ease,transform .5s ease,border-color .5s;
+    transition-delay:calc(var(--i) * 160ms);
+  }
+  .mini-pipe.lit .mp-item .mp-node{opacity:1;transform:none;}
+  .mini-pipe.lit .mp-item::before{
+    background:var(--gold);transition-delay:calc(var(--i) * 160ms);
+  }
+  .mp-item .mp-phase{font-family:var(--mono);font-size:11px;color:var(--gold);letter-spacing:.08em;}
+  .mp-item h4{font-size:13.5px;margin:4px 0 5px;line-height:1.4;}
+  .mp-item p{font-size:12px;color:var(--dim);line-height:1.6;}
+  .mp-item.cron .mp-phase{color:var(--accent);}
+  .mp-item.cron::before{border-color:var(--accent);box-shadow:0 0 10px rgba(57,208,196,.55);}
+  .mini-pipe.lit .mp-item.cron::before{background:var(--accent);}
+
+  footer{
+    border-top:1px solid var(--line);margin-top:40px;padding:28px 0 40px;text-align:center;
+    color:var(--dim);font-size:13px;
+  }
+  footer code{font-family:var(--mono);color:var(--accent2);}
+  footer a{color:var(--accent);text-decoration:none;border-bottom:1px dashed rgba(57,208,196,.5);}
+  footer a:hover{color:#eafffb;border-bottom-style:solid;}
+
+  @media (max-width:820px){
+    section{padding:52px 0 36px;}
+    .v-timeline{padding-left:48px;}
+    .v-timeline::before{left:16px;}
+    .phase-marker{left:-48px;width:36px;height:36px;font-size:16px;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto;}
+    *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important;}
+    .stepcard,.mp-item .mp-node{opacity:1;transform:none;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ S1 Hero + 三角色关系图 ============ -->
+<section id="hero">
+  <div class="wrap">
+    <h1>AI Review CI 全流程拆解：u-boot 如何消费 agent-reviewer 的 GitHub Actions</h1>
+    <p class="sub"><b>目标仓只放 10 行 caller，评审逻辑全部住在 agent-reviewer——靠 <b>workflow_call</b> 继承。</b></p>
+
+    <div class="roles-shell">
+      <div class="roles">
+        <div class="role producer">
+          <div class="r-tag">生产方</div>
+          <h3>agent-reviewer</h3>
+          <ul>
+            <li>可复用 workflow：<code>ai-review-reusable.yml</code></li>
+            <li>场景库：<code>rules/scenarios/*.md</code> SKILL</li>
+            <li>脚本：<code>scripts/</code></li>
+          </ul>
+        </div>
+        <div class="role-arrow a1" aria-hidden="true">
+          <svg viewBox="0 0 56 24">
+            <path class="arr" d="M2 12 H46 M40 6 L48 12 L40 18"></path>
+            <path class="arr-glow" d="M2 12 H46 M40 6 L48 12 L40 18"></path>
+          </svg>
+          <span class="cap">workflow_call 继承</span>
+        </div>
+        <div class="role platform">
+          <div class="r-tag">平台</div>
+          <h3>GitHub Actions</h3>
+          <ul>
+            <li>临时 VM（runner）</li>
+            <li>Secrets 注入</li>
+            <li>OIDC</li>
+            <li>code scanning 存储</li>
+          </ul>
+        </div>
+        <div class="role-arrow a2" aria-hidden="true">
+          <svg viewBox="0 0 56 24">
+            <path class="arr" d="M2 12 H46 M40 6 L48 12 L40 18"></path>
+            <path class="arr-glow" d="M2 12 H46 M40 6 L48 12 L40 18"></path>
+          </svg>
+          <span class="cap">runner + secrets 注入</span>
+        </div>
+        <div class="role consumer">
+          <div class="r-tag">消费方</div>
+          <h3>u-boot（fork）</h3>
+          <ul>
+            <li>只有 10 行 caller：<code>.github/workflows/ai-review.yml</code></li>
+            <li>3 个配置项：<code>AI_REVIEW_API_KEY</code> / <code>BASE_URL</code> / <code>MODEL</code></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ S2 第 0 阶段：一次性安装 ============ -->
+<section id="install">
+  <div class="wrap">
+    <span class="sec-tag">第 0 阶段</span>
+    <h2>一次性安装：两个动作，u-boot 侧完成</h2>
+    <p class="sec-sub">放一个 caller 文件，配三个密钥/变量——评审逻辑一行都不用写。</p>
+    <div class="install-grid">
+      <div class="card">
+        <div class="c-tag">STEP 1 · 放 caller</div>
+        <h3>.github/workflows/ai-review.yml（全部 10 行）</h3>
+        <pre class="codeblock"><span class="k">name:</span> ai-review
+<span class="k">on:</span>
+  <span class="k">pull_request:</span> [opened, synchronize]
+<span class="k">permissions:</span>
+  <span class="k">contents:</span> read
+  <span class="k">security-events:</span> write
+  <span class="k">id-token:</span> write
+  <span class="k">pull-requests:</span> write
+<span class="k">jobs:</span>
+  <span class="k">review:</span>
+    <span class="k">uses:</span> &lt;org&gt;/agent-reviewer/.github/workflows/ai-review-reusable.yml@mvp
+    <span class="k">secrets:</span> inherit</pre>
+      </div>
+      <div class="card">
+        <div class="c-tag">STEP 2 · 配密钥</div>
+        <h3>Settings → Secrets and variables → Actions</h3>
+        <ul class="kv">
+          <li><span class="vt secret">Secret</span><code>AI_REVIEW_API_KEY</code> = DeepSeek key</li>
+          <li><span class="vt var">Variable</span><code>AI_REVIEW_BASE_URL</code> = <code>https://api.deepseek.com/anthropic</code></li>
+          <li><span class="vt var">Variable</span><code>AI_REVIEW_MODEL</code> = <code>deepseek-v4-flash</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="conclusion">至此 Actions 列表出现 <b>ai-review</b> 并 active——<b>u-boot 仓里没有一行评审逻辑</b>，这是继承的全部安装成本。</div>
+  </div>
+</section>
+
+<!-- ============ S3 主时间线 ============ -->
+<section id="timeline-sec">
+  <div class="wrap">
+    <span class="sec-tag">主时间线</span>
+    <h2>从 PR 到告警：四个阶段</h2>
+    <p class="sec-sub">每次开 PR 或推新 commit，下面这条链路完整跑一遍。向下滚动，节点逐个点亮。</p>
+
+    <div class="v-timeline">
+
+      <!-- ① 触发 -->
+      <div class="phase" id="ph1">
+        <div class="phase-marker">①</div>
+        <div class="phase-title">PR 触发<span class="pt-sub">u-boot 上下文</span></div>
+        <p class="phase-body">
+          开 PR 或推新 commit → GitHub 在 PR 分支发现 <b>ai-review.yml</b> 的
+          <code style="font-family:var(--mono);font-size:12px;background:rgba(90,162,255,.12);color:#a9c8ff;border-radius:5px;padding:1px 6px;">on: pull_request: [opened, synchronize]</code>
+          匹配 → 在 <b>u-boot 上下文</b>排队 run（u-boot 的 runner、代码、secrets）。
+        </p>
+      </div>
+
+      <!-- ② 继承解析 -->
+      <div class="phase" id="ph2">
+        <div class="phase-marker">②</div>
+        <div class="phase-title">继承解析（uses 的瞬间）<span class="pt-sub">三件事</span></div>
+        <div class="stepcards">
+          <div class="stepcard" style="--i:0">
+            <span class="sn">1</span>
+            <span class="st">下载 reusable 全文</span>
+            <p>从 <b>agent-reviewer@mvp</b> 下载 <code>ai-review-reusable.yml</code> 全文。</p>
+          </div>
+          <div class="stepcard" style="--i:1">
+            <span class="sn">2</span>
+            <span class="st">权限校验</span>
+            <p>reusable 声明的权限必须是 caller <code>permissions</code> 子集（否则 <b>startup_failure</b>）。</p>
+          </div>
+          <div class="stepcard" style="--i:2">
+            <span class="sn">3</span>
+            <span class="st">内联执行 + secrets 透传</span>
+            <p>内联执行 + <code>secrets: inherit</code> 透传 DeepSeek 配置（<code>secrets.AI_REVIEW_API_KEY</code> / <code>vars.AI_REVIEW_*</code> 在被调方可见）。</p>
+          </div>
+        </div>
+        <div class="analogy">
+          <span class="a-tag">类比</span>
+          caller = 一行函数调用 <code>review()</code>；reusable = 函数体；<code>secrets: inherit</code> = 传参。<b>函数体更新，所有调用方自动用新逻辑。</b>
+        </div>
+      </div>
+
+      <!-- ③ runner 执行 -->
+      <div class="phase" id="ph3">
+        <div class="phase-marker">③</div>
+        <div class="phase-title">runner 逐步执行<span class="pt-sub">10 步 · 每步标「谁在读什么」</span></div>
+        <div class="stepcards">
+          <div class="stepcard" style="--i:0">
+            <span class="sn">01</span>
+            <span class="st">checkout 被审代码<span class="who">GitHub 读 u-boot</span></span>
+            <p><code>actions/checkout@v4</code> 默认拉<b>调用者仓</b> = u-boot PR 代码 → <code>$GITHUB_WORKSPACE</code>。</p>
+          </div>
+          <div class="stepcard" style="--i:1">
+            <span class="sn">02</span>
+            <span class="st">checkout 评审工具<span class="who">GitHub 读 agent-reviewer</span></span>
+            <p><code>repository: agent-reviewer, ref: mvp, path: .reviewer</code> → 场景库 + 脚本。<b>至此 runner 上两份代码：u-boot 的（被审）+ agent-reviewer 的（工具）。</b></p>
+          </div>
+          <div class="stepcard" style="--i:2">
+            <span class="sn">03</span>
+            <span class="st">豁免判定<span class="who">脚本读 diff 与配置</span></span>
+            <p>diff &lt;20 行或纯文档跳过；读 <code>.ai-review-mode</code> 定模式（1/2/3）。</p>
+          </div>
+          <div class="stepcard" style="--i:3">
+            <span class="sn">04</span>
+            <span class="st">打包<span class="who">脚本读 git 历史</span></span>
+            <p><code>git diff base...HEAD &gt; /tmp/pr.diff</code></p>
+          </div>
+          <div class="stepcard" style="--i:4">
+            <span class="sn">05</span>
+            <span class="st">codegraph 索引（模式≥2）<span class="who">codegraph 读 u-boot 源码</span></span>
+            <p><code>npm i -g</code> → <code>init</code> → <code>sync</code> → <code>.codegraph/codegraph.db</code>（u-boot 级 ~500MB，秒级；<b>run 结束销毁，每 PR 重建</b>）。</p>
+          </div>
+          <div class="stepcard" style="--i:5">
+            <span class="sn">06</span>
+            <span class="st">navmap 产物（仅模式 3）<span class="who">GitHub 读产物分支</span></span>
+            <p>checkout <code>ref: navmap-outputs</code> → <code>.navmap-out/</code>（另一条 navmap-nightly workflow <b>预计算</b>的产物，PR 只消费不计算）。</p>
+          </div>
+          <div class="stepcard" style="--i:6">
+            <span class="sn">07</span>
+            <span class="st">组装 prompt<span class="who">脚本按模式拼接</span></span>
+            <p>基础指令 + codegraph 判空链回溯纪律（模式≥2）+ navmap 表使用条款（模式3）。</p>
+          </div>
+          <div class="stepcard gold" style="--i:7">
+            <span class="sn">08</span>
+            <span class="st">claude-code-action<span class="who">agent 读 diff / 场景 / 图库</span></span>
+            <p>约 20 轮 agent 循环后写出评审工件。</p>
+            <details class="sub">
+              <summary>展开：action 内部发生了什么</summary>
+              <div class="sub-body">
+                <ol>
+                  <li>下载 action → 装 <b>Claude Code CLI</b></li>
+                  <li>注入 env（<code>ANTHROPIC_BASE_URL</code>=DeepSeek 端点 / <code>AUTH_TOKEN</code>=DeepSeek key / <code>MODEL</code>）+ <code>github_token</code> + <code>allowedTools</code></li>
+                  <li>读 <code>pr.diff</code> → <b>scenarios-for 场景路由</b>（确定性，模型不参与）</li>
+                  <li>读命中场景 <code>SKILL.md</code> → <b>codegraph callers 判空链回溯</b>（≤10 跳）</li>
+                  <li><code>Write .review/review-artifact.json</code></li>
+                </ol>
+              </div>
+            </details>
+          </div>
+          <div class="stepcard" style="--i:8">
+            <span class="sn">09</span>
+            <span class="st">重新 checkout agent-reviewer<span class="who">GitHub 读 agent-reviewer</span></span>
+            <p>action 会重置 workspace，<code>.reviewer</code> 可能被清。</p>
+          </div>
+          <div class="stepcard" style="--i:9">
+            <span class="sn">10</span>
+            <span class="st">SARIF 转换 + 上传<span class="who">脚本读工件与源码</span></span>
+            <p><code>artifact-to-sarif.sh</code> → <code>/tmp/review.sarif</code>（工件 + 场景 frontmatter + u-boot 源码（<code>region.snippet</code> + message 函数体））；<code>upload-artifact</code> 归档轨迹；<code>upload-sarif</code> → code scanning。</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ④ 结果呈现 -->
+      <div class="phase" id="ph4">
+        <div class="phase-marker">④</div>
+        <div class="phase-title">结果呈现<span class="pt-sub">三处</span></div>
+        <div class="out-grid">
+          <div class="out-card">
+            <div class="o-tag">位置 1 · PR Checks</div>
+            <h4>agent-reviewer annotations</h4>
+            <p>file:line + 判断理由 + 证据链 + 代码上下文，直接钉在 PR 的 Files changed 上。</p>
+          </div>
+          <div class="out-card">
+            <div class="o-tag">位置 2 · Security → Code scanning</div>
+            <h4>Show paths 逐步跳转</h4>
+            <p>SARIF 进入 code scanning，证据链以 Show paths 形式逐步跳转呈现。</p>
+          </div>
+          <div class="out-card">
+            <div class="o-tag">位置 3 · Actions 运行页</div>
+            <h4>review-transcript 下载</h4>
+            <p>完整轨迹 + SARIF 原件，作为 artifact 归档，可复核每一轮 agent 行为。</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ S4 深水区 ============ -->
+<section id="deep">
+  <div class="wrap">
+    <span class="sec-tag">深水区</span>
+    <h2>三个容易踩坑的机制</h2>
+    <p class="sec-sub">secrets 怎么流转、token 走哪条路径、runner 磁盘上到底有什么。</p>
+    <div class="deep-grid">
+
+      <div class="deep-card">
+        <div class="d-tag">卡 A · SECRETS</div>
+        <h3>secrets 怎么被读到</h3>
+        <div class="flow-chips">
+          <span class="fchip"><b>配置侧</b></span><span class="far">→</span>
+          <span class="fchip"><b>传递侧</b></span><span class="far">→</span>
+          <span class="fchip"><b>使用侧</b></span>
+        </div>
+        <p><b>配置侧</b>：u-boot Settings 加密存储，yaml 永不见明文。</p>
+        <p><b>传递侧</b>：<code>secrets: inherit</code> 全量透传。</p>
+        <p><b>使用侧</b>两种注入：<code>env:</code>（给 Claude Code 进程，日志自动打码 <code>***</code>）vs <code>with:</code>（给 action 逻辑）。</p>
+        <p><code>vars.*</code> 明文 vs <code>secrets.*</code> 打码；<code>secrets.GITHUB_TOKEN</code> 是特例——GitHub 自动签发的 run 级临时 token，<b>无需配置</b>。</p>
+      </div>
+
+      <div class="deep-card">
+        <div class="d-tag">卡 B · TOKEN 路径</div>
+        <h3>OIDC vs GITHUB_TOKEN</h3>
+        <div class="vs-block">
+          <div class="path-row a">
+            <span class="p-tag">路径 A · action 默认</span>
+            <p>OIDC token（需 <code>id-token: write</code>）→ Anthropic 交换端点 → Claude App 安装 token → 评论署名 <b>claude[bot]</b>；前提 u-boot 装了 Claude GitHub App（<span class="hl-red">我们没装 → 401</span>）。</p>
+          </div>
+          <div class="path-row b">
+            <span class="p-tag">路径 B · 我们选的</span>
+            <p><code>github_token: ${{ secrets.GITHUB_TOKEN }}</code> → 跳过 OIDC/App 交换 → runner 自带 token → 署名 <b>github-actions[bot]</b>；<span class="hl-green">更简单、不依赖第三方 App</span>、权限由 workflow <code>permissions</code> 决定。</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="deep-card">
+        <div class="d-tag">卡 C · RUNNER 磁盘</div>
+        <h3>runner 文件系统</h3>
+        <pre class="codeblock">$GITHUB_WORKSPACE/
+├── .codegraph/codegraph.db   <span class="cm"># codegraph 现场建的图库（一次性，run 结束销毁）</span>
+├── .reviewer/                <span class="cm"># agent-reviewer checkout（可能被 action 重置）</span>
+├── .navmap-out/              <span class="cm"># 模式3 navmap-outputs checkout</span>
+└── .review/review-artifact.json
+/tmp/
+├── pr.diff
+└── review.sarif</pre>
+        <p class="note">时序硬约束——<b>codegraph sync 必须在评审前完成</b>，否则链回溯拿旧图；reviewer 把 codegraph 当普通 Bash CLI 工具用（非 MCP）。</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ S5 navmap-nightly 生产端 ============ -->
+<section id="navmap-sec">
+  <div class="wrap">
+    <span class="sec-tag">生产端</span>
+    <h2>navmap-nightly：产物从哪来</h2>
+    <p class="sec-sub">模式 3 消费的 navmap 产物由一条独立的夜间 workflow 预计算，PR 链路只读分支。</p>
+    <div class="mini-scroll">
+      <div class="mini-pipe" id="mini-pipe">
+        <div class="mp-item cron" style="--i:0">
+          <div class="mp-node">
+            <div class="mp-phase">CRON</div>
+            <h4>定时触发</h4>
+            <p>UTC 18:17 = 北京 02:17，schedule 只在默认分支生效；60 天不活动 GitHub 自动禁用，需手动 re-enable 或改外部调度。</p>
+          </div>
+        </div>
+        <div class="mp-item" style="--i:1">
+          <div class="mp-node">
+            <div class="mp-phase">STEP ①</div>
+            <h4>checkout master</h4>
+            <p><code>fetch-depth: 0</code>，增量要 git 历史。</p>
+          </div>
+        </div>
+        <div class="mp-item" style="--i:2">
+          <div class="mp-node">
+            <div class="mp-phase">STEP ②</div>
+            <h4>生成 compile_commands.json</h4>
+            <p>cmake 一行；真实核心仓复用生产 clangd 编译数据库。</p>
+          </div>
+        </div>
+        <div class="mp-item" style="--i:3">
+          <div class="mp-node">
+            <div class="mp-phase">STEP ③</div>
+            <h4>checkout navmap 工具仓 + pip 安装</h4>
+            <p>工具与数据分离，工具仓独立演进。</p>
+          </div>
+        </div>
+        <div class="mp-item" style="--i:4">
+          <div class="mp-node">
+            <div class="mp-phase">STEP ④</div>
+            <h4>分支提取</h4>
+            <p>已有产物 → <code>navmap refresh</code>（git diff ∩ 候选，分钟级）/ 首跑 → <code>navmap extract</code>（粗筛→候选→libclang 解析，十几分钟级）；产物 = 分发表/注册式/状态机表/全局变量读写清单，JSON+md 双格式标基线 commit。</p>
+          </div>
+        </div>
+        <div class="mp-item" style="--i:5">
+          <div class="mp-node">
+            <div class="mp-phase">STEP ⑤</div>
+            <h4>navmap report 质检</h4>
+            <p>ERROR / WARN / INFO 分级。</p>
+          </div>
+        </div>
+        <div class="mp-item" style="--i:6">
+          <div class="mp-node">
+            <div class="mp-phase">STEP ⑥</div>
+            <h4>提交产物分支</h4>
+            <p><code>git checkout -B navmap-outputs</code> &&amp; 提交强推产物分支。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="conclusion"><b>成本形态决定拓扑</b>：codegraph 语法级秒级 → 进 PR 链路现算；navmap 语义级分钟级 → 只能离线预计算 + 分支存储 + PR 消费，<b>时延零增加</b>。</div>
+  </div>
+</section>
+
+<!-- ============ S6 页尾 ============ -->
+<footer>
+  <div class="wrap">
+    数据来自 <code>agent-reviewer</code> 仓库与 <code>trials/</code> 归档　·　<a href="index.html">查看试验过程可视化 →</a>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* 进入视口逐节点点亮：主时间线 4 个阶段 + navmap mini-pipeline */
+  var targets = document.querySelectorAll(".phase, #mini-pipe");
+  if(reduced || !("IntersectionObserver" in window)){
+    targets.forEach(function(t){ t.classList.add("lit"); });
+    return;
+  }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){
+        e.target.classList.add("lit");
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.2 });
+  targets.forEach(function(t){ io.observe(t); });
+})();
+</script>
+</body>
+</html>
