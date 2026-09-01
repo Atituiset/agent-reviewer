@@ -390,23 +390,53 @@ FP_THRESHOLD = 3          # 30 天内同一场景 FP 达到此次数 → 触发�
 FP_WINDOW_DAYS = 30
 
 
-def _find_sarif_result(sarif_path: Path, finding_index: str) -> dict | None:
+def _iter_sarif_results(path: Path):
+    """Yield SARIF result objects from a findings file.
+
+    .sarif — a single SARIF 2.1.0 document; .jsonl — one JSON value per line,
+    either a full SARIF document or a single bare result object.
+    Unreadable/invalid files yield nothing.
+    """
     try:
-        doc = json.loads(sarif_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return None
-    for run in doc.get("runs", []):
-        for r in run.get("results", []):
-            fp = (r.get("partialFingerprints") or {}).get("findingIndex")
-            if fp == finding_index:
-                loc = (r.get("locations") or [{}])[0].get("physicalLocation", {})
-                return {
-                    "ruleId": r.get("ruleId", "default"),
-                    "uri": loc.get("artifactLocation", {}).get("uri", ""),
-                    "line": (loc.get("region") or {}).get("startLine", 0),
-                    "message": (r.get("message") or {}).get("text", ""),
-                    "confidence": (r.get("properties") or {}).get("confidence"),
-                }
+        raw = path.read_text(encoding="utf-8")
+    except OSError:
+        return
+    try:
+        if path.suffix == ".jsonl":
+            values = [json.loads(line) for line in raw.splitlines() if line.strip()]
+        else:
+            values = [json.loads(raw)]
+    except json.JSONDecodeError:
+        return
+    for v in values:
+        if isinstance(v, dict) and isinstance(v.get("runs"), list):
+            for run in v["runs"]:
+                yield from run.get("results") or []
+        elif isinstance(v, dict):
+            yield v
+
+
+def _fallback_finding_index(r: dict) -> str:
+    """Identity for results without partialFingerprints.findingIndex.
+    Must stay in sync with fallbackFindingIndex() in vscode-flywheel/src/sarifLoader.ts."""
+    loc = (r.get("locations") or [{}])[0].get("physicalLocation", {})
+    return (f"{r.get('ruleId') or 'unknown'}/"
+            f"{loc.get('artifactLocation', {}).get('uri', '')}:"
+            f"{(loc.get('region') or {}).get('startLine', 0)}")
+
+
+def _find_sarif_result(sarif_path: Path, finding_index: str) -> dict | None:
+    for r in _iter_sarif_results(sarif_path):
+        fp = (r.get("partialFingerprints") or {}).get("findingIndex") or _fallback_finding_index(r)
+        if fp == finding_index:
+            loc = (r.get("locations") or [{}])[0].get("physicalLocation", {})
+            return {
+                "ruleId": r.get("ruleId", "default"),
+                "uri": loc.get("artifactLocation", {}).get("uri", ""),
+                "line": (loc.get("region") or {}).get("startLine", 0),
+                "message": (r.get("message") or {}).get("text", ""),
+                "confidence": (r.get("properties") or {}).get("confidence"),
+            }
     return None
 
 
