@@ -4,6 +4,11 @@
   "description": "Load SARIF findings from the agent-reviewer pipeline, review them in a tree view, and label true/false positives to feed the memory flywheel.",
   "version": "0.1.0",
   "publisher": "atituiset",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Atituiset/agent-reviewer.git",
+    "directory": "vscode-flywheel"
+  },
   "engines": {
     "vscode": "^1.80.0"
   },

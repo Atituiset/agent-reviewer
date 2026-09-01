@@ -4,7 +4,11 @@ import * as path from 'path';
 export type SarifLevel = 'error' | 'warning' | 'note' | 'none';
 
 export interface Finding {
-    /** partialFingerprints.findingIndex — stable identity used by memory-label.sh */
+    /**
+     * partialFingerprints.findingIndex — stable identity used by memory-label.sh.
+     * Falls back to `ruleId/uri:startLine` when the producer did not emit one;
+     * scripts/_lib.py computes the same fallback, so labeling still round-trips.
+     */
     findingIndex: string;
     ruleId: string;
     level: SarifLevel;
@@ -14,7 +18,7 @@ export interface Finding {
     confidence?: number;
     severity?: string;
     ruling?: string;
-    /** Absolute path of the .sarif file this finding came from */
+    /** Absolute path of the .sarif/.jsonl file this finding came from */
     sarifPath: string;
 }
 
@@ -40,19 +44,43 @@ interface SarifDocument {
     runs?: Array<{ results?: SarifResult[] }>;
 }
 
-/** Parse a single SARIF 2.1.0 file into findings. Throws on unreadable/invalid JSON. */
+/**
+ * Fallback identity for results without partialFingerprints.findingIndex.
+ * Must stay in sync with _fallback_finding_index() in scripts/_lib.py.
+ */
+function fallbackFindingIndex(result: SarifResult): string {
+    const loc = result.locations?.[0]?.physicalLocation;
+    return `${result.ruleId ?? 'unknown'}/${loc?.artifactLocation?.uri ?? ''}:${loc?.region?.startLine ?? 0}`;
+}
+
+/**
+ * Collect results from one parsed JSON value: either a full SARIF document
+ * (an object with `runs`) or a single bare result object (jsonl lines may be either).
+ */
+function resultsOf(value: unknown): SarifResult[] {
+    const doc = value as SarifDocument;
+    if (doc && Array.isArray(doc.runs)) {
+        return doc.runs.flatMap((run) => run.results ?? []);
+    }
+    return [value as SarifResult];
+}
+
+/**
+ * Parse a findings file into findings. Throws on unreadable/invalid JSON.
+ * - `.sarif`: a single SARIF 2.1.0 document.
+ * - `.jsonl`: one JSON value per line — either a full SARIF document or a single result.
+ */
 export function loadSarifFile(sarifPath: string): Finding[] {
     const raw = fs.readFileSync(sarifPath, 'utf8');
-    const doc = JSON.parse(raw) as SarifDocument;
+    const values: unknown[] = sarifPath.endsWith('.jsonl')
+        ? raw.split('\n').filter((l) => l.trim() !== '').map((l) => JSON.parse(l))
+        : [JSON.parse(raw)];
     const findings: Finding[] = [];
-    for (const run of doc.runs ?? []) {
-        for (const result of run.results ?? []) {
+    for (const value of values) {
+        for (const result of resultsOf(value)) {
             const loc = result.locations?.[0]?.physicalLocation;
-            const findingIndex =
-                result.partialFingerprints?.findingIndex ??
-                `${result.ruleId ?? 'unknown'}/${loc?.artifactLocation?.uri ?? ''}:${loc?.region?.startLine ?? 0}`;
             findings.push({
-                findingIndex,
+                findingIndex: result.partialFingerprints?.findingIndex ?? fallbackFindingIndex(result),
                 ruleId: result.ruleId ?? 'unknown',
                 level: (result.level as SarifLevel) ?? 'warning',
                 uri: loc?.artifactLocation?.uri ?? '',

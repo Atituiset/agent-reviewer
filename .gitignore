@@ -4,3 +4,5 @@ memory/team.db
 .review/
 vscode-flywheel/node_modules/
 vscode-flywheel/out/
+PRIVATE-roadmap.md
+vscode-flywheel/*.vsix

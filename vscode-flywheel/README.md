@@ -4,10 +4,15 @@ VS Code extension for reviewing SARIF findings produced by the
 [agent-reviewer](../README.md) pipeline and labeling them as true/false positives to feed
 the memory flywheel — no HTTP server, everything runs through local shell scripts.
 
+> 中文使用文档（安装、告警格式、企业仓部署、故障排查）见 [USAGE.md](USAGE.md)。
+
 ## What it does
 
-- Scans the workspace for `*.sarif` files (SARIF 2.1.0, `runs[].results[]` with
-  `partialFingerprints.findingIndex`) and reloads automatically on file changes.
+- Scans the workspace for `*.sarif` files (SARIF 2.1.0, `runs[].results[]`) and
+  `*.jsonl` files (one JSON value per line — a full SARIF document or a single result),
+  and reloads automatically on file changes. Findings are identified by
+  `partialFingerprints.findingIndex`, falling back to `ruleId/uri:startLine`
+  (the same fallback `scripts/_lib.py` uses, so labeling round-trips either way).
 - Shows findings in the **AI Reviewer** activity-bar view, grouped
   **file → rule → finding**, with severity icons (`error`/`warning`/`note`).
 - Clicking a finding opens a detail WebView: rule, location (click to jump to the source

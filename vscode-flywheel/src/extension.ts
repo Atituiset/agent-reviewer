@@ -7,7 +7,7 @@ import { FindingNode, FindingsTreeProvider } from './treeProvider';
 
 async function loadWorkspaceSarif(store: SarifStore): Promise<void> {
     store.clear();
-    const uris = await vscode.workspace.findFiles('**/*.sarif', '**/node_modules/**');
+    const uris = await vscode.workspace.findFiles('**/*.{sarif,jsonl}', '**/node_modules/**');
     for (const uri of uris) {
         store.loadFile(uri.fsPath);
     }

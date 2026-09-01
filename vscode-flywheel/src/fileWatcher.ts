@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
 /**
- * Watches the workspace for *.sarif files and invokes the callback
+ * Watches the workspace for *.sarif / *.jsonl files and invokes the callback
  * whenever one is created, changed, or deleted.
  */
 export class SarifFileWatcher implements vscode.Disposable {
@@ -12,7 +12,7 @@ export class SarifFileWatcher implements vscode.Disposable {
 
     start(): void {
         this.watcher = vscode.workspace.createFileSystemWatcher(
-            '**/*.sarif',
+            '**/*.{sarif,jsonl}',
             false,
             false,
             false,
